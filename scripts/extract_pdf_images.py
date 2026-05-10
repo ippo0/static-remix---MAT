@@ -127,7 +127,7 @@ def extract(pdf_path, out_dir):
                 rects = [page.rect]
             for rect in rects:
                 image_records.append((float(rect.y0), xref, rect))
-        image_records.sort()
+        image_records.sort(key=lambda r: (r[0], r[1]))
 
         for img_idx, (y0, xref, rect) in enumerate(image_records):
             heading = None

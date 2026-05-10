@@ -63,7 +63,9 @@ Ask all four. Never skip and never silently default any of them.
 
 **Validate the math.** `sum(per_framework_counts) * variations_per_concept` must equal `total_images`. If it doesn't, show the mismatch (`expected X concepts × Y variations = Z, got W`) and ask the user to fix it. Loop until the numbers add up. Do not start generating until the math works.
 
-**Compute and confirm cost.** `concepts = total_images / variations`. Estimated cost = `total_images * $0.25`. If the cost exceeds **$10**, confirm with the user before proceeding.
+**Compute and confirm cost.** `concepts = total_images / variations`. Estimated cost = `total_images * 0.25 USD` (Nano Banana Pro is ~0.25 USD per image). If the estimated cost exceeds **10 USD**, confirm with the user before proceeding.
+
+(Numbers are written as `0.25 USD` / `10 USD` rather than `$0.25` / `$10` because the skill loader treats `$N` as a positional argument and would substitute the args into the dollar amount.)
 
 ### 4. Fetch the product page + photo
 
@@ -151,8 +153,8 @@ Save `<run_dir>/report.txt`. Plain text, no markdown headers needed:
     3. concept_NN (<framework>) — <one-line reason>
 
     Testing playbook:
-    - Budget: $25–50/day per creative for the first 48–72h.
-    - Kill criteria: kill an ad if CTR < 1% after $50 spend, or 0 purchases after $100 spend.
+    - Budget: 25-50 USD/day per creative for the first 48-72h.
+    - Kill criteria: kill an ad if CTR < 1% after 50 USD spend, or 0 purchases after 100 USD spend.
     - Read early signal from CTR + thumbstop rate before optimising for ROAS.
     - Rotate the variation axis (e.g. camera angle) to find which side of the axis wins, then iterate.
 
