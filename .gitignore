@@ -1,0 +1,11 @@
+# Generated runs (each /static-remix run drops outputs into runs/<timestamp>/)
+runs/
+
+# Python
+__pycache__/
+*.pyc
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
