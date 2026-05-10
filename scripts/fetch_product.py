@@ -23,11 +23,30 @@ import urllib.request
 from pathlib import Path
 
 
-UA = "Mozilla/5.0 (compatible; static-remix/1.0)"
+# A real-browser UA + matching headers — many storefronts (Shopify with bot
+# protection, Cloudflare, etc.) 403 anything that self-identifies as a bot,
+# including the obvious "compatible; static-remix/1.0" we used to send.
+UA = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/120.0.0.0 Safari/537.36"
+)
+DEFAULT_HEADERS = {
+    "User-Agent": UA,
+    "Accept": (
+        "text/html,application/xhtml+xml,application/xml;q=0.9,"
+        "image/avif,image/webp,image/apng,*/*;q=0.8"
+    ),
+    "Accept-Language": "en-US,en;q=0.9",
+    "Accept-Encoding": "identity",
+}
 
 
-def http_get(url, timeout=30):
-    req = urllib.request.Request(url, headers={"User-Agent": UA})
+def http_get(url, timeout=30, extra_headers=None):
+    headers = dict(DEFAULT_HEADERS)
+    if extra_headers:
+        headers.update(extra_headers)
+    req = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         return resp.read(), resp.headers.get("Content-Type", "")
 
@@ -44,7 +63,7 @@ def try_shopify_json(url):
     base = url.split("?")[0].split("#")[0].rstrip("/")
     json_url = base + ".json"
     try:
-        body, _ = http_get(json_url)
+        body, _ = http_get(json_url, extra_headers={"Accept": "application/json"})
         data = json.loads(body.decode("utf-8"))
         return data, body
     except Exception as e:
