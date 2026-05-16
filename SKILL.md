@@ -1,187 +1,182 @@
 ---
-name: static-remix
-description: Turn a PDF of winning competitor static ads into on-brand recreations of those ads for the user's product, generating images with Nano Banana Pro (Gemini 3 Pro Image Preview). Trigger when the user runs /static-remix or asks to "remix static ads from a PDF" / "recreate competitor static ads for my product." The skill walks a fixed pipeline: extract framework-labelled images from the PDF, ask the four required questions (product URL, total images, variations per concept, per-framework split), fetch and visually describe the actual product photo, write per-concept production briefs, and generate every concept x variation with the product photo attached as a reference image on every API call.
+name: ugc-cooling-mat
+description: Produce production-ready UGC video scripts for the Petlyra Cooling Mat (https://petlyra.com/products/cooling-mat) using the Universal UGC Script Writing System v2. Trigger when the user asks for a UGC script, ad script, video script, hook, or "write a UGC ad" for the cooling mat. Outputs either a Full Stack (28–32s, 5 chunks) or Mid-Funnel Punchy (18–22s, 3 chunks) script with all four Universal Direction Blocks, chunked production breakdown, soft CTA, and an organic-reach caption.
 ---
 
-# static-remix
+# ugc-cooling-mat
 
-You are running the `static-remix` pipeline. Follow the steps in order. Do not skip steps and do not silently default any of the four required user questions in step 3.
+You are running the UGC Script Writing System v2, locked to the Petlyra Cooling Mat product (https://petlyra.com/products/cooling-mat). Follow the framework below verbatim. No meta-commentary, no headers about your own process — the deliverable is the script.
 
-The slash command may be invoked with a PDF path as its argument:
+## Step 1 — Ask the user (one batched message)
 
-    /static-remix /path/to/winning-statics.pdf
+If the user has not already specified them, ask:
 
-If no path was provided, ask the user for the PDF path before doing anything else. Expand `~` to `$HOME`. If the file does not exist, stop and tell the user.
+1. **Format** — Full Stack (28–32s, cold traffic) or Mid-Funnel Punchy (18–22s, warm traffic).
+2. **Variation type** — Confessional, Tested It So You Don't Have To, Myth Buster, Accidental Discovery, or Animated Infomercial.
+3. **Hook framework** — pick one from the bank in §5.3 below, or "surprise me".
+4. **Pain point angle** — surface complaint (panting / restless dog in the heat) OR one of the deep pain points in §7.
 
-## Required environment
+If the user says "just write one" or similar, default to: Full Stack, Confessional, "If you're trying to ___ this is how you finally do it without ___", surface + recognition pain.
 
-`GEMINI_API_KEY` must be set. If it isn't, stop and tell the user to export it before re-running.
+## Step 2 — Locked brand variables (do not re-ask)
 
-## Helper scripts
+- **Brand:** Petlyra (spoken: PET-leer-uh). Default: brand stays off-mic. Do not speak the brand in voiceover unless the user explicitly requests it.
+- **Product:** Cooling Mat — refer to as "this cooling mat" or "the mat".
+- **Product category:** Pet cooling pad / pressure-activated cooling mat for dogs and cats.
+- **Core mechanism (plain language):** A pressure-activated gel inside the mat absorbs your pet's body heat the moment they lie down — no water, no electricity, no freezer.
+- **Tactile analogy (locked):** "Think of it less like a cold pack you have to prep and more like a mat that quietly pulls the heat out of your dog the second they lie on it."
+- **Failed alternatives the audience has tried:** fans pointed at the dog, ice cubes in the water bowl, wet towels on the floor, shaving the coat, bathroom-tile relocation, freezer-pack hacks, AC cranked all day.
+- **Avoid these spoken words (AI mispronounces or sound like jargon):** "thermo-conductive", "phase-change", "endothermic", "thermoregulation". Replace with: "pulls heat out", "cools on contact", "soaks up the warmth".
+- **Asset tag:** `@mat` — include in prompts where the cooling mat should appear, omit where it should not.
 
-All scripts live next to this `SKILL.md` in `scripts/`. Resolve their absolute paths from this file's directory (e.g. `~/.claude/skills/static-remix/scripts/...`). Do not rewrite their logic inline.
+## Step 3 — Output structure (deliver in this exact order)
 
-- `scripts/extract_pdf_images.py` — extracts every image from the PDF, auto-detects the heading font, labels each image by the nearest heading above it, writes a JSON manifest.
-- `scripts/fetch_product.py` — fetches the product page (Shopify-aware via `<url>.json`) and downloads the primary product image.
-- `scripts/gemini-image-ref.sh` — calls Nano Banana Pro with a text prompt + optional reference image, decodes the base64 response, saves a PNG.
+1. **Format + variation header** (one line, e.g. `Full Stack • Confessional • Hook: "Your dog is ___"`).
+2. **Pronunciation note** — only if anything in the voiceover needs phonetics.
+3. **Voiceover script** — single block of prose, the only thing the voice actor reads. Beat structure from §5. No em dashes. No bolding. No bracketed stage directions inside the voiceover.
+4. **Universal Direction Blocks** — paste all four from §4, adapted to dogs/cats and the cooling mat.
+5. **Chunked production breakdown** — per §12; 3 chunks for mid-funnel, 5 for full stack; include the product asset pattern (NO/YES per chunk).
+6. **Organic-reach caption** — per §13, matched to the chosen variation type.
 
-## Pipeline
+## §2 Non-Negotiable Principles
 
-### 1. Create the run folder
+- Hook owns the first five words. Calls out the pet parent and their specific frustration. Never narrates the creator's morning, weekend, or life.
+- Sentence flow over choppy phrasing. No two-word stutter stacks. Use connectors and complete thoughts.
+- Mechanism stays simple. A 12-year-old must understand it. Always pair it with the tactile analogy — that analogy is the single most important sentence in the script.
+- Soft CTAs only. Default to suggestion-style closes from this bank:
+  - "I'll leave a link to the one we're using below."
+  - "Linking it below so you don't have to go searching for it."
+  - "Leaving a link in the bio if you want to look into it."
+- No em dashes in voiceover. No bolding in voiceover. Commas, periods, short connectors only.
+- Swap or phoneticize any word AI voiceover tools mispronounce.
 
-Compute a local timestamp `YYYYMMDD-HHMM`. Create:
+## §4 Universal Direction Blocks (paste into every output, adapted)
 
-    ~/.claude/skills/static-remix/runs/<YYYYMMDD-HHMM>/
-        source/        # extracted PDF images
-        product/       # product page + image + visual description
-        briefs/        # teardowns + per-concept briefs
-        production/    # final generated images
+**Pet/Subject Direction Block:**
+> Important pet direction: The dog is calm, comfortable, and visibly relaxed throughout the entire video. Coat looks healthy, eyes soft, breathing steady. No visible distress, no excessive panting, no overheating body language at any point. The dog looks exactly like a pet who has been using this cooling mat for weeks, because she has. This applies to every talking-to-camera scene, every product reveal, and every close-up of the pet.
 
-Hold onto the absolute run-folder path; you'll reference it throughout.
+(Exception: if the chosen pain point is surface panting, Chunk 1 of the Full Stack format may briefly show the dog restless or panting in the background — never in close-up — to ground the hook. From the product reveal onward she is calm.)
 
-### 2. Extract images from the PDF
+**Application Direction Block:**
+> Important application direction: When the dog lies down on the cooling mat, the mat should look like a normal soft pad — no visible frost, no condensation, no glowing gel, no blue tint, no ice effect, no animated cooling vapor. The surface stays a neutral fabric color the entire time. The dog settles onto it the way a dog settles onto any familiar bed. The only signal the mat is working is the dog relaxing and exhaling.
 
-Run:
+**B-Roll Sequencing Block:**
+> Important b-roll sequencing: The cooling mat must not appear on screen until the voiceover specifically introduces it. During the hook and reframe beats the camera stays on the creator (and optionally the restless dog if the pain point calls for it). No decorative shots of the apartment, no shots of dog toys, furniture, or art. The mat is only revealed visually at the exact moment the voiceover names it.
 
-    python3 ~/.claude/skills/static-remix/scripts/extract_pdf_images.py "<pdf_path>" "<run_dir>/source"
+**UGC Realism Direction Block:**
+> Important UGC realism direction: This is a casually filmed video. The phone is propped somewhere off-camera so both hands are free throughout. Natural handheld jitter and small micro-movements give it a self-filmed feel. The creator gestures naturally with both hands as she talks — touches her dog's head when relevant, small open-palm gestures, shifts weight between her feet. She is never frozen in a still pose with her hands in her pockets or behind her back. The energy is "I just want to tell you something about my dog" not "I am posing for a commercial."
 
-The script auto-detects the heading font by picking the font that appears in short text spans on the most pages, then labels every extracted image with the nearest heading above it. It writes `<run_dir>/source/manifest.json` and prints a JSON summary including `headings_detected`.
+## §5 Voiceover Architecture
 
-If the script reports `image_count: 0` or every image is `(unlabeled)`, stop and tell the user — the PDF probably doesn't match the expected layout (section heading above each ad).
+**Full Stack — five beats, 150–180 words, 28–32s:**
+1. Hook (0:00–0:03, two sentences) — pet parent + specific frustration.
+2. Problem Reframe (0:03–0:10) — why fans, ice water, wet towels physically cannot solve it: dogs cool by contact, not by air.
+3. Mechanism + Analogy (0:10–0:20) — name the cooling mat, explain pressure-activated gel in plain language, land the tactile analogy.
+4. Payoff (0:20–0:25) — sensory and specific: the dog flopping down, the long exhale, ears relaxing, the apartment going quiet.
+5. Soft CTA (0:25–0:30).
 
-### 3. Ask the four required questions (use AskUserQuestion)
+**Mid-Funnel — three beats, 55–70 words, 18–22s:**
+1. Sharp Hook with Reframe folded in (0:00–0:06).
+2. Mechanism with Analogy (0:06–0:16) — analogy stays intact at all costs.
+3. Soft Payoff + Close (0:16–0:21).
 
-Ask all four. Never skip and never silently default any of them.
+### §5.3 Hook framework bank (rotate across scripts)
 
-**Q1. Product URL (no default).** Ask in its own AskUserQuestion call. Provide two placeholder options like `Shopify product page` and `Other product page` so the user can hit "Other" and type the URL freely. Validate it starts with `http`.
+- "If you're trying to ___ this is how you finally do it without ___."
+- "Your dog is ___, and ___ won't fix it."
+- "The biggest myth about ___ is..."
+- "I tested ___ so you don't have to."
+- "I wish someone had told me this before I started ___."
+- "What nobody warns you about with ___ is..."
+- "Why your dog's ___ isn't working and how to fix it."
+- "Don't make this mistake with ___."
+- "This one thing changed everything for us with ___."
+- "How I stopped my dog from ___."
 
-**Q2. Total images.** Options: `10`, `30`, `50`, `100` (auto-Other lets them type any number).
+### §5.4 Universal reframe pattern (adapted)
 
-**Q3. Variations per concept.** Options: `1`, `2 (Recommended)`, `3`. Variations share a framework — only one axis changes between them (camera angle, overlay wording, palette tone, etc.).
+> "Most people think a hot dog is an air problem so they keep blasting fans and cranking the AC. But it is actually a contact problem, which is why fans and ice water physically cannot reach where the heat actually sits."
 
-**Q4. Per-framework split.** Show the frameworks you got back in `headings_detected`. Offer `Even split across all detected frameworks` plus `Custom (I'll specify counts)`. If the user picks Custom, ask a follow-up where they type counts like `20 US VS THEM, 10 BOLD CLAIM, 10 Before & After, 10 TESTIMONIAL`.
+## §6 Variation Types
 
-**Validate the math.** `sum(per_framework_counts) * variations_per_concept` must equal `total_images`. If it doesn't, show the mismatch (`expected X concepts × Y variations = Z, got W`) and ask the user to fix it. Loop until the numbers add up. Do not start generating until the math works.
+- **Confessional** — first-person, present-tense, includes a personal admission.
+- **Tested It So You Don't Have To** — audience surrogate who tried fans, ice cubes, wet towels, shaving — none of it worked.
+- **Myth Buster** — opens with a corrective reframe ("Fans don't cool your dog. They cool you.").
+- **Accidental Discovery** — creator stumbled onto it (saw it at the groomer, at a friend's house).
+- **Animated Infomercial** — no creator, pure product cinematography with voiceover. Product visible in every chunk.
 
-**Compute and confirm cost.** `concepts = total_images / variations`. Estimated cost = `total_images * 0.25 USD` (Nano Banana Pro is ~0.25 USD per image). If the estimated cost exceeds **10 USD**, confirm with the user before proceeding.
+## §7 Pain Points (pick one per script)
 
-(Numbers are written as `0.25 USD` / `10 USD` rather than `$0.25` / `$10` because the skill loader treats `$N` as a positional argument and would substitute the args into the dollar amount.)
+Surface complaint: panting, restless pacing, can't settle in the heat.
 
-### 4. Fetch the product page + photo
+Deep pain points (rotate for scaling):
+- **Public visibility pain** — watching your dog struggle in front of guests, at the park, on walks.
+- **The mental tax** — the daily juggling of fans, ice cubes, frozen towels, AC bills, bathroom-tile relocation.
+- **The aging / time pain** — an older dog who has spent every summer of her life uncomfortable.
+- **The "I've fixed everything else" pain** — you've solved every other dog-parenting problem and this is the one that won't budge.
+- **Intimacy / close-up pain** — the dog who used to cuddle now lies alone on the cold tile.
+- **The recognition pain** — not recognizing your normally playful dog in the heat.
 
-Run:
+Default rule: first scripts in a campaign target the surface complaint. Once those run, expand into deep pain points. Mass-desire angles (cut across age, gender, lifestyle) outperform niche ones.
 
-    python3 ~/.claude/skills/static-remix/scripts/fetch_product.py "<product_url>" "<run_dir>/product"
+## §8 Camera & B-Roll Standards
 
-This writes `<run_dir>/product/product_summary.json` with `title`, `price`, `images`, and `primary_image_path`. For Shopify URLs it also saves `<run_dir>/product/product.json` with the full product payload.
+- Every shot has movement — handheld jitter on talking-to-camera, subtle drift or micro-push-ins on hands-free shots, tracking on b-roll.
+- Visual-to-voiceover sync — when the narrator says "mat", show the mat. When she says "she finally settled", show the dog settling.
+- Cuts are motivated, not decorative. No cinematic establishing shots of the apartment.
+- Scenes: 3 for Full Stack, 2 for Mid-Funnel (3 only if voiceover requires).
+- Pacing: normal speed, no slo-mo, no speed-ups.
+- Rotate settings across the campaign: sunlit living room afternoon, hardwood kitchen morning, soft afternoon side-window bedroom, back patio outdoor light, lived-in family room evening.
+- Rotate creator demographics across the campaign: 24–32, 32–38, 35–45, plus at least one male dog-dad variation.
 
-If `primary_image_path` is null, stop and tell the user — every generation needs a product photo as the reference image. Generation cannot start without it.
+## §9 Failure Modes — self-correct against these
 
-**Critical step.** Open `primary_image_path` with the **Read** tool and look at it. Then write a concrete visual description to `<run_dir>/product/visual_description.md`:
+Rambling hooks. Choppy phrasing. Jargon mechanisms (replace "thermoregulation" etc.). Veering CTAs. Static b-roll. Mismatched visuals. Decorative b-roll. Over-formatting the prompt. Phone in hand when not needed. Frozen poses. Product visibility before the voiceover earns it. Distressed or panting dog shown in the payoff. Frost / condensation / blue glow / animated vapor on the mat — the mat is a neutral fabric surface.
 
-- Bottle / package shape and color
-- Cap color and finish
-- Label typography and any prominent label words
-- Capsule / softgel / pill color (if visible)
-- Brand color palette (3–6 hex-ish colors you actually see)
-- Anything else the camera catches: textures, gloss, material
+## §10 Brand Input Variables — already locked above. Do not invent new values.
 
-Do **not** describe the product from the page text alone. Viewing the image is what keeps every later generation on-brand. Keep this file open conceptually — every prompt you write later should reuse these details.
+## §12 Chunked Production Breakdown
 
-### 5. Pick + tear down source examples
+For every chunk emit: chunk number + beat label, voiceover text (verbatim from the script), estimated runtime, `@mat` inclusion (YES / NO), visual direction, continuity notes.
 
-Group `manifest.json` images by `heading` (= framework). For each framework you'll be using (per the step-3 split), pick the strongest one or two examples and view each with **Read**. Append a teardown block to `<run_dir>/briefs/teardowns.md`:
+**Full Stack — 5 chunks. Product asset pattern: NO, NO, NO, YES, NO.**
+1. Hook (5–6s, NO `@mat`) — talking-to-camera, primary setting, both hands free. Optionally the dog is in frame, restless if the pain point calls for it. Lock outfit, hair, lighting, position — this is the baseline.
+2. Reframe Part 1 (5–6s, NO `@mat`) — same setting, slight angle shift. Dismissive gesture on the list of failed alternatives.
+3. Reframe Part 2 (5–6s, NO `@mat`) — the structural truth. Hook tension peaks. Still no mat.
+4. Mechanism + Product Reveal + Application (8–10s, YES `@mat`) — cut motivated by physical movement. Creator places the cooling mat down, dog walks over and settles, macro close-up of the chest relaxing on the exhale. Mat surface stays neutral.
+5. Payoff + Soft CTA (5–6s, NO `@mat`) — bookend Chunk 1 framing. Genuine earned smile on the payoff. Subtle downward gesture on the CTA.
 
-    ## <framework> — <source filename>
-    - **Framework:** <name>
-    - **Why it works:** <psychological hook — contrast, proof, specificity, urgency>
-    - **Keep:** <structural elements that transfer (composition, overlay placement, before/after split, etc.)>
-    - **Swap:** <what to replace with the user's brand — palette, copy, product photo>
+**Mid-Funnel — 3 chunks. Product asset pattern: NO, YES, NO.**
+1. Hook + Reframe folded together (5–7s, NO `@mat`).
+2. Mechanism + Product Reveal (8–10s, YES `@mat`) — cut motivated by movement. Place mat, dog settles, close-up of relaxed breathing.
+3. Payoff + Soft CTA (5–6s, NO `@mat`, bookend Chunk 1).
 
-These teardowns inform the briefs in step 6.
+**Animated Infomercial:** `@mat` YES on every chunk. Replace "visual direction" with "cinematography direction" — orbit, macro of the gel surface, hero shot. Mid-funnel: 3–4 chunks. Full stack: 5–6 chunks.
 
-### 6. Write per-concept production briefs
+**Bookend rule:** Chunk 1 and the final chunk match framing as closely as possible.
+**Fallback rule (Full Stack):** Chunk 3 is the easiest to drop or fold into Chunk 2 if a generation fails. Chunk 4 is the hardest to regenerate — plan extra time.
+**Character lock:** describe the creator (age range, energy, hair, outfit, setting) once at the top of the breakdown and paste verbatim into every chunk's prompt. Lock the dog the same way (breed, coat color, size, collar).
 
-Pull pricing, discount %, bundle counts, and any offer copy verbatim from `product_summary.json` and `product.json`. Never invent numbers.
+## §13 Organic-Reach Caption
 
-Write `<run_dir>/briefs/concepts.md` with one block per concept, in the count distribution agreed in step 3:
+Rules: lowercase, conversational, no hashtags, max one soft emoji, 1–2 short sentences. Alludes to the topic, does not directly sell. Match template to variation:
 
-    ## Concept 01 — <framework>
-    - **Scene:** <composition, lighting, props, palette pulled from visual_description.md>
-    - **Text overlays (exact quoted copy):**
-      - Headline: "<exact words>"
-      - Sub: "<exact words>"
-      - Badge / sticker: "<exact words>"
-    - **Headline (the big claim):** "<...>"
-    - **Caption (the post body, 1–3 sentences):** <...>
-    - **Variation axis:** <one thing that changes between var_01 and var_02 — e.g. camera angle (eye-level → top-down), or overlay wording, or palette tone>
+- **Confessional / Accidental Discovery:** "nobody told me my dog wasn't panting because it was hot, she was panting because nothing in the house was actually cooling her. wish i'd figured this out summers ago"
+- **Tested It:** "spent two summers buying fans and freezing towels before i realized none of it was actually touching her"
+- **Myth Buster:** "if you've been pointing a fan at your dog thinking it'd cool her down, read this"
+- **Universal:** "genuinely did not know dogs cool by contact, not by air. if your dog still pants with the ac on, this might explain why"
 
-Total concept count = `total_images / variations`. The per-framework counts must match step 3.
+Drop the actual product link in the first comment of the post, not in the caption. First comment can be slightly more direct: "linking what we're using in the bio if anyone wants to check it out."
 
-### 7. Generate every concept × variation
+## Final self-audit (run on every script before delivering)
 
-Default aspect ratio is `1:1`. If the user mentioned a specific placement (Stories → `9:16`, feed portrait → `4:5`), confirm before generating.
+1. Hook owns the first five words and calls out the pet parent, not the creator's morning.
+2. No em dashes, no bolding, no jargon, no two-word stutter stacks in the voiceover.
+3. Mechanism is 12-year-old simple and paired with the locked tactile analogy.
+4. CTA is soft and pulled from the bank.
+5. The mat does not appear in any chunk where `@mat` is NO.
+6. The dog is calm everywhere the mat appears, and the mat surface is neutral (no frost / blue / condensation / vapor).
+7. Word count and chunk count match the chosen format (150–180 / 5 chunks, or 55–70 / 3 chunks).
+8. Caption is lowercase and does not directly sell.
 
-For each concept, for each variation, run:
-
-    ~/.claude/skills/static-remix/scripts/gemini-image-ref.sh \
-      --prompt "<prompt text>" \
-      --aspect "1:1" \
-      --reference "<run_dir>/product/<product_image_filename>" \
-      --output "<run_dir>/production/concept_<NN>_var_<MM>.png"
-
-Build each prompt by combining: scene description, exact overlay copy in quotes, palette + product details from `visual_description.md`, the variation axis applied. Tell the model the on-pack copy must be rendered legibly and that the bottle must look like the reference image.
-
-**Always pass `--reference` pointing at the product photo.** That's what makes the brand visual consistent across every image. Do not skip it on any call.
-
-Run the calls **sequentially** (no `&` / no parallel). After the full pass, look at stderr from any failed call. If the failure was an HTTP 500, retry that single call once. Other HTTP codes (400/401/403/404/429) are not retried — surface the message to the user and keep going.
-
-Track every output (success/fail) in a list so you can summarize counts in the report.
-
-### 8. Write `report.txt`
-
-Save `<run_dir>/report.txt`. Plain text, no markdown headers needed:
-
-    static-remix run — <timestamp>
-    Run folder: <abs path>
-    Product: <title> — <product_url>
-    Total images requested: <N>   produced: <K>   failed: <K - produced>
-
-    Top 3 concepts to test first:
-    1. concept_NN (<framework>) — <one-line reason>
-    2. concept_NN (<framework>) — <one-line reason>
-    3. concept_NN (<framework>) — <one-line reason>
-
-    Testing playbook:
-    - Budget: 25-50 USD/day per creative for the first 48-72h.
-    - Kill criteria: kill an ad if CTR < 1% after 50 USD spend, or 0 purchases after 100 USD spend.
-    - Read early signal from CTR + thumbstop rate before optimising for ROAS.
-    - Rotate the variation axis (e.g. camera angle) to find which side of the axis wins, then iterate.
-
-    Per-concept details:
-    Concept 01 — <framework>
-      Headline: "<...>"
-      Caption: "<...>"
-      Variation axis: <...>
-      Files: production/concept_01_var_01.png, production/concept_01_var_02.png
-    Concept 02 — ...
-
-Pick the top 3 by combining: how strong the source teardown was, how on-brief the rendered overlays look, and framework variety (don't pick all three from the same framework unless one framework dominates the run).
-
-### 9. Final chat message
-
-Send a short final message to the user. Do **not** dump the whole report. Three short lines:
-
-    Run: <abs run folder path>
-    Images: <produced>/<requested> (<failed> failed)
-    Top 3 to test first: concept_NN (<framework>), concept_NN (<framework>), concept_NN (<framework>)
-
-That's it. Stop.
-
-## Notes and failure modes
-
-- The bash helper exits non-zero on any non-200 from the Gemini API. The HTTP code and a snippet of the response body go to stderr — capture stderr to detect 500s for the end-of-run retry pass.
-- If you can't view the product image with Read, stop. The skill is only on-brand because you describe what you actually see.
-- Don't fabricate prices, discounts, or "as seen in" claims. Only use copy that appears in the product page or in the user's instructions.
-- Sequential calls are intentional — parallel calls hit rate limits and obscure failures.
-- This skill is invoked manually with `/static-remix`. Don't auto-trigger it from other contexts.
+Deliver the output. Do not explain the framework to the user unless they ask.
