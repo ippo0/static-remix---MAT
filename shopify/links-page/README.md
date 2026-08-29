@@ -18,6 +18,17 @@ production.
 file does **not** update the store — the page body is the source of truth and
 must be updated through the Admin API or the Shopify admin.
 
+## Button destinations
+
+| Button | Destination | Handle shown |
+|---|---|---|
+| Shop all fragrances | `https://raqi.ae/collections/all` | — |
+| WhatsApp | `https://wa.me/message/5GLLZ5OXO7YDF1` | — |
+| Instagram | `https://www.instagram.com/raqi.scents/` | `@raqi.scents` |
+| TikTok | `https://www.tiktok.com/@raqi.ae` | `@raqi.ae` |
+
+Instagram and TikTok genuinely use different handles. Do not harmonise them.
+
 ## Notes
 
 - The page body is self-contained: scoped CSS, inline SVG icons, no JavaScript.
