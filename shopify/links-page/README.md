@@ -11,7 +11,7 @@ production.
 | Page | `Links` — handle `links` — Page ID `160326517043` |
 | URL | `raqi.ae/pages/links` |
 | Status | Published |
-| Template | template suffix `links` → `templates/page.links.liquid` |
+| Template | default page template — suffix **not yet set** (see below) |
 | Redirects | `/box` → `/pages/links` (ID `558951629107`)<br>`/links` → `/pages/links` (ID `558951694643`) |
 
 `links-page.html` is the page body exactly as stored in Shopify. Editing this
@@ -89,6 +89,16 @@ provide this, mirroring what is deployed:
 Vertical centring uses `margin:auto` on a `.rl-shell` wrapper inside a flex
 body. Unlike `align-items:center`, this never clips the top when the content
 is taller than the viewport (which happens at 320 px).
+
+Themes currently carrying both files, byte-identical:
+
+| Theme | ID | Role |
+|---|---|---|
+| `Copy of Raqi box` | `188395618611` | unpublished — the one to publish |
+| `Raqi box — cart delivery line v2 (draft)` | `188099166515` | unpublished — **do not publish**, branched from an older point |
+
+Any future theme that gets published must carry both files *before* it is
+published, or the suffix has to come off first. See the box below.
 
 > ### The template suffix and the published theme must be changed together
 >
