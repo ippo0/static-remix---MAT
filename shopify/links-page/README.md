@@ -46,14 +46,28 @@ Vertical centring uses `margin:auto` on a `.rl-shell` wrapper inside a flex
 body. Unlike `align-items:center`, this never clips the top when the content
 is taller than the viewport (which happens at 320 px).
 
-> **These files live on the draft theme `188099166515` only.** The live theme
-> `Raqi box` (`188008038707`) does not have them, so `raqi.ae/pages/links`
-> keeps rendering with full chrome until that draft theme is published. The
-> template suffix is store-level, so the live theme simply falls back to its
-> default `templates/page.json`.
+> ### The template suffix and the published theme must be changed together
 >
-> Preview before publishing:
-> `raqi.ae/pages/links?preview_theme_id=188099166515`
+> The template suffix is stored on the **page**, not the theme, so it applies
+> to whichever theme is live. **Shopify does not fall back to the default
+> template when the suffix's template is missing from the published theme —
+> the URL 404s.** This was confirmed the hard way on 2026-08-29: setting the
+> suffix to `links` while the live theme lacked `templates/page.links.liquid`
+> took `raqi.ae/pages/links` (and therefore `raqi.ae/box`) to a 404 until the
+> suffix was removed.
+>
+> So the safe order is always **file first, suffix second**:
+>
+> 1. Get `layout/links.liquid` and `templates/page.links.liquid` into the
+>    theme that is about to be published.
+> 2. Publish that theme. The page still renders, with chrome, because the
+>    suffix is unset — nothing breaks.
+> 3. Set the page's template suffix to `links`. The page goes bare
+>    immediately.
+>
+> Rolling back is step 3 in reverse: unset the suffix and the page returns to
+> the default template. Never set the suffix while the live theme lacks the
+> template.
 
 ## Notes
 
