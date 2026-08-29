@@ -10,6 +10,7 @@ production.
 |---|---|
 | Page | `Links` — handle `links` — Page ID `160326517043` |
 | URL | `raqi.ae/pages/links` |
+| Status | Published |
 | Template | default page template (no template suffix) |
 | Redirects | `/box` → `/pages/links` (ID `558951629107`)<br>`/links` → `/pages/links` (ID `558951694643`) |
 
@@ -29,6 +30,11 @@ must be updated through the Admin API or the Shopify admin.
   cannot re-underline or recolour the buttons.
 - Arabic strings live in the markup itself. This page is deliberately **not**
   managed by Translate & Adapt.
+- The WhatsApp button uses the WhatsApp Business short link
+  `wa.me/message/5GLLZ5OXO7YDF1`, not a phone number. That code is **resettable**
+  from the WhatsApp Business app (QR code screen → Reset), and resetting it
+  breaks this link. Nothing printed depends on it — the printed URL is
+  `raqi.ae/box` — but if the code is ever reset, this page must be updated.
 
 ## Deploying a change
 
