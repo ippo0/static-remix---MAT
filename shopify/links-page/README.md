@@ -31,9 +31,25 @@ Instagram and TikTok genuinely use different handles. Do not harmonise them.
 
 ## Print constraints for the QR code
 
-The QR code printed on Discovery Box packaging encodes `raqi.ae/box`. These
-constraints are set by the brand owner and are not negotiable by whoever
-produces the artwork:
+The QR artwork is produced separately and is not held in this repo. As sent
+to the printer:
+
+| | |
+|---|---|
+| Encodes | `https://raqi.ae/box` |
+| Format | vector PDF |
+| Colour | dark wine on light |
+| Error correction | H (~30% damage tolerance) |
+| Size | 25 mm, with a 6 mm quiet zone |
+
+At 19 characters the URL encodes in byte mode as a version 3 symbol — 29×29
+modules, 24-byte capacity at ECC H. That puts modules at 0.86 mm at 25 mm,
+and makes the 6 mm quiet zone about 7 modules against a spec minimum of 4.
+At the 20 mm floor below, modules would still be 0.69 mm. The geometry has
+healthy margin at every point.
+
+These constraints are set by the brand owner and are not negotiable by
+whoever produces the artwork:
 
 - **Print in ink or foil. Never deboss or emboss the code.** A debossed code
   carries no colour contrast and will not scan.
