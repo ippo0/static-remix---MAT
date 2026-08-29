@@ -11,7 +11,7 @@ production.
 | Page | `Links` — handle `links` — Page ID `160326517043` |
 | URL | `raqi.ae/pages/links` |
 | Status | Published |
-| Template | default page template — suffix **not yet set** (see below) |
+| Template | template suffix `links` → `templates/page.links.liquid` |
 | Redirects | `/box` → `/pages/links` (ID `558951629107`)<br>`/links` → `/pages/links` (ID `558951694643`) |
 
 `links-page.html` is the page body exactly as stored in Shopify. Editing this
@@ -94,11 +94,14 @@ Themes currently carrying both files, byte-identical:
 
 | Theme | ID | Role |
 |---|---|---|
-| `Copy of Raqi box` | `188395618611` | unpublished — the one to publish |
+| `Copy of Raqi box` | `188395618611` | **live (MAIN)** |
 | `Raqi box — cart delivery line v2 (draft)` | `188099166515` | unpublished — **do not publish**, branched from an older point |
+| `Raqi box` | `188008038707` | unpublished — the previous live theme, superseded |
 
 Any future theme that gets published must carry both files *before* it is
-published, or the suffix has to come off first. See the box below.
+published, or the suffix has to come off first. The previous live theme
+`Raqi box` (`188008038707`) does **not** have them — rolling back to it would
+404 this page unless the suffix is unset first. See the box below.
 
 > ### The template suffix and the published theme must be changed together
 >
