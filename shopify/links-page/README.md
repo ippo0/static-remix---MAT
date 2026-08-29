@@ -29,6 +29,34 @@ must be updated through the Admin API or the Shopify admin.
 
 Instagram and TikTok genuinely use different handles. Do not harmonise them.
 
+## Print constraints for the QR code
+
+The QR code printed on Discovery Box packaging encodes `raqi.ae/box`. These
+constraints are set by the brand owner and are not negotiable by whoever
+produces the artwork:
+
+- **Print in ink or foil. Never deboss or emboss the code.** A debossed code
+  carries no colour contrast and will not scan.
+- **The clear margin around the code is part of the artwork.** Do not crop it
+  and do not print anything inside it.
+- **Never scale the code below 20 mm.**
+
+Two things for the print vendor to watch, neither of which overrides the
+above:
+
+- Foil is permitted but is specular. Under direct light a foil code can throw
+  glare across the modules and fail to scan even though the contrast is
+  nominally fine. Test the actual foil on the actual substrate under hard
+  light before signing off a run.
+- Keep the code dark-on-light. Inverted codes (light modules on a dark
+  ground) are optional in the spec and a number of phone cameras will not
+  read them.
+
+`raqi.ae/box` is deliberately short. Fewer characters means a lower-density
+symbol with larger modules at any given size, which is what makes 20 mm
+viable at all. Repointing the destination later is a redirect change, never a
+reprint — see the redirects table above.
+
 ## Standalone layout
 
 The page renders with no store chrome — no header, footer, announcement bar,
