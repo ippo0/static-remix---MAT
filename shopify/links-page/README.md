@@ -11,7 +11,7 @@ production.
 | Page | `Links` — handle `links` — Page ID `160326517043` |
 | URL | `raqi.ae/pages/links` |
 | Status | Published |
-| Template | default page template (no template suffix) |
+| Template | template suffix `links` → `templates/page.links.liquid` |
 | Redirects | `/box` → `/pages/links` (ID `558951629107`)<br>`/links` → `/pages/links` (ID `558951694643`) |
 
 `links-page.html` is the page body exactly as stored in Shopify. Editing this
@@ -28,6 +28,32 @@ must be updated through the Admin API or the Shopify admin.
 | TikTok | `https://www.tiktok.com/@raqi.ae` | `@raqi.ae` |
 
 Instagram and TikTok genuinely use different handles. Do not harmonise them.
+
+## Standalone layout
+
+The page renders with no store chrome — no header, footer, announcement bar,
+navigation, cart icon, breadcrumb or page title. Two files under `theme/`
+provide this, mirroring what is deployed:
+
+- `layout/links.liquid` — a bare layout. Keeps only `content_for_header`
+  (required by Shopify) plus a few lines of centring CSS. Skips
+  `header-group`, `footer-group`, `main.css`, `raqi-theme.css`, `vendor.js`
+  and `theme-global.js`.
+- `templates/page.links.liquid` — a Liquid template that outputs
+  `{{ page.content }}` through that layout.
+
+Vertical centring uses `margin:auto` on a `.rl-shell` wrapper inside a flex
+body. Unlike `align-items:center`, this never clips the top when the content
+is taller than the viewport (which happens at 320 px).
+
+> **These files live on the draft theme `188099166515` only.** The live theme
+> `Raqi box` (`188008038707`) does not have them, so `raqi.ae/pages/links`
+> keeps rendering with full chrome until that draft theme is published. The
+> template suffix is store-level, so the live theme simply falls back to its
+> default `templates/page.json`.
+>
+> Preview before publishing:
+> `raqi.ae/pages/links?preview_theme_id=188099166515`
 
 ## Notes
 

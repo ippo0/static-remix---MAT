@@ -1,0 +1,9 @@
+{%- comment -%}
+  Standalone landing-page template for the RAQI links page (handle: links).
+
+  Renders the page body and nothing else, through layout/links.liquid, which
+  strips the store chrome. Assigned to the Links page via its template suffix
+  ("links") in the admin.
+{%- endcomment -%}
+{% layout 'links' %}
+{{ page.content }}
