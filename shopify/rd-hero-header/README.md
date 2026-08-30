@@ -78,3 +78,31 @@ matter before `box` is ever published:
 
 `box` carries `layout/links.liquid` and `templates/page.links.liquid`, so
 publishing it will not 404 `raqi.ae/pages/links` or `/box`.
+
+## 2026-08-30 — rd-steps added
+
+`templates/index.json` still referenced the old `raqi_steps`
+(`raqi-concept-steps`) section. That was in scope from the start of the
+redesign work but out of scope of the hero/header copy, so it was never
+swapped. `sections/rd-steps.liquid` did not exist on `box` and was
+transferred from the Redesign source.
+
+| File | Bytes | MD5 | Verdict |
+|---|---|---|---|
+| `sections/rd-steps.liquid` | 3109 | `e4256b77af7fecc472dc8277b515b8b7` | PASS — matches source |
+
+`templates/index.json` is now 7629 bytes, MD5 `3b8d1dbbf38a45318619ba53a8641c81`.
+The `raqi_steps` entry is removed entirely; `rd_steps` carries the Redesign's
+three step blocks and both settings.
+
+Homepage order is now: `rd_hero`, `rd_steps`, `raqi_collections`,
+`raqi_selected`, `raqi_story_sizes`.
+
+In the full approved Redesign order `rd_trust` sits between `rd_hero` and
+`rd_steps`. It is not on `box` yet, so `rd_steps` directly follows the hero
+for now and `rd_trust` slots between them when it is added.
+
+`rd-steps` needs no new dependencies — it renders `rd-fonts` and styles from
+`assets/raqi-redesign.css`, both already present. Its three step images are
+unset, so each cell renders an "Image pending" well rather than a photograph;
+the section comment states this is deliberate (§10.1, no stock substitutes).
