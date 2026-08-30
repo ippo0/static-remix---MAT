@@ -556,3 +556,72 @@ Written as two separate calls, section file first. Unlike the `rd_faq` batch,
 nothing was stripped: all six blocks kept their `collection` settings, the
 `block_order` survived, and the stored file matched the local original
 byte-for-byte on the first attempt.
+
+## 2026-08-30 — Brands page expanded to every brand, text-only cards
+
+The Brands page now lists all 21 fragrance houses in the catalogue, not the
+six that happened to have a collection.
+
+| File | Bytes | MD5 | Verdict |
+|---|---|---|---|
+| `sections/rd-brands-index.liquid` | 6005 | `b5e00b7f316c05fa7c4502e320b6d9dd` | PASS |
+| `templates/list-collections.json` | 2582 | `f2cb6f03b484970e5622468ad9d2f305` | PASS |
+
+### 15 smart collections created (store data, not theme)
+
+33 products carry 22 distinct vendors. Six already had a collection; RAQI was
+excluded (see below); the remaining 15 were created as smart collections with
+a single rule, `VENDOR EQUALS <name>`, `appliedDisjunctively: false`,
+`sortOrder: BEST_SELLING`, no template suffix — matching the existing vendor
+collections. Each was published to Online Store, Facebook & Instagram and
+TikTok, matching how the existing six are published.
+
+Byredo, Dior, Guerlain, Initio, Jean Paul Gaultier, Kilian, Maison Crivelli,
+Maison Margiela, Nishane, Parfums de Marly, Roja Parfums, Scent Boulevard,
+Sospiro, Valentino, Varzi.
+
+**RAQI is deliberately absent.** Its only product, the RAQI Discovery Box, is
+a draft, so a `VENDOR EQUALS "RAQI"` collection resolves to zero storefront
+products and the card would read "RAQI — 0 fragrances". It is also the store's
+own brand, not a house. If the Discovery Box goes active and a card is wanted,
+create the collection and add a 22nd block.
+
+**Tom Ford is the odd one out.** It is not a vendor collection — it uses
+`TAG EQUALS "Tom Ford"`. It returns the right five products, so it was left
+alone, but anyone extending this pattern should not assume all six originals
+match it.
+
+### Why the text cards needed their own colours
+
+Deleting the "House imagery pending" plate is not sufficient on its own. The
+image card sets `.rd-house__name` and `.rd-house__count` to `--rd-bone`, which
+is legible only over a photograph and its scrim. On the bare `--rd-panel` card
+that is light on light — invisible. The `rd-house--text` variant therefore
+restates them as `--rd-ink` and `--rd-grey`, with a wine border and name on
+hover.
+
+The image path is untouched: a block that does set an image still renders the
+photograph, scrim and light overlay text exactly as before. The variant is
+chosen per block, so the two can coexist.
+
+`.rd-houses__grid` also collapses to a horizontal scroll strip below 900px.
+That suits six curated houses; swiping through twenty-one is not acceptable,
+so `.rd-bidx__grid` is pinned to a wrapping grid at every width — 3 columns,
+2 below 900px, 1 below 460px.
+
+All of it lives in the section's own `{% style %}` block.
+`assets/raqi-redesign.css` is untouched, still `a6cb759f…`.
+
+`max_blocks` went from 16 to 50 — twenty-one blocks do not fit in sixteen.
+That is why the section file had to be written before the template, beyond
+the usual ordering rule: a 21-block template validated against a 16-block
+schema would have lost blocks silently, exactly as `show_faq_schema` was lost
+earlier.
+
+### Verified
+
+All 21 block handles resolve to a live, published collection; `block_order`
+matches the block keys; no block sets an image, so every card is a text card
+and no "House imagery pending" state can render. Counts come from the live
+catalogue — 13 of the 21 houses have a single product and correctly take the
+singular "1 fragrance". Order is alphabetical by title.
