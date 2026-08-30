@@ -1,0 +1,627 @@
+# RD hero + header applied to theme `box`
+
+Record of copying the Redesign draft theme's hero and header onto the
+unpublished theme `box` (`188412231987`).
+
+| | |
+|---|---|
+| Source | `Raqi box — Redesign (draft)` — `188260155699` |
+| Destination | `box` — `188412231987` (unpublished) |
+
+## Files copied
+
+| File | Bytes | MD5 |
+|---|---|---|
+| `assets/raqi-redesign.css` | 61053 | `a6cb759f55da7bc6a2ccc2ffe5cadc62` |
+| `snippets/rd-fonts.liquid` | 636 | `2ce5184a5c2e6462b0c9dbb8f0a06a29` |
+| `sections/rd-hero.liquid` | 5374 | `d07152f400e60245e79902f5df367ea0` |
+| `sections/rd-header.liquid` | 3905 | `dab79ba62ac05773472ada1a3c4e5a2f` |
+| `sections/rd-announcement.liquid` | 1867 | `8bb7266dbdccdf3dd4357e337bae0f77` |
+| `sections/rd-cart-drawer.liquid` | 7883 | `d980de05efae940f1da80dc5be593173` |
+| `sections/header-group.json` | 876 | `d18b8afb839e42970395b1061d3008c2` |
+
+`templates/index.json` is **not** a straight copy — it is a hybrid: the
+Redesign's `rd_hero` section replaces the old `raqi_hero`, and `box`'s own
+`raqi_steps` / `raqi_collections` / `raqi_selected` / `raqi_story_sizes`
+sections are kept below it, because only the hero was in scope.
+
+## Why the stylesheet is checked in here
+
+`assets/raqi-redesign.css` is the design system for every `rd-*` section —
+it is where the hero and header background and colour treatment live, and
+without it both render unstyled. The Shopify Admin API has no cross-theme
+file copy (`themeFilesCopy` is same-theme only), so the file was committed
+here and Shopify was pointed at its raw URL to transfer it byte-for-byte
+rather than re-typing 936 lines. It is kept as the record of what was
+deployed.
+
+Note this repository is **public**. The file is theme CSS that a live
+storefront serves publicly anyway, so nothing secret is exposed by it.
+
+## Verification (2026-08-30)
+
+Every copied file was re-read from `box` after writing and its MD5 compared
+against the Redesign source. All seven match byte-for-byte — see the table
+above for the shared checksums. `templates/index.json` is a hybrid so has no
+source to match; it is 6912 bytes, MD5 `54e9f987c660773447dcd67adc50f16a`.
+
+Confirmed unmodified:
+
+- `box`: `layout/theme.liquid`, `layout/links.liquid`,
+  `templates/page.links.liquid`, `sections/footer-group.json` all still carry
+  the 13:49:45 duplication timestamp.
+- Source theme `188260155699`: all checksums unchanged, no write timestamps
+  from this session.
+- Live theme `188395618611`: `templates/index.json` and
+  `sections/header-group.json` unchanged; it has no `raqi-redesign.css`.
+
+## Known issues in the result
+
+These are faithful to the Redesign source, not defects in the copy, but they
+matter before `box` is ever published:
+
+1. **The hero click target 404s.** The whole hero is one link to
+   `/pages/discovery-box`, which is unpublished. `sections/rd-hero.liquid`
+   says so in its own header comment and cites it as the reason the Redesign
+   theme "must not be published yet (§8.1)".
+2. **The "Discovery Set" nav link is dead.** `rd-header.liquid` points it at
+   `/#discovery-set`, an anchor rendered by the `rd-discovery` section, which
+   is part of the Redesign homepage and was out of scope here.
+3. **The hero shows a placeholder, not a box photograph.** No image is set on
+   the Redesign hero either; the schema notes the photograph is "pending from
+   the manufacturer".
+4. **Only the hero and header are new.** The rest of the homepage and the
+   whole footer are still the old `raqi-*` design.
+5. **Two cart drawers are mounted.** `layout/theme.liquid` still renders the
+   old `cart-drawer` snippet while `header-group.json` now mounts
+   `rd-cart-drawer`. The Redesign theme has the same overlap.
+
+`box` carries `layout/links.liquid` and `templates/page.links.liquid`, so
+publishing it will not 404 `raqi.ae/pages/links` or `/box`.
+
+## 2026-08-30 — rd-steps added
+
+`templates/index.json` still referenced the old `raqi_steps`
+(`raqi-concept-steps`) section. That was in scope from the start of the
+redesign work but out of scope of the hero/header copy, so it was never
+swapped. `sections/rd-steps.liquid` did not exist on `box` and was
+transferred from the Redesign source.
+
+| File | Bytes | MD5 | Verdict |
+|---|---|---|---|
+| `sections/rd-steps.liquid` | 3109 | `e4256b77af7fecc472dc8277b515b8b7` | PASS — matches source |
+
+`templates/index.json` is now 7629 bytes, MD5 `3b8d1dbbf38a45318619ba53a8641c81`.
+The `raqi_steps` entry is removed entirely; `rd_steps` carries the Redesign's
+three step blocks and both settings.
+
+Homepage order is now: `rd_hero`, `rd_steps`, `raqi_collections`,
+`raqi_selected`, `raqi_story_sizes`.
+
+In the full approved Redesign order `rd_trust` sits between `rd_hero` and
+`rd_steps`. It is not on `box` yet, so `rd_steps` directly follows the hero
+for now and `rd_trust` slots between them when it is added.
+
+`rd-steps` needs no new dependencies — it renders `rd-fonts` and styles from
+`assets/raqi-redesign.css`, both already present. Its three step images are
+unset, so each cell renders an "Image pending" well rather than a photograph;
+the section comment states this is deliberate (§10.1, no stock substitutes).
+
+## 2026-08-30 — rd-collection added
+
+`rd_houses` was never on `box` and is now permanently out of scope — do not
+add it.
+
+`sections/rd-collection.liquid` was not on `box` and was transferred, along
+with `snippets/rd-product-card.liquid`, which it renders once per product.
+Without that snippet the grid renders zero cards.
+
+| File | Bytes | MD5 | Verdict |
+|---|---|---|---|
+| `sections/rd-collection.liquid` | 6864 | `df42ec08d86a131e83569b082712d412` | PASS — matches source |
+| `snippets/rd-product-card.liquid` | 2182 | `974350a7c499fea0afa16dcce75602a2` | PASS — matches source |
+
+`templates/index.json` is now 7250 bytes, MD5 `2d47e9a42564ce3d522a98b9b0f163c3`.
+`raqi_collections` removed, `rd_collection` in its place. Order is now
+`rd_hero`, `rd_steps`, `rd_collection`, `raqi_selected`, `raqi_story_sizes`.
+
+### Concurrent edit preserved
+
+`templates/index.json` had been edited in the theme editor between the
+previous write and this one (7629 → 5197 bytes, the editor re-serialises more
+compactly). The change was a photograph set on step 01:
+`shopify://shop_images/ChatGPT_Image_Aug_30_2026_07_07_27_PM.png`. The file
+was re-read before writing and that setting carried through — never overwrite
+`index.json` from a cached copy.
+
+### Brands page unaffected
+
+The Brands page is a different template entirely. Header "Brands" points at
+`routes.collections_url` (`/collections` → `templates/list-collections.json`);
+individual house pages such as Tom Ford are `/collections/<handle>` →
+`templates/collection.json`. Neither is touched by an `index.json` edit.
+
+Verified unchanged, all still at the 13:49:45 duplication timestamp:
+`templates/list-collections.json` (`df13ca59…`), `templates/collection.json`
+(`8689ce80…`), all 19 `collection.*.json` variants, and
+`sections/raqi-collection-grid.liquid` (`f413ce36…`) which those templates
+render.
+
+`sections/raqi-collections.liquid` is left on disk but is no longer referenced
+by any template — inert, not deleted.
+
+## 2026-08-30 — rd-profiles added below rd-collection
+
+| File | Bytes | MD5 | Verdict |
+|---|---|---|---|
+| `sections/rd-profiles.liquid` | 1379 | `ea16bc5cead1ac651a93aa18e791f6e9` | PASS — matches source |
+
+`templates/index.json` is now 8482 bytes, MD5 `a1a12804bbda06706d1d89654179ea7b`.
+Order: `rd_hero`, `rd_steps`, `rd_collection`, `rd_profiles`, `raqi_selected`,
+`raqi_story_sizes`.
+
+All six profile tags were checked against the live catalogue and each returns
+at least one product, so no chip lands on an empty page.
+
+### rd-profiles is not an in-place filter
+
+Worth knowing before review: `rd-profiles` renders six plain links to
+`/collections/all/profile:<name>`, not filter controls over the grid above it.
+Clicking one leaves the homepage for a tag-filtered collection page, which on
+`box` still renders in the old design via `templates/collection.json`. The
+grid's own in-place filters are the category tabs and brand chips inside
+`rd-collection`; profile is not among them, even though `rd-product-card`
+does emit a `data-profile` attribute.
+
+### Brands page unaffected
+
+Re-verified after this change. `templates/list-collections.json`
+(`df13ca59…`), `templates/collection.json` (`8689ce80…`), all 19
+`collection.*.json` variants and `sections/raqi-collection-grid.liquid`
+(`f413ce36…`) all still carry the 13:49:45 duplication timestamp with
+unchanged checksums.
+
+## 2026-08-30 — rd-ticker (new section, authored not copied)
+
+A new scrolling delivery/policy bar. Unlike every other `rd-*` file here this
+one has no Redesign source — it was written for this theme, so `theme/sections/
+rd-ticker.liquid` is the authoritative copy.
+
+| File | Bytes | MD5 | Verdict |
+|---|---|---|---|
+| `sections/rd-ticker.liquid` | 3797 | `a5aee02d7d0aaa4002907ea78d5dc2d4` | PASS — stored copy matches the local original |
+
+`templates/index.json` is now 9317 bytes, MD5 `0d1897d3f43111bd56d611496bceb821`.
+Order: `rd_hero`, `rd_steps`, `rd_collection`, `rd_profiles`, `raqi_selected`,
+`rd_ticker`, `raqi_story_sizes`.
+
+### Design notes
+
+- Styles live in the section's own `{% style %}` block, **not** in
+  `assets/raqi-redesign.css`. That shared stylesheet is byte-verified against
+  the Redesign source and was deliberately left untouched.
+- Colours and type are design-system tokens only: `--rd-panel` ground,
+  `--rd-rule` hairlines top and bottom, `--rd-ink` text, `--rd-wine` ticks,
+  `--rd-body` (Karla) at 11px / 0.16em / uppercase — the same type treatment as
+  `.rd-announce`, so it reads as a ticker rather than a section.
+- Rendered height is 39px desktop, 34px mobile.
+- Seamless loop verified by render: the item row is emitted twice and the track
+  translated -50%. Measured 1306 + 1306 = 2613px at 1280 wide and 1049 + 1049 =
+  2099px at 375, so the second copy lands exactly where the first began.
+- The duplicate row is `aria-hidden` and carries no `shopify_attributes`, so
+  assistive tech and the theme editor see one set of items, not two.
+- Pauses on hover and on focus-within; under `prefers-reduced-motion: reduce`
+  the animation is off and the items wrap statically.
+- Loop duration is a range setting (15–90s, default 38s); each point is an
+  editable block.
+
+### Position
+
+Placed immediately **before** `raqi_story_sizes`, the closing section whose
+heading is "Why commit to a fragrance before you know it's yours?" — the
+nearest thing on `box` to "Why RAQI".
+
+`rd-why.liquid` is **not** on `box`. Neither is `rd-trust.liquid`; the only
+trust-ish file present is `sections/raqi-trust-row.liquid`, a 124-byte stub
+that no template references. So no trust bar of any kind currently renders on
+this homepage, and there was nothing for `rd-ticker` to be confused with.
+
+When `rd_why` is eventually added it belongs between `rd_profiles` and
+`raqi_selected` (mapping the approved Redesign order onto box's). Moving
+`rd_ticker` to sit directly after it is then a one-line change to the `order`
+array.
+
+## 2026-08-30 — rd-trust and rd-why added, rd-ticker repositioned
+
+| File | Bytes | MD5 | Verdict |
+|---|---|---|---|
+| `sections/rd-trust.liquid` | 2183 | `3dd2ef28f2349e590649d0181d3c560d` | PASS — matches source |
+| `sections/rd-why.liquid` | 1295 | `a050f5abedc099fdf1b33ec9bd410698` | PASS — matches source |
+
+`templates/index.json` is now 11885 bytes, MD5 `7803d8fbe68f194d942f3b7b8f331bf4`.
+
+Final homepage order:
+
+1. `rd_hero`
+2. `rd_trust` — new, top position matching the Redesign source
+3. `rd_steps`
+4. `rd_collection`
+5. `rd_profiles`
+6. `rd_ticker` — moved here from before `raqi_story_sizes`
+7. `rd_why` — new
+8. `raqi_selected`
+9. `raqi_story_sizes`
+
+### rd_discovery is still absent
+
+The ticker was asked to sit "between the Discovery Set section and rd_why".
+`sections/rd-discovery.liquid` is **not on `box`**, so there is no Discovery Set
+section to sit below. The ticker is therefore directly above `rd_why`, which is
+the same slot with the upper neighbour missing. Adding `rd_discovery` later
+drops it straight in between with no reordering.
+
+That absence also still leaves the header's "Discovery Set" nav item pointing at
+`/#discovery-set`, an anchor only `rd-discovery` renders.
+
+Seven of the nine homepage sections are now the new `rd-*` design. The two
+remaining old ones are `raqi_selected` (≈ `rd-season`) and `raqi_story_sizes`
+(≈ `rd-story`). The footer is also still the old one.
+
+## 2026-08-30 — rd-discovery added, homepage sequence complete
+
+| File | Bytes | MD5 | Verdict |
+|---|---|---|---|
+| `sections/rd-discovery.liquid` | 7314 | `71d877e151ff2e942dafaa12f15e622a` | PASS — matches source |
+
+`templates/index.json` is now 12058 bytes, MD5 `a95a58d2727b3c9cae90489d61dd5eae`.
+
+Final homepage order (8 of 10 sections now the new `rd-*` design):
+
+1. `rd_hero`
+2. `rd_trust`
+3. `rd_steps`
+4. `rd_collection`
+5. `rd_profiles`
+6. `rd_discovery`
+7. `rd_ticker`
+8. `rd_why`
+9. `raqi_selected` — old (≈ `rd-season`)
+10. `raqi_story_sizes` — old (≈ `rd-story`)
+
+The Discovery Set → ticker → Why RAQI sandwich is now as intended.
+
+### Header nav anchor resolved
+
+`rd-discovery.liquid` renders `<section class="rd-disc" id="discovery-set">`.
+`rd-header.liquid` links "Discovery Set" to `{{ routes.root_url }}#discovery-set`.
+The anchor id and the link target now match, so that nav item resolves to
+section 6 of the homepage instead of a missing anchor.
+
+Caveat: from any page other than the homepage the link navigates to `/` and
+then jumps — correct behaviour, but it is a page load first, not an in-page
+scroll.
+
+### Two known inconsistencies inherited from the source
+
+- `rd-discovery.liquid`'s own comment says "Nothing on this site links to
+  /pages/discovery-box — that page is unpublished and 404s by design", but
+  `rd_hero`'s `link` setting is exactly `/pages/discovery-box`, and the whole
+  hero is one click target. That contradiction exists in the Redesign source
+  too. Pointing the hero at `/#discovery-set` would resolve it in one setting
+  change — not done, as it was not requested.
+- The Discovery Set CTA is inert by design (`cta_disabled: true`, label
+  "Arriving soon") until the physical box exists, and the panel image is unset
+  so the placeholder text renders.
+
+## 2026-08-30 — hero link repointed to the Discovery Set panel
+
+`rd_hero.settings.link` changed from `/pages/discovery-box` (unpublished, 404s)
+to `/#discovery-set`, the anchor `rd-discovery` renders.
+
+`templates/index.json` is now 12053 bytes, MD5 `8a55c15869b2b8c0de12b64e3c7ffaff`.
+Exactly five bytes smaller than before, which is the difference in the two URL
+strings — nothing else changed. Section order, all block settings and the
+step-01 photograph are unchanged.
+
+`rd-hero.liquid` renders the whole hero as one anchor:
+
+    <a class="rd-hero" href="{{ section.settings.link | default: '/pages/discovery-box' }}">
+
+The `default` filter only fires on a blank value, so the new setting is used and
+the hard-coded fallback stays dormant. Nothing on `box` links to
+`/pages/discovery-box` any more, which is what `rd-discovery.liquid`'s own
+comment says should be the case.
+
+The hero is section 1 and the anchor is section 6, so the click scrolls down
+the same page rather than loading a new one.
+
+## 2026-08-30 — section-to-footer boundary on raqi_story_sizes
+
+`raqi_story_sizes` is kept as-is by decision — not replaced with `rd_story`.
+
+### What the reported problem actually was
+
+The section is a two-column split, not one background:
+
+| Half | Rule in `assets/raqi-theme.css` | Colour |
+|---|---|---|
+| `.raqi-story-sizes__story` (Our Story) | `background: var(--raqi-ink)` | `#22261F` |
+| `.raqi-story-sizes__sizes` (10ml/30ml) | `background: var(--raqi-bg-panel)` | `#E8EBE2` |
+
+The footer's `raqi-footer` scheme is `--color-background: 34, 38, 31` — also
+`#22261F`. So the **dark** left half abuts an identically dark footer. Verified
+by render: both compute to `rgb(34,38,31)`.
+
+The originally requested change — set the section background to `#E8EBE2` —
+was **not** applied. The right half is already exactly that colour, and the
+left half's type is all styled for a dark ground (heading `--raqi-bg-panel`
+`#E8EBE2`, body `--raqi-text-muted-on-dark` `#A9AE9F`, eyebrow
+`--raqi-accent-on-dark` `#C79FA8`, tag rule `rgba(232,235,226,.2)`).
+Lightening the panel without recolouring all four would have made the Our
+Story copy invisible.
+
+### What was done
+
+| File | Bytes | MD5 | Verdict |
+|---|---|---|---|
+| `sections/raqi-story-sizes.liquid` | 8794 | `da2781a1822eaa7495dd04937bce8698` | PASS — matches the local original |
+
+A 1px hairline in the design system's own rule colour, added to the section's
+existing `<style>` block:
+
+    .raqi-story-sizes{ border-bottom:1px solid var(--raqi-rule); }
+
+`--raqi-rule` is `#C7CCBE`, so it reads as a light line against the dark panel
+and a soft one against the light half. Both backgrounds are untouched; the file
+contains no `background` property at all.
+
+Scoped to the section rather than added to `assets/raqi-theme.css`, which stays
+byte-identical at `04b1dfc029a326bd403f30e1c976fb56` and is shared with other
+old-design sections.
+
+Verification chain: the original was reconstructed locally and confirmed
+byte-identical to the theme copy (`3c31ec0f4095698b0c4ebeeee9b269b5`) before
+editing, the edit was applied mechanically, and the result was transferred by
+raw URL so the upload could not drift. Diff is an 8-line insertion and nothing
+else.
+
+`sections/footer-group.json` untouched — still `3d525e67c165656cd0dba57f1e3befe7`
+at the 13:49:45 duplication timestamp.
+
+## 2026-08-30 — rd_collection now renders every collection page
+
+The header "Shop" link points at `routes.all_products_collection_url` =
+`/collections/all`, which is rendered by `templates/collection.json`.
+
+**That template is shared.** All 13 collections in the store have
+`templateSuffix: null`, so they all fall through to it, and
+`/collections/all` is Shopify's *virtual* all-products collection with no
+record to attach a suffix to — it can only ever use the default `collection`
+template. Isolating the Shop page was therefore not possible without giving
+the other 13 collections a suffix. The owner chose to apply the new design
+everywhere.
+
+Pages now rendering `rd_collection`: **Shop** (`/collections/all`), Men, Women,
+Unisex, Niche, Tom Ford, Creed, Amouage, Louis Vuitton, Maison Francis
+Kurkdjian, Xerjoff, Home page, Quantity Discount Eligible, Best Sellers — 14 in
+total.
+
+| File | Bytes | MD5 | Verdict |
+|---|---|---|---|
+| `sections/rd-collection.liquid` | 8076 | `31990054c968e503ec9925e139b14323` | PASS — matches local patched original |
+| `templates/collection.json` | 856 | `6775f9a633ac48225e2e0d101ae4a679` | PASS — read back |
+
+### Why rd-collection needed patching
+
+It resolved products as `collections[section.settings.collection] | default:
+collections.all` — a **fixed** collection from its own settings, never the page
+it is on. Dropped onto the collection template unchanged, every page would have
+shown the same all-products grid. Three edits:
+
+1. On a collection template, fall back to the page's `collection` before
+   `collections.all`. A collection set in the section's own settings still wins.
+2. Use the collection's own title as the heading on a real collection page.
+   `/collections/all` keeps the section heading, since the virtual collection
+   has no meaningful title.
+3. Suppress the "View all" button on collection pages, where it would link to
+   the page already being viewed. It still renders on the homepage.
+
+Homepage behaviour is unchanged — `template.name` is `index` there, so the
+section still resolves to `collections.all` with its configured heading and the
+button intact. Verified after the change: the homepage instance carries
+`"collection": ""`, which resolves blank and takes the `collections.all` branch.
+
+Replaced on the collection template: `raqi_heading` (`raqi-page-heading`) and
+`raqi_grid` (`raqi-collection-grid`). Both section files remain on disk,
+unreferenced and inert, so the swap is reversible.
+
+## 2026-08-30 — rd_faq added to three templates
+
+`sections/rd-faq.liquid` was copied from the Redesign draft (188260155699)
+byte-for-byte and placed on three templates, all on theme `box` only. It
+depends on `rd-fonts`, which was already present.
+
+| File | Bytes | MD5 | Verdict |
+|---|---|---|---|
+| `sections/rd-faq.liquid` | 2978 | `25b7ebf7adfeb7759596e4ebf172dce2` | PASS — identical to source |
+| `templates/index.json` | 16807 | `51943ad0b4fd40ba65799aab2c1fc63b` | PASS |
+| `templates/product.json` | 4959 | `dac8ef5119c5342c712e4231ae9b860b` | PASS |
+| `templates/collection.json` | 4253 | `09c65aafb6c41dd654f4db76c3fbb395` | PASS |
+
+Final order — homepage: `rd_hero`, `rd_trust`, `rd_steps`, `rd_collection`,
+`rd_profiles`, `rd_discovery`, `rd_ticker`, `rd_why`, `raqi_selected`,
+`raqi_story_sizes`, `rd_faq`. Product: `main`, `related`, `rd_faq`.
+Collection: `rd_collection`, `rd_ticker`, `rd_faq`.
+
+All 33 products have a `templateSuffix` of `null` or `""`, so one write to
+`templates/product.json` covers every product page. The 14 collection pages
+likewise share `templates/collection.json`.
+
+## 2026-08-30 — FAQPage JSON-LD gated to one page
+
+With the FAQ on the homepage, 33 product pages and 14 collection pages, all
+~48 were emitting identical `FAQPage` structured data. Google's guidance is
+against duplicating FAQPage markup across a site, and at that scale the usual
+outcome is the rich result being dropped sitewide rather than only on the
+duplicates.
+
+A `show_faq_schema` checkbox now gates the JSON-LD block alone. **The visible
+accordion — markup, styling and JavaScript — is outside the conditional and
+renders on every instance regardless of the setting.** Default is `false`, so
+a future instance added from the theme editor stays silent unless someone
+deliberately opts in.
+
+| File | Bytes | MD5 | Verdict |
+|---|---|---|---|
+| `sections/rd-faq.liquid` | 3781 | `b4094a2554758d76b7bf50a6e818cc47` | PASS |
+| `templates/index.json` | 16840 | `0d705e14eab64a8a1d14224325f466fb` | PASS — `show_faq_schema: true` |
+| `templates/product.json` | 4993 | `d176827f05b23cfae3bfe402b0eff1fb` | PASS — `show_faq_schema: false` |
+| `templates/collection.json` | 4287 | `21439086a3b0e217461165f3ea22dc44` | PASS — `show_faq_schema: false` |
+
+> ### A new setting and the template that uses it cannot go up in one batch
+>
+> The first attempt sent all four files in a single `themeFilesUpsert`. The
+> three small files stored verbatim, but `templates/index.json` came back
+> re-serialised into Shopify's canonical format at 11144 bytes with
+> `show_faq_schema` **silently stripped** — no `userErrors`, and the write
+> reported success.
+>
+> Shopify validates a JSON template's section settings against the section's
+> `{% schema %}` and drops any it does not recognise. Within one batch the
+> template was checked against the *old* `rd-faq.liquid`, which had no such
+> setting yet. Re-sending `templates/index.json` alone, after the section file
+> was committed, stored it verbatim with the setting intact.
+>
+> So the order is always **section file first, template second, as two
+> separate calls** — and verify by reading the setting back, not just by
+> trusting an empty `userErrors`. Note that `themeFilesUpsert` returned an
+> empty `upsertedThemeFiles` array on every successful write here, so that
+> field is not a success signal either.
+>
+> Nothing was lost in the stripped write: all nine Q&A blocks, both step
+> photos, the section order and every other setting survived. Only the
+> unrecognised key was removed. Because the schema default is `false`, a strip
+> can only ever turn structured data *off*, never on.
+
+## 2026-08-30 — Brands page rebuilt on rd-brands-index
+
+The page behind header nav "Brands" (`routes.collections_url` → `/collections`
+→ `templates/list-collections.json`) was never ported. It was still the base
+theme's `collection-list-template` with `display_type: "all"`, so it listed
+all 13 collections — Home page, Men, Women, Unisex, Niche, Best Sellers and
+Quantity Discount Eligible among them — under the theme vendor's placeholder
+copy: *"Here is your chance to upgrade your wardrobe with a variation of
+styles and fits that are both feminine and relaxed."*
+
+| File | Bytes | MD5 | Verdict |
+|---|---|---|---|
+| `sections/rd-brands-index.liquid` | 3903 | `2b53b621622dd7d83f669ceeafcee7b0` | PASS — identical to Redesign source |
+| `templates/list-collections.json` | 1284 | `7eb30aabddbc8bc8db15256fe682b59d` | PASS |
+
+Six curated houses, in Redesign order: Tom Ford (5), Creed (1), Amouage (2),
+Louis Vuitton (2), Maison Francis Kurkdjian (2), Xerjoff (1). The section
+switches `count_singular`/`count_plural` per card, so Creed and Xerjoff read
+"1 fragrance". Grid is 3 columns, 2 below 900px.
+
+No dependency needed adding. `rd-fonts` was already present, and every class
+the section uses — `rd-house*`, `rd-bidx__head`, `rd-bidx__h1`,
+`rd-bidx__intro`, `rd-bidx__grid`, `rd-frame`, `rd-section`, `rd-scope` — is
+already in `assets/raqi-redesign.css`, which is byte-identical to the
+Redesign copy.
+
+`sections/collection-list-template.liquid` is left on disk (8025 bytes,
+`8957cea0…`, byte-identical on both themes) but is now referenced by no
+template — inert, not deleted, so the swap is reversible by restoring the old
+`templates/list-collections.json`.
+
+### No house imagery is set
+
+Every block leaves `image` blank, exactly as in the Redesign draft, so all six
+cards render the `rd-house__ph` placeholder reading "House imagery pending"
+behind the scrim. The names and counts are real; only the photography is
+absent. Setting six images in the theme editor is all that is outstanding.
+
+### Correction to an earlier note
+
+Two "Brands page unaffected" notes above say `templates/list-collections.json`
+renders `sections/raqi-collection-grid.liquid`. That was wrong — it rendered
+`collection-list-template`. `raqi-collection-grid` was the *old*
+`templates/collection.json`. The conclusion in those notes (that the Brands
+page was untouched by the homepage and collection work) was correct, and the
+checksums quoted there were correct; only the section name was wrong.
+
+### The ordering rule held
+
+Written as two separate calls, section file first. Unlike the `rd_faq` batch,
+nothing was stripped: all six blocks kept their `collection` settings, the
+`block_order` survived, and the stored file matched the local original
+byte-for-byte on the first attempt.
+
+## 2026-08-30 — Brands page expanded to every brand, text-only cards
+
+The Brands page now lists all 21 fragrance houses in the catalogue, not the
+six that happened to have a collection.
+
+| File | Bytes | MD5 | Verdict |
+|---|---|---|---|
+| `sections/rd-brands-index.liquid` | 6005 | `b5e00b7f316c05fa7c4502e320b6d9dd` | PASS |
+| `templates/list-collections.json` | 2582 | `f2cb6f03b484970e5622468ad9d2f305` | PASS |
+
+### 15 smart collections created (store data, not theme)
+
+33 products carry 22 distinct vendors. Six already had a collection; RAQI was
+excluded (see below); the remaining 15 were created as smart collections with
+a single rule, `VENDOR EQUALS <name>`, `appliedDisjunctively: false`,
+`sortOrder: BEST_SELLING`, no template suffix — matching the existing vendor
+collections. Each was published to Online Store, Facebook & Instagram and
+TikTok, matching how the existing six are published.
+
+Byredo, Dior, Guerlain, Initio, Jean Paul Gaultier, Kilian, Maison Crivelli,
+Maison Margiela, Nishane, Parfums de Marly, Roja Parfums, Scent Boulevard,
+Sospiro, Valentino, Varzi.
+
+**RAQI is deliberately absent.** Its only product, the RAQI Discovery Box, is
+a draft, so a `VENDOR EQUALS "RAQI"` collection resolves to zero storefront
+products and the card would read "RAQI — 0 fragrances". It is also the store's
+own brand, not a house. If the Discovery Box goes active and a card is wanted,
+create the collection and add a 22nd block.
+
+**Tom Ford is the odd one out.** It is not a vendor collection — it uses
+`TAG EQUALS "Tom Ford"`. It returns the right five products, so it was left
+alone, but anyone extending this pattern should not assume all six originals
+match it.
+
+### Why the text cards needed their own colours
+
+Deleting the "House imagery pending" plate is not sufficient on its own. The
+image card sets `.rd-house__name` and `.rd-house__count` to `--rd-bone`, which
+is legible only over a photograph and its scrim. On the bare `--rd-panel` card
+that is light on light — invisible. The `rd-house--text` variant therefore
+restates them as `--rd-ink` and `--rd-grey`, with a wine border and name on
+hover.
+
+The image path is untouched: a block that does set an image still renders the
+photograph, scrim and light overlay text exactly as before. The variant is
+chosen per block, so the two can coexist.
+
+`.rd-houses__grid` also collapses to a horizontal scroll strip below 900px.
+That suits six curated houses; swiping through twenty-one is not acceptable,
+so `.rd-bidx__grid` is pinned to a wrapping grid at every width — 3 columns,
+2 below 900px, 1 below 460px.
+
+All of it lives in the section's own `{% style %}` block.
+`assets/raqi-redesign.css` is untouched, still `a6cb759f…`.
+
+`max_blocks` went from 16 to 50 — twenty-one blocks do not fit in sixteen.
+That is why the section file had to be written before the template, beyond
+the usual ordering rule: a 21-block template validated against a 16-block
+schema would have lost blocks silently, exactly as `show_faq_schema` was lost
+earlier.
+
+### Verified
+
+All 21 block handles resolve to a live, published collection; `block_order`
+matches the block keys; no block sets an image, so every card is a text card
+and no "House imagery pending" state can render. Counts come from the live
+catalogue — 13 of the 21 houses have a single product and correctly take the
+singular "1 fragrance". Order is alphabetical by title.

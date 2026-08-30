@@ -1,0 +1,49 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "rd-brands-index",
+      "blocks": {
+        "b1": { "type": "house", "settings": { "collection": "amouage" } },
+        "b2": { "type": "house", "settings": { "collection": "byredo" } },
+        "b3": { "type": "house", "settings": { "collection": "creed" } },
+        "b4": { "type": "house", "settings": { "collection": "dior" } },
+        "b5": { "type": "house", "settings": { "collection": "guerlain" } },
+        "b6": { "type": "house", "settings": { "collection": "initio" } },
+        "b7": { "type": "house", "settings": { "collection": "jean-paul-gaultier" } },
+        "b8": { "type": "house", "settings": { "collection": "kilian" } },
+        "b9": { "type": "house", "settings": { "collection": "louis-vuitton" } },
+        "b10": { "type": "house", "settings": { "collection": "maison-crivelli" } },
+        "b11": { "type": "house", "settings": { "collection": "maison-francis-kurkdjian" } },
+        "b12": { "type": "house", "settings": { "collection": "maison-margiela" } },
+        "b13": { "type": "house", "settings": { "collection": "nishane" } },
+        "b14": { "type": "house", "settings": { "collection": "parfums-de-marly" } },
+        "b15": { "type": "house", "settings": { "collection": "roja-parfums" } },
+        "b16": { "type": "house", "settings": { "collection": "scent-boulevard" } },
+        "b17": { "type": "house", "settings": { "collection": "sospiro" } },
+        "b18": { "type": "house", "settings": { "collection": "tom-ford" } },
+        "b19": { "type": "house", "settings": { "collection": "valentino" } },
+        "b20": { "type": "house", "settings": { "collection": "varzi" } },
+        "b21": { "type": "house", "settings": { "collection": "xerjoff" } }
+      },
+      "block_order": ["b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "b9", "b10", "b11", "b12", "b13", "b14", "b15", "b16", "b17", "b18", "b19", "b20", "b21"],
+      "settings": {
+        "heading": "The houses",
+        "intro": "Every fragrance we decant comes from a house worth knowing. Start with the one that draws you.",
+        "count_singular": "fragrance",
+        "count_plural": "fragrances"
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

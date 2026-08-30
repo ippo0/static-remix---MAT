@@ -1,0 +1,178 @@
+{% comment %}
+  Raqi — All Perfumes / collection grid with category chips + REAL Niche
+  product-tag filter, layered client-side on top of whichever collection is
+  active. Live counts throughout (never hard-coded).
+
+  2026-08-16 update (Raqi box design system simplification): removed the
+  Signature/Discovery tier-chip row entirely — that distinction now lives
+  only inside the RAQI Discovery Set flow, not as a general catalog filter.
+  Filter bar simplified to exactly 5 options: ALL | MEN | WOMEN | UNISEX |
+  NICHE ONLY. All chip/result-line copy now pulled from the raqi.catalog.*
+  locale keys instead of section settings, matching the pattern already
+  used in sections/raqi-discovery-box.liquid.
+
+  2026-08-19 update: added a real 'Tom Ford' filter chip, same pattern as
+  Men/Women/Unisex (a real link to the additive 'tom-ford' smart
+  collection, not a client-side toggle like Niche). Placed after the
+  divider, before the Niche-only toggle, since it's also a cross-cutting
+  attribute (a product keeps its Men/Women/Unisex collection AND can show
+  under Tom Ford at the same time). Brand name is never translated, so the
+  label is a hardcoded literal, not a locale key — CSS still uppercases it
+  to match the other chips.
+{% endcomment %}
+{%- liquid
+  assign is_all = false
+  if collection.handle == 'all' or collection.handle == blank
+    assign is_all = true
+  endif
+
+  assign men = collections['men']
+  assign women = collections['women']
+  assign unisex = collections['unisex']
+  assign niche = collections['niche']
+  assign tom_ford = collections['tom-ford']
+  assign all_count = collections['all'].all_products_count | default: collections['all'].products_count
+-%}
+<div class="raqi-section" style="background:var(--raqi-bg-panel);border-bottom:1px solid var(--raqi-rule);padding:20px 0;">
+  <div class="raqi-container" style="display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;" id="RaqiCatFilters">
+      <a href="{{ routes.all_products_collection_url }}" class="raqi-filter-chip{% if is_all %} is-active{% endif %}">{{ 'raqi.catalog.all' | t }} &middot; {{ all_count }}</a>
+      <a href="{{ men.url }}" class="raqi-filter-chip{% if collection.handle == 'men' %} is-active{% endif %}">{{ 'raqi.catalog.men' | t }} &middot; {{ men.all_products_count | default: men.products_count }}</a>
+      <a href="{{ women.url }}" class="raqi-filter-chip{% if collection.handle == 'women' %} is-active{% endif %}">{{ 'raqi.catalog.women' | t }} &middot; {{ women.all_products_count | default: women.products_count }}</a>
+      <a href="{{ unisex.url }}" class="raqi-filter-chip{% if collection.handle == 'unisex' %} is-active{% endif %}">{{ 'raqi.catalog.unisex' | t }} &middot; {{ unisex.all_products_count | default: unisex.products_count }}</a>
+      <span class="raqi-nav-divider" style="margin:0 6px;"></span>
+      <a href="{{ tom_ford.url }}" class="raqi-filter-chip{% if collection.handle == 'tom-ford' %} is-active{% endif %}">Tom Ford &middot; {{ tom_ford.all_products_count | default: tom_ford.products_count }}</a>
+      <button type="button" id="RaqiNicheToggle" class="raqi-niche-filter-pill" aria-pressed="false" data-niche-total="{{ niche.all_products_count | default: niche.products_count }}">
+        <span class="raqi-niche-dot"></span><span id="RaqiNicheToggleLabel">{{ 'raqi.catalog.niche_only' | t }} &middot; {{ niche.all_products_count | default: niche.products_count }}</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="raqi-section" style="padding:56px 0;">
+  <div class="raqi-container">
+    <p id="RaqiResultLine" style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--raqi-text-muted);margin:0 0 28px;">{{ 'raqi.catalog.showing_all' | t }}</p>
+
+    {%- if is_all -%}
+      {%- assign groups = 'men,women,unisex' | split: ',' -%}
+      {%- for group in groups -%}
+        {%- liquid
+          case group
+            when 'men'
+              assign group_collection = men
+              assign group_label = 'raqi.catalog.men' | t
+            when 'women'
+              assign group_collection = women
+              assign group_label = 'raqi.catalog.women' | t
+            when 'unisex'
+              assign group_collection = unisex
+              assign group_label = 'raqi.catalog.unisex' | t
+          endcase
+        -%}
+        <h2 class="raqi-hairline-bottom" style="font-family:var(--raqi-font-display);font-weight:400;font-size:22px;color:var(--raqi-ink);padding-bottom:14px;margin:0 0 28px;{% unless forloop.first %}margin-top:56px;{% endunless %}">
+          {{ group_label }} &middot; {{ group_collection.all_products_count | default: group_collection.products_count }}
+        </h2>
+        <div class="raqi-catalog-grid" data-catalog-group="{{ group }}">
+          {%- for product in group_collection.products -%}
+            {% render 'raqi-product-card', product: product %}
+          {%- endfor -%}
+        </div>
+      {%- endfor -%}
+    {%- else -%}
+      <div class="raqi-catalog-grid">
+        {%- for product in collection.products -%}
+          {% render 'raqi-product-card', product: product %}
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+<style>
+  .raqi-filter-chip{ display:inline-flex;align-items:center;padding:9px 18px;border:1px solid var(--raqi-rule);background:transparent;color:var(--raqi-ink);font:400 11px/1 var(--raqi-font-body);letter-spacing:.08em;text-decoration:none;text-transform:uppercase;cursor:pointer; }
+  .raqi-filter-chip.is-active{ background:var(--raqi-ink);border-color:var(--raqi-ink);color:var(--raqi-bg-page); }
+  .raqi-niche-filter-pill{ display:inline-flex;align-items:center;gap:8px;padding:9px 18px;border:1px solid var(--raqi-accent);background:var(--raqi-bg-page);color:var(--raqi-accent);font:400 11px/1 var(--raqi-font-body);letter-spacing:.08em;text-transform:uppercase;cursor:pointer; }
+  .raqi-niche-filter-pill[aria-pressed="true"]{ background:var(--raqi-accent);color:var(--raqi-bg-page); }
+  .raqi-niche-filter-pill[aria-pressed="true"] .raqi-niche-dot{ background:var(--raqi-bg-page); }
+  .raqi-catalog-grid{ display:grid;grid-template-columns:repeat(4,1fr);gap:22px; }
+  @media (max-width:900px){ .raqi-catalog-grid{ grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:560px){ .raqi-catalog-grid{ grid-template-columns:1fr; } }
+</style>
+
+<script>
+(function(){
+  try {
+    var toggle = document.getElementById('RaqiNicheToggle');
+    var resultLine = document.getElementById('RaqiResultLine');
+    var toggleLabelEl = document.getElementById('RaqiNicheToggleLabel');
+    var showingAll = {{ 'raqi.catalog.showing_all' | t | json }};
+    var showingNiche = {{ 'raqi.catalog.showing_niche' | t | json }};
+    var nicheOnlyLabel = {{ 'raqi.catalog.niche_only' | t | json }};
+
+    var state = { niche: false };
+
+    function countNicheInView(){
+      var count = 0;
+      document.querySelectorAll('.raqi-product-card[data-niche="true"]').forEach(function(c){ count++; });
+      return count;
+    }
+
+    function updateNicheToggleCount(){
+      var count = countNicheInView();
+      if (toggleLabelEl) toggleLabelEl.textContent = nicheOnlyLabel + ' · ' + count;
+      if (toggle) toggle.setAttribute('data-niche-total', count);
+    }
+
+    function resultLineText(){
+      if (state.niche) return showingNiche;
+      return showingAll;
+    }
+
+    function applyState(){
+      if (toggle) toggle.setAttribute('aria-pressed', state.niche ? 'true' : 'false');
+      if (resultLine) resultLine.textContent = resultLineText();
+      document.querySelectorAll('.raqi-product-card').forEach(function(card){
+        var isNiche = card.getAttribute('data-niche') === 'true';
+        var hiddenByNiche = state.niche && !isNiche;
+        card.style.display = hiddenByNiche ? 'none' : '';
+      });
+      document.querySelectorAll('[data-catalog-group]').forEach(function(groupEl){
+        var heading = groupEl.previousElementSibling;
+        if (!heading) return;
+        var visibleCount = 0;
+        groupEl.querySelectorAll('.raqi-product-card').forEach(function(card){
+          if (card.style.display !== 'none') visibleCount++;
+        });
+        var base = heading.getAttribute('data-base-label');
+        if (!base) { base = heading.textContent.split('·')[0].trim(); heading.setAttribute('data-base-label', base); }
+        heading.textContent = base + ' · ' + visibleCount;
+        groupEl.style.display = visibleCount === 0 ? 'none' : '';
+        heading.style.display = visibleCount === 0 ? 'none' : '';
+      });
+    }
+
+    updateNicheToggleCount();
+
+    var params = new URLSearchParams(window.location.search);
+    state.niche = params.get('niche') === '1';
+    applyState();
+
+    if (toggle) {
+      toggle.addEventListener('click', function(){
+        state.niche = toggle.getAttribute('aria-pressed') !== 'true';
+        applyState();
+        var url = new URL(window.location.href);
+        if (state.niche) { url.searchParams.set('niche', '1'); } else { url.searchParams.delete('niche'); }
+        window.history.replaceState({}, '', url);
+      });
+    }
+  } catch (e) { /* never let this break the page */ }
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Raqi: Collection Grid",
+  "settings": []
+}
+{% endschema %}
