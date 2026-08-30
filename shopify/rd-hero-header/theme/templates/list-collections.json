@@ -1,0 +1,34 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "rd-brands-index",
+      "blocks": {
+        "h1": { "type": "house", "settings": { "collection": "tom-ford" } },
+        "h2": { "type": "house", "settings": { "collection": "creed" } },
+        "h3": { "type": "house", "settings": { "collection": "amouage" } },
+        "h4": { "type": "house", "settings": { "collection": "louis-vuitton" } },
+        "h5": { "type": "house", "settings": { "collection": "maison-francis-kurkdjian" } },
+        "h6": { "type": "house", "settings": { "collection": "xerjoff" } }
+      },
+      "block_order": ["h1", "h2", "h3", "h4", "h5", "h6"],
+      "settings": {
+        "heading": "The houses",
+        "intro": "Every fragrance we decant comes from a house worth knowing. Start with the one that draws you.",
+        "count_singular": "fragrance",
+        "count_plural": "fragrances"
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}
