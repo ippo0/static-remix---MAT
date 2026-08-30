@@ -387,3 +387,50 @@ else.
 
 `sections/footer-group.json` untouched — still `3d525e67c165656cd0dba57f1e3befe7`
 at the 13:49:45 duplication timestamp.
+
+## 2026-08-30 — rd_collection now renders every collection page
+
+The header "Shop" link points at `routes.all_products_collection_url` =
+`/collections/all`, which is rendered by `templates/collection.json`.
+
+**That template is shared.** All 13 collections in the store have
+`templateSuffix: null`, so they all fall through to it, and
+`/collections/all` is Shopify's *virtual* all-products collection with no
+record to attach a suffix to — it can only ever use the default `collection`
+template. Isolating the Shop page was therefore not possible without giving
+the other 13 collections a suffix. The owner chose to apply the new design
+everywhere.
+
+Pages now rendering `rd_collection`: **Shop** (`/collections/all`), Men, Women,
+Unisex, Niche, Tom Ford, Creed, Amouage, Louis Vuitton, Maison Francis
+Kurkdjian, Xerjoff, Home page, Quantity Discount Eligible, Best Sellers — 14 in
+total.
+
+| File | Bytes | MD5 | Verdict |
+|---|---|---|---|
+| `sections/rd-collection.liquid` | 8076 | `31990054c968e503ec9925e139b14323` | PASS — matches local patched original |
+| `templates/collection.json` | 856 | `6775f9a633ac48225e2e0d101ae4a679` | PASS — read back |
+
+### Why rd-collection needed patching
+
+It resolved products as `collections[section.settings.collection] | default:
+collections.all` — a **fixed** collection from its own settings, never the page
+it is on. Dropped onto the collection template unchanged, every page would have
+shown the same all-products grid. Three edits:
+
+1. On a collection template, fall back to the page's `collection` before
+   `collections.all`. A collection set in the section's own settings still wins.
+2. Use the collection's own title as the heading on a real collection page.
+   `/collections/all` keeps the section heading, since the virtual collection
+   has no meaningful title.
+3. Suppress the "View all" button on collection pages, where it would link to
+   the page already being viewed. It still renders on the homepage.
+
+Homepage behaviour is unchanged — `template.name` is `index` there, so the
+section still resolves to `collections.all` with its configured heading and the
+button intact. Verified after the change: the homepage instance carries
+`"collection": ""`, which resolves blank and takes the `collections.all` branch.
+
+Replaced on the collection template: `raqi_heading` (`raqi-page-heading`) and
+`raqi_grid` (`raqi-collection-grid`). Both section files remain on disk,
+unreferenced and inert, so the swap is reversible.
