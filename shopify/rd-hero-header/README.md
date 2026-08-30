@@ -266,3 +266,49 @@ That absence also still leaves the header's "Discovery Set" nav item pointing at
 Seven of the nine homepage sections are now the new `rd-*` design. The two
 remaining old ones are `raqi_selected` (≈ `rd-season`) and `raqi_story_sizes`
 (≈ `rd-story`). The footer is also still the old one.
+
+## 2026-08-30 — rd-discovery added, homepage sequence complete
+
+| File | Bytes | MD5 | Verdict |
+|---|---|---|---|
+| `sections/rd-discovery.liquid` | 7314 | `71d877e151ff2e942dafaa12f15e622a` | PASS — matches source |
+
+`templates/index.json` is now 12058 bytes, MD5 `a95a58d2727b3c9cae90489d61dd5eae`.
+
+Final homepage order (8 of 10 sections now the new `rd-*` design):
+
+1. `rd_hero`
+2. `rd_trust`
+3. `rd_steps`
+4. `rd_collection`
+5. `rd_profiles`
+6. `rd_discovery`
+7. `rd_ticker`
+8. `rd_why`
+9. `raqi_selected` — old (≈ `rd-season`)
+10. `raqi_story_sizes` — old (≈ `rd-story`)
+
+The Discovery Set → ticker → Why RAQI sandwich is now as intended.
+
+### Header nav anchor resolved
+
+`rd-discovery.liquid` renders `<section class="rd-disc" id="discovery-set">`.
+`rd-header.liquid` links "Discovery Set" to `{{ routes.root_url }}#discovery-set`.
+The anchor id and the link target now match, so that nav item resolves to
+section 6 of the homepage instead of a missing anchor.
+
+Caveat: from any page other than the homepage the link navigates to `/` and
+then jumps — correct behaviour, but it is a page load first, not an in-page
+scroll.
+
+### Two known inconsistencies inherited from the source
+
+- `rd-discovery.liquid`'s own comment says "Nothing on this site links to
+  /pages/discovery-box — that page is unpublished and 404s by design", but
+  `rd_hero`'s `link` setting is exactly `/pages/discovery-box`, and the whole
+  hero is one click target. That contradiction exists in the Redesign source
+  too. Pointing the hero at `/#discovery-set` would resolve it in one setting
+  change — not done, as it was not requested.
+- The Discovery Set CTA is inert by design (`cta_disabled: true`, label
+  "Arriving soon") until the physical box exists, and the panel image is unset
+  so the placeholder text renders.
