@@ -106,3 +106,46 @@ for now and `rd_trust` slots between them when it is added.
 `assets/raqi-redesign.css`, both already present. Its three step images are
 unset, so each cell renders an "Image pending" well rather than a photograph;
 the section comment states this is deliberate (§10.1, no stock substitutes).
+
+## 2026-08-30 — rd-collection added
+
+`rd_houses` was never on `box` and is now permanently out of scope — do not
+add it.
+
+`sections/rd-collection.liquid` was not on `box` and was transferred, along
+with `snippets/rd-product-card.liquid`, which it renders once per product.
+Without that snippet the grid renders zero cards.
+
+| File | Bytes | MD5 | Verdict |
+|---|---|---|---|
+| `sections/rd-collection.liquid` | 6864 | `df42ec08d86a131e83569b082712d412` | PASS — matches source |
+| `snippets/rd-product-card.liquid` | 2182 | `974350a7c499fea0afa16dcce75602a2` | PASS — matches source |
+
+`templates/index.json` is now 7250 bytes, MD5 `2d47e9a42564ce3d522a98b9b0f163c3`.
+`raqi_collections` removed, `rd_collection` in its place. Order is now
+`rd_hero`, `rd_steps`, `rd_collection`, `raqi_selected`, `raqi_story_sizes`.
+
+### Concurrent edit preserved
+
+`templates/index.json` had been edited in the theme editor between the
+previous write and this one (7629 → 5197 bytes, the editor re-serialises more
+compactly). The change was a photograph set on step 01:
+`shopify://shop_images/ChatGPT_Image_Aug_30_2026_07_07_27_PM.png`. The file
+was re-read before writing and that setting carried through — never overwrite
+`index.json` from a cached copy.
+
+### Brands page unaffected
+
+The Brands page is a different template entirely. Header "Brands" points at
+`routes.collections_url` (`/collections` → `templates/list-collections.json`);
+individual house pages such as Tom Ford are `/collections/<handle>` →
+`templates/collection.json`. Neither is touched by an `index.json` edit.
+
+Verified unchanged, all still at the 13:49:45 duplication timestamp:
+`templates/list-collections.json` (`df13ca59…`), `templates/collection.json`
+(`8689ce80…`), all 19 `collection.*.json` variants, and
+`sections/raqi-collection-grid.liquid` (`f413ce36…`) which those templates
+render.
+
+`sections/raqi-collections.liquid` is left on disk but is no longer referenced
+by any template — inert, not deleted.
