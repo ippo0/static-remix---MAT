@@ -149,3 +149,34 @@ render.
 
 `sections/raqi-collections.liquid` is left on disk but is no longer referenced
 by any template — inert, not deleted.
+
+## 2026-08-30 — rd-profiles added below rd-collection
+
+| File | Bytes | MD5 | Verdict |
+|---|---|---|---|
+| `sections/rd-profiles.liquid` | 1379 | `ea16bc5cead1ac651a93aa18e791f6e9` | PASS — matches source |
+
+`templates/index.json` is now 8482 bytes, MD5 `a1a12804bbda06706d1d89654179ea7b`.
+Order: `rd_hero`, `rd_steps`, `rd_collection`, `rd_profiles`, `raqi_selected`,
+`raqi_story_sizes`.
+
+All six profile tags were checked against the live catalogue and each returns
+at least one product, so no chip lands on an empty page.
+
+### rd-profiles is not an in-place filter
+
+Worth knowing before review: `rd-profiles` renders six plain links to
+`/collections/all/profile:<name>`, not filter controls over the grid above it.
+Clicking one leaves the homepage for a tag-filtered collection page, which on
+`box` still renders in the old design via `templates/collection.json`. The
+grid's own in-place filters are the category tabs and brand chips inside
+`rd-collection`; profile is not among them, even though `rd-product-card`
+does emit a `data-profile` attribute.
+
+### Brands page unaffected
+
+Re-verified after this change. `templates/list-collections.json`
+(`df13ca59…`), `templates/collection.json` (`8689ce80…`), all 19
+`collection.*.json` variants and `sections/raqi-collection-grid.liquid`
+(`f413ce36…`) all still carry the 13:49:45 duplication timestamp with
+unchanged checksums.
