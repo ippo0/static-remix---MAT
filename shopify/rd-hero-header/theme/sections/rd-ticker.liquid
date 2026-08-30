@@ -83,6 +83,19 @@
     to   { transform: translateX(-50%); }
   }
 
+  /* Under RTL the flex row lays out right-to-left, so the duplicate group sits
+     to the LEFT of the original. Travelling -50% still loops seamlessly, but it
+     drags the text against the reading direction. Mirror it: +50% lands the
+     duplicate exactly where the original started, same seamless join. */
+  [dir="rtl"] .rd-ticker__track {
+    animation-name: rd-ticker-scroll-rtl;
+  }
+
+  @keyframes rd-ticker-scroll-rtl {
+    from { transform: translateX(0); }
+    to   { transform: translateX(50%); }
+  }
+
   @media (max-width: 900px) {
     .rd-ticker { padding: 10px 0; }
     .rd-ticker__item { font-size: 9.5px; letter-spacing: 0.14em; padding: 0 22px; gap: 7px; }
