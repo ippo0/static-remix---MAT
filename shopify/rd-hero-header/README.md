@@ -230,3 +230,39 @@ When `rd_why` is eventually added it belongs between `rd_profiles` and
 `raqi_selected` (mapping the approved Redesign order onto box's). Moving
 `rd_ticker` to sit directly after it is then a one-line change to the `order`
 array.
+
+## 2026-08-30 — rd-trust and rd-why added, rd-ticker repositioned
+
+| File | Bytes | MD5 | Verdict |
+|---|---|---|---|
+| `sections/rd-trust.liquid` | 2183 | `3dd2ef28f2349e590649d0181d3c560d` | PASS — matches source |
+| `sections/rd-why.liquid` | 1295 | `a050f5abedc099fdf1b33ec9bd410698` | PASS — matches source |
+
+`templates/index.json` is now 11885 bytes, MD5 `7803d8fbe68f194d942f3b7b8f331bf4`.
+
+Final homepage order:
+
+1. `rd_hero`
+2. `rd_trust` — new, top position matching the Redesign source
+3. `rd_steps`
+4. `rd_collection`
+5. `rd_profiles`
+6. `rd_ticker` — moved here from before `raqi_story_sizes`
+7. `rd_why` — new
+8. `raqi_selected`
+9. `raqi_story_sizes`
+
+### rd_discovery is still absent
+
+The ticker was asked to sit "between the Discovery Set section and rd_why".
+`sections/rd-discovery.liquid` is **not on `box`**, so there is no Discovery Set
+section to sit below. The ticker is therefore directly above `rd_why`, which is
+the same slot with the upper neighbour missing. Adding `rd_discovery` later
+drops it straight in between with no reordering.
+
+That absence also still leaves the header's "Discovery Set" nav item pointing at
+`/#discovery-set`, an anchor only `rd-discovery` renders.
+
+Seven of the nine homepage sections are now the new `rd-*` design. The two
+remaining old ones are `raqi_selected` (≈ `rd-season`) and `raqi_story_sizes`
+(≈ `rd-story`). The footer is also still the old one.
