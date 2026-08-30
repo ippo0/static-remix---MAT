@@ -75,7 +75,8 @@
         "q9"
       ],
       "settings": {
-        "heading": "Questions, answered"
+        "heading": "Questions, answered",
+        "show_faq_schema": false
       }
     }
   },
