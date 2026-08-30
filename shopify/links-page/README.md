@@ -1,5 +1,25 @@
 # RAQI links page (`raqi.ae/pages/links`)
 
+> ## 🔒 This page is frozen. Do not modify it.
+>
+> Standing instruction from the owner, 2026-08-30: **`/pages/links` must never
+> be modified, styled, or touched by any theme change.** It is a personal,
+> direct-share page sent manually to specific people, and it stays isolated from
+> every site-wide design change — the WhatsApp float, the header, the footer,
+> and anything added later.
+>
+> Off limits: `layout/links.liquid`, **`templates/page.links.liquid`** (a
+> `.liquid` template — there is no `page.links.json`), the page body
+> (Page ID `160326517043`), its `links` template suffix, and this directory.
+>
+> "Apply site-wide" does not include this page unless the owner names it in the
+> same request. See `CLAUDE.md` at the repo root.
+>
+> The isolation is structural: `layout/links.liquid` calls neither
+> `header-group` nor `footer-group`, so site-wide components rendered from those
+> groups cannot reach this page. If something ever does appear here, that is the
+> bug — not the isolation.
+
 Record of the QR-code landing page deployed to the RAQI Shopify store. The QR
 code is printed on Discovery Box packaging, so the URL cannot change after
 production.
