@@ -312,3 +312,25 @@ scroll.
 - The Discovery Set CTA is inert by design (`cta_disabled: true`, label
   "Arriving soon") until the physical box exists, and the panel image is unset
   so the placeholder text renders.
+
+## 2026-08-30 — hero link repointed to the Discovery Set panel
+
+`rd_hero.settings.link` changed from `/pages/discovery-box` (unpublished, 404s)
+to `/#discovery-set`, the anchor `rd-discovery` renders.
+
+`templates/index.json` is now 12053 bytes, MD5 `8a55c15869b2b8c0de12b64e3c7ffaff`.
+Exactly five bytes smaller than before, which is the difference in the two URL
+strings — nothing else changed. Section order, all block settings and the
+step-01 photograph are unchanged.
+
+`rd-hero.liquid` renders the whole hero as one anchor:
+
+    <a class="rd-hero" href="{{ section.settings.link | default: '/pages/discovery-box' }}">
+
+The `default` filter only fires on a blank value, so the new setting is used and
+the hard-coded fallback stays dormant. Nothing on `box` links to
+`/pages/discovery-box` any more, which is what `rd-discovery.liquid`'s own
+comment says should be the case.
+
+The hero is section 1 and the anchor is section 6, so the click scrolls down
+the same page rather than loading a new one.
