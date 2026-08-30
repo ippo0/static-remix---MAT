@@ -9,35 +9,45 @@
  */
 {
   "sections": {
-    "rd_collection": {
-      "type": "rd-collection",
+    "main": {
+      "type": "raqi-product",
       "settings": {
-        "heading": "The collection",
-        "count_suffix": "fragrances, poured to order",
-        "count_suffix_short": "fragrances",
-        "tier_line": "Buy 2, save 5% · Buy 3 or more, save 10%",
-        "card_tier_label": "Buy 2, save 5%",
-        "more_label": "View all",
-        "empty_text": "Nothing matches that combination yet."
+        "breadcrumb_root": "All perfumes",
+        "photo_placeholder": "Product photo",
+        "authentic_decant_label": "Authentic decant",
+        "select_size_label": "Select size",
+        "ten_ml_sprays": "≈ 170 sprays",
+        "thirty_ml_sprays": "≈ 360+ sprays",
+        "ten_ml_caption": "Try it",
+        "thirty_ml_caption": "Live with it",
+        "fragrance_notes_label": "Fragrance Notes",
+        "note_top_label": "Top",
+        "note_heart_label": "Heart",
+        "note_base_label": "Base",
+        "add_to_cart_label": "Add to Cart",
+        "photo_proof_text": "Want proof? Ask and we'll send a photo of the bottle yours was poured from, plus the batch date.",
+        "trust_1": "100% original",
+        "trust_2": "Filled to order",
+        "trust_3": "Ships next day (UAE)",
+        "shipping_returns_label": "Shipping & Returns",
+        "ship_uae_label": "Across the UAE —",
+        "ship_uae_body": "next-day delivery, free over Dhs. 999.",
+        "ship_gcc_label": "",
+        "ship_gcc_body": "",
+        "returns_label": "Returns —",
+        "returns_body": "A customer can request a refund only if they receive a product in a damaged or defective condition. If the reason is genuine, a refund will be issued within 7 days of purchase.",
+        "ship_footnote_pre": "Questions?",
+        "ship_footnote_whatsapp": "Contact us",
+        "ship_footnote_or": "or read the full",
+        "ship_footnote_policy": "Shipping Policy",
+        "product_info_label": "Product Information"
       }
     },
-    "rd_ticker": {
-      "type": "rd-ticker",
-      "blocks": {
-        "t1": { "type": "item", "settings": { "text": "Free Delivery Over Dhs. 750" } },
-        "t2": { "type": "item", "settings": { "text": "7-Day Return (Damaged/Defective Items)" } },
-        "t3": { "type": "item", "settings": { "text": "UAE Delivery — Next Day" } },
-        "t4": { "type": "item", "settings": { "text": "100% Authentic Fragrances" } }
-      },
-      "block_order": [
-        "t1",
-        "t2",
-        "t3",
-        "t4"
-      ],
+    "related": {
+      "type": "raqi-related",
       "settings": {
-        "label": "Delivery and returns",
-        "speed": 38
+        "heading": "You may also like",
+        "view_all_label": "View all perfumes"
       }
     },
     "rd_faq": {
@@ -70,8 +80,8 @@
     }
   },
   "order": [
-    "rd_collection",
-    "rd_ticker",
+    "main",
+    "related",
     "rd_faq"
   ]
 }
