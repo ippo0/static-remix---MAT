@@ -1,0 +1,71 @@
+{% comment %}
+  Raqi — "The collections". 2026-08-02: added Niche as a real 5th card
+  (wired to the same /collections/niche the All Perfumes page's Niche
+  toggle uses), replacing the old static explainer-only row.
+{% endcomment %}
+{% liquid
+  assign niche_collection = collections['niche']
+%}
+<section class="raqi-collections raqi-section--band">
+  <div class="raqi-container">
+    <div class="raqi-collections__intro">
+      <p class="raqi-micro-label raqi-micro-label--accent">{{ section.settings.eyebrow }}</p>
+      <h2 class="raqi-collections__heading">{{ section.settings.heading }}</h2>
+      <p class="raqi-collections__body">{{ section.settings.body }}</p>
+    </div>
+    <div class="raqi-collections__grid raqi-collections__grid--five">
+      <a href="{{ section.settings.men_collection.url }}" class="raqi-collection-card raqi-oval">
+        <p class="raqi-collection-card__title">{{ section.settings.men_label }}</p>
+        <p class="raqi-collection-card__count">{{ section.settings.men_collection.all_products_count }} {{ section.settings.fragrances_suffix }}</p>
+      </a>
+      <a href="{{ section.settings.women_collection.url }}" class="raqi-collection-card raqi-oval">
+        <p class="raqi-collection-card__title">{{ section.settings.women_label }}</p>
+        <p class="raqi-collection-card__count">{{ section.settings.women_collection.all_products_count }} {{ section.settings.fragrances_suffix }}</p>
+      </a>
+      <a href="{{ section.settings.unisex_collection.url }}" class="raqi-collection-card raqi-oval">
+        <p class="raqi-collection-card__title">{{ section.settings.unisex_label }}</p>
+        <p class="raqi-collection-card__count">{{ section.settings.unisex_collection.all_products_count }} {{ section.settings.fragrances_suffix }}</p>
+      </a>
+      <a href="{{ niche_collection.url | default: '/collections/niche' }}" class="raqi-collection-card raqi-oval">
+        <p class="raqi-collection-card__title">{{ section.settings.niche_pill_label | default: 'Niche' }}</p>
+        <p class="raqi-collection-card__count">{{ niche_collection.all_products_count }} {{ section.settings.fragrances_suffix }}</p>
+      </a>
+      <a href="{{ section.settings.all_url | default: '/collections/all' }}" class="raqi-collection-card raqi-oval raqi-collection-card--accent">
+        <p class="raqi-collection-card__title">{{ section.settings.all_label }}</p>
+        <p class="raqi-collection-card__count">{{ section.settings.all_cta }} &rarr;</p>
+      </a>
+    </div>
+    <p class="raqi-collections__niche-explainer" style="margin:32px auto 0;text-align:center;">{{ section.settings.niche_explainer }}</p>
+  </div>
+</section>
+
+<style>
+  .raqi-collections__grid--five{ grid-template-columns:repeat(5,1fr); }
+  @media (max-width:1100px){ .raqi-collections__grid--five{ grid-template-columns:repeat(3,1fr); } }
+  @media (max-width:640px){ .raqi-collections__grid--five{ grid-template-columns:repeat(2,1fr); } }
+</style>
+
+{% schema %}
+{
+  "name": "Raqi: Collections",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Niche & Designer Fragrances" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "The collections" },
+    { "type": "textarea", "id": "body", "label": "Body", "default": "Our selection is deliberately small — independent and luxury names only, nothing you'd find in a supermarket, nothing imitated. Everything below is the original fragrance." },
+    { "type": "header", "content": "Collection cards" },
+    { "type": "collection", "id": "men_collection", "label": "Men collection" },
+    { "type": "text", "id": "men_label", "label": "Men label", "default": "Men" },
+    { "type": "collection", "id": "women_collection", "label": "Women collection" },
+    { "type": "text", "id": "women_label", "label": "Women label", "default": "Women" },
+    { "type": "collection", "id": "unisex_collection", "label": "Unisex collection" },
+    { "type": "text", "id": "unisex_label", "label": "Unisex label", "default": "Unisex" },
+    { "type": "text", "id": "fragrances_suffix", "label": "Count suffix", "default": "Fragrances" },
+    { "type": "text", "id": "niche_pill_label", "label": "Niche card label", "default": "Niche" },
+    { "type": "url", "id": "all_url", "label": "All Perfumes link" },
+    { "type": "text", "id": "all_label", "label": "All Perfumes label", "default": "All Perfumes" },
+    { "type": "text", "id": "all_cta", "label": "All Perfumes CTA", "default": "Shop Everything" },
+    { "type": "header", "content": "Niche explainer" },
+    { "type": "textarea", "id": "niche_explainer", "label": "Niche explainer copy", "default": "Niche isn't a category of its own — it marks tier, not gender. Every fragrance tagged Niche also lives inside its Men, Women or Unisex collection." }
+  ]
+}
+{% endschema %}
