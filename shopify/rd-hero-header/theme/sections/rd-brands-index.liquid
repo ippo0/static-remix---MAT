@@ -1,0 +1,89 @@
+{% comment %}
+  RAQI Redesign — Brands index, the page behind header nav "Brands"
+  (routes.collections_url → templates/list-collections.json).
+
+  Uses the same house-card treatment as §3.4 "Shop by brand" on the homepage,
+  so the two surfaces cannot drift apart. Houses are chosen per block, which
+  keeps utility collections — Men, Women, Unisex, Niche, Best Sellers and
+  Quantity Discount Eligible — off a page that is meant to be houses only.
+
+  A block with no collection selected renders as an inert placeholder rather
+  than a link to nowhere.
+{% endcomment %}
+{% render 'rd-fonts' %}
+<div class="rd-scope">
+  <section class="rd-section rd-frame rd-bidx" aria-labelledby="rd-bidx-h">
+    <div class="rd-bidx__head">
+      <h1 class="rd-bidx__h1" id="rd-bidx-h">{{ section.settings.heading }}</h1>
+      {%- if section.settings.intro != blank -%}
+        <p class="rd-bidx__intro">{{ section.settings.intro }}</p>
+      {%- endif -%}
+    </div>
+
+    <div class="rd-houses__grid rd-bidx__grid">
+      {%- for block in section.blocks -%}
+        {%- liquid
+          assign col = collections[block.settings.collection]
+          assign count = col.all_products_count
+          assign name = block.settings.name_override | default: col.title
+          assign unit = section.settings.count_plural
+          if count == 1
+            assign unit = section.settings.count_singular
+          endif
+        -%}
+        {%- if col != blank and col.handle != blank -%}
+          <a class="rd-house" href="{{ col.url }}" {{ block.shopify_attributes }}>
+            {%- if block.settings.image != blank -%}
+              <img class="rd-house__img"
+                src="{{ block.settings.image | image_url: width: 800 }}"
+                srcset="{{ block.settings.image | image_url: width: 400 }} 400w, {{ block.settings.image | image_url: width: 800 }} 800w"
+                sizes="(max-width: 900px) 50vw, 33vw"
+                alt="{{ block.settings.image_alt | default: name | escape }}"
+                width="{{ block.settings.image.width }}" height="{{ block.settings.image.height }}"
+                loading="lazy">
+              <span class="rd-house__scrim"></span>
+            {%- else -%}
+              <span class="rd-house__ph">House imagery pending</span>
+              <span class="rd-house__scrim"></span>
+            {%- endif -%}
+            <span class="rd-house__text">
+              <span class="rd-house__name">{{ name }}</span>
+              <span class="rd-house__count">{{ count }} {{ unit }}</span>
+            </span>
+          </a>
+        {%- else -%}
+          <div class="rd-house rd-house--empty" {{ block.shopify_attributes }}>
+            <span class="rd-house__ph">Select a collection</span>
+          </div>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+  </section>
+</div>
+
+{% schema %}
+{
+  "name": "RD Brands index",
+  "tag": "section",
+  "max_blocks": 16,
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading", "default": "The houses" },
+    { "type": "textarea", "id": "intro", "label": "Intro", "default": "Every fragrance we decant comes from a house worth knowing. Start with the one that draws you." },
+    { "type": "text", "id": "count_singular", "label": "Count word (singular)", "default": "fragrance" },
+    { "type": "text", "id": "count_plural", "label": "Count word (plural)", "default": "fragrances" }
+  ],
+  "blocks": [
+    {
+      "type": "house",
+      "name": "House",
+      "settings": [
+        { "type": "collection", "id": "collection", "label": "Collection" },
+        { "type": "text", "id": "name_override", "label": "Display name", "info": "Falls back to the collection title." },
+        { "type": "image_picker", "id": "image", "label": "Image" },
+        { "type": "text", "id": "image_alt", "label": "Image alt text" }
+      ]
+    }
+  ],
+  "presets": [{ "name": "RD Brands index" }]
+}
+{% endschema %}
