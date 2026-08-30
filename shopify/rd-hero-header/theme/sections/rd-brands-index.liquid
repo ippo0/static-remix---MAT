@@ -9,6 +9,13 @@
 
   A block with no collection selected renders as an inert placeholder rather
   than a link to nowhere.
+
+  2026-08-30: cards no longer require an image. A block without one renders as
+  a text card (rd-house--text) instead of the "House imagery pending" plate.
+  That needs its own colours: the image card's name and count are --rd-bone,
+  legible only over a photograph and its scrim, and would be invisible against
+  the bare --rd-panel card. The overrides live in this file's style block so
+  assets/raqi-redesign.css stays untouched.
 {% endcomment %}
 {% render 'rd-fonts' %}
 <div class="rd-scope">
@@ -32,7 +39,13 @@
           endif
         -%}
         {%- if col != blank and col.handle != blank -%}
-          <a class="rd-house" href="{{ col.url }}" {{ block.shopify_attributes }}>
+          {%- liquid
+            assign card_class = 'rd-house rd-house--text'
+            if block.settings.image != blank
+              assign card_class = 'rd-house'
+            endif
+          -%}
+          <a class="{{ card_class }}" href="{{ col.url }}" {{ block.shopify_attributes }}>
             {%- if block.settings.image != blank -%}
               <img class="rd-house__img"
                 src="{{ block.settings.image | image_url: width: 800 }}"
@@ -41,9 +54,6 @@
                 alt="{{ block.settings.image_alt | default: name | escape }}"
                 width="{{ block.settings.image.width }}" height="{{ block.settings.image.height }}"
                 loading="lazy">
-              <span class="rd-house__scrim"></span>
-            {%- else -%}
-              <span class="rd-house__ph">House imagery pending</span>
               <span class="rd-house__scrim"></span>
             {%- endif -%}
             <span class="rd-house__text">
@@ -61,11 +71,53 @@
   </section>
 </div>
 
+{% style %}
+  /* The shared grid collapses to a horizontal scroll strip below 900px, which
+     suits six curated houses but not a full brand directory. Keep it a wrapping
+     grid at every width. */
+  .rd-bidx__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px; overflow: visible; margin-inline: 0; padding-inline: 0; }
+
+  .rd-bidx__grid .rd-house--text {
+    block-size: auto;
+    inline-size: auto;
+    flex: initial;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 22px;
+    background: var(--rd-panel);
+    border: 1px solid var(--rd-rule);
+    transition: border-color 200ms ease;
+  }
+
+  .rd-bidx__grid .rd-house--text .rd-house__text { position: static; padding: 0; }
+  .rd-bidx__grid .rd-house--text .rd-house__name { color: var(--rd-ink); font-size: 22px; }
+  .rd-bidx__grid .rd-house--text .rd-house__count {
+    color: var(--rd-grey); font-size: 10px; margin-block-start: 0; white-space: nowrap;
+  }
+
+  .rd-bidx__grid .rd-house--text:hover { border-color: var(--rd-wine); }
+  .rd-bidx__grid .rd-house--text:hover .rd-house__name { color: var(--rd-wine); }
+
+  @media (max-width: 900px) {
+    .rd-bidx__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .rd-bidx__grid .rd-house--text { padding: 15px 16px; gap: 10px; }
+    .rd-bidx__grid .rd-house--text .rd-house__name { font-size: 18px; }
+    .rd-bidx__grid .rd-house--text .rd-house__count { font-size: 9px; }
+  }
+
+  @media (max-width: 460px) {
+    .rd-bidx__grid { grid-template-columns: 1fr; }
+  }
+{% endstyle %}
+
 {% schema %}
 {
   "name": "RD Brands index",
   "tag": "section",
-  "max_blocks": 16,
+  "max_blocks": 50,
   "settings": [
     { "type": "text", "id": "heading", "label": "Heading", "default": "The houses" },
     { "type": "textarea", "id": "intro", "label": "Intro", "default": "Every fragrance we decant comes from a house worth knowing. Start with the one that draws you." },
