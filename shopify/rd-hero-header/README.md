@@ -37,3 +37,44 @@ deployed.
 
 Note this repository is **public**. The file is theme CSS that a live
 storefront serves publicly anyway, so nothing secret is exposed by it.
+
+## Verification (2026-08-30)
+
+Every copied file was re-read from `box` after writing and its MD5 compared
+against the Redesign source. All seven match byte-for-byte — see the table
+above for the shared checksums. `templates/index.json` is a hybrid so has no
+source to match; it is 6912 bytes, MD5 `54e9f987c660773447dcd67adc50f16a`.
+
+Confirmed unmodified:
+
+- `box`: `layout/theme.liquid`, `layout/links.liquid`,
+  `templates/page.links.liquid`, `sections/footer-group.json` all still carry
+  the 13:49:45 duplication timestamp.
+- Source theme `188260155699`: all checksums unchanged, no write timestamps
+  from this session.
+- Live theme `188395618611`: `templates/index.json` and
+  `sections/header-group.json` unchanged; it has no `raqi-redesign.css`.
+
+## Known issues in the result
+
+These are faithful to the Redesign source, not defects in the copy, but they
+matter before `box` is ever published:
+
+1. **The hero click target 404s.** The whole hero is one link to
+   `/pages/discovery-box`, which is unpublished. `sections/rd-hero.liquid`
+   says so in its own header comment and cites it as the reason the Redesign
+   theme "must not be published yet (§8.1)".
+2. **The "Discovery Set" nav link is dead.** `rd-header.liquid` points it at
+   `/#discovery-set`, an anchor rendered by the `rd-discovery` section, which
+   is part of the Redesign homepage and was out of scope here.
+3. **The hero shows a placeholder, not a box photograph.** No image is set on
+   the Redesign hero either; the schema notes the photograph is "pending from
+   the manufacturer".
+4. **Only the hero and header are new.** The rest of the homepage and the
+   whole footer are still the old `raqi-*` design.
+5. **Two cart drawers are mounted.** `layout/theme.liquid` still renders the
+   old `cart-drawer` snippet while `header-group.json` now mounts
+   `rd-cart-drawer`. The Redesign theme has the same overlap.
+
+`box` carries `layout/links.liquid` and `templates/page.links.liquid`, so
+publishing it will not 404 `raqi.ae/pages/links` or `/box`.
