@@ -434,3 +434,71 @@ button intact. Verified after the change: the homepage instance carries
 Replaced on the collection template: `raqi_heading` (`raqi-page-heading`) and
 `raqi_grid` (`raqi-collection-grid`). Both section files remain on disk,
 unreferenced and inert, so the swap is reversible.
+
+## 2026-08-30 — rd_faq added to three templates
+
+`sections/rd-faq.liquid` was copied from the Redesign draft (188260155699)
+byte-for-byte and placed on three templates, all on theme `box` only. It
+depends on `rd-fonts`, which was already present.
+
+| File | Bytes | MD5 | Verdict |
+|---|---|---|---|
+| `sections/rd-faq.liquid` | 2978 | `25b7ebf7adfeb7759596e4ebf172dce2` | PASS — identical to source |
+| `templates/index.json` | 16807 | `51943ad0b4fd40ba65799aab2c1fc63b` | PASS |
+| `templates/product.json` | 4959 | `dac8ef5119c5342c712e4231ae9b860b` | PASS |
+| `templates/collection.json` | 4253 | `09c65aafb6c41dd654f4db76c3fbb395` | PASS |
+
+Final order — homepage: `rd_hero`, `rd_trust`, `rd_steps`, `rd_collection`,
+`rd_profiles`, `rd_discovery`, `rd_ticker`, `rd_why`, `raqi_selected`,
+`raqi_story_sizes`, `rd_faq`. Product: `main`, `related`, `rd_faq`.
+Collection: `rd_collection`, `rd_ticker`, `rd_faq`.
+
+All 33 products have a `templateSuffix` of `null` or `""`, so one write to
+`templates/product.json` covers every product page. The 14 collection pages
+likewise share `templates/collection.json`.
+
+## 2026-08-30 — FAQPage JSON-LD gated to one page
+
+With the FAQ on the homepage, 33 product pages and 14 collection pages, all
+~48 were emitting identical `FAQPage` structured data. Google's guidance is
+against duplicating FAQPage markup across a site, and at that scale the usual
+outcome is the rich result being dropped sitewide rather than only on the
+duplicates.
+
+A `show_faq_schema` checkbox now gates the JSON-LD block alone. **The visible
+accordion — markup, styling and JavaScript — is outside the conditional and
+renders on every instance regardless of the setting.** Default is `false`, so
+a future instance added from the theme editor stays silent unless someone
+deliberately opts in.
+
+| File | Bytes | MD5 | Verdict |
+|---|---|---|---|
+| `sections/rd-faq.liquid` | 3781 | `b4094a2554758d76b7bf50a6e818cc47` | PASS |
+| `templates/index.json` | 16840 | `0d705e14eab64a8a1d14224325f466fb` | PASS — `show_faq_schema: true` |
+| `templates/product.json` | 4993 | `d176827f05b23cfae3bfe402b0eff1fb` | PASS — `show_faq_schema: false` |
+| `templates/collection.json` | 4287 | `21439086a3b0e217461165f3ea22dc44` | PASS — `show_faq_schema: false` |
+
+> ### A new setting and the template that uses it cannot go up in one batch
+>
+> The first attempt sent all four files in a single `themeFilesUpsert`. The
+> three small files stored verbatim, but `templates/index.json` came back
+> re-serialised into Shopify's canonical format at 11144 bytes with
+> `show_faq_schema` **silently stripped** — no `userErrors`, and the write
+> reported success.
+>
+> Shopify validates a JSON template's section settings against the section's
+> `{% schema %}` and drops any it does not recognise. Within one batch the
+> template was checked against the *old* `rd-faq.liquid`, which had no such
+> setting yet. Re-sending `templates/index.json` alone, after the section file
+> was committed, stored it verbatim with the setting intact.
+>
+> So the order is always **section file first, template second, as two
+> separate calls** — and verify by reading the setting back, not just by
+> trusting an empty `userErrors`. Note that `themeFilesUpsert` returned an
+> empty `upsertedThemeFiles` array on every successful write here, so that
+> field is not a success signal either.
+>
+> Nothing was lost in the stripped write: all nine Q&A blocks, both step
+> photos, the section order and every other setting survived. Only the
+> unrecognised key was removed. Because the schema default is `false`, a strip
+> can only ever turn structured data *off*, never on.
