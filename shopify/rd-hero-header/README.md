@@ -334,3 +334,56 @@ comment says should be the case.
 
 The hero is section 1 and the anchor is section 6, so the click scrolls down
 the same page rather than loading a new one.
+
+## 2026-08-30 — section-to-footer boundary on raqi_story_sizes
+
+`raqi_story_sizes` is kept as-is by decision — not replaced with `rd_story`.
+
+### What the reported problem actually was
+
+The section is a two-column split, not one background:
+
+| Half | Rule in `assets/raqi-theme.css` | Colour |
+|---|---|---|
+| `.raqi-story-sizes__story` (Our Story) | `background: var(--raqi-ink)` | `#22261F` |
+| `.raqi-story-sizes__sizes` (10ml/30ml) | `background: var(--raqi-bg-panel)` | `#E8EBE2` |
+
+The footer's `raqi-footer` scheme is `--color-background: 34, 38, 31` — also
+`#22261F`. So the **dark** left half abuts an identically dark footer. Verified
+by render: both compute to `rgb(34,38,31)`.
+
+The originally requested change — set the section background to `#E8EBE2` —
+was **not** applied. The right half is already exactly that colour, and the
+left half's type is all styled for a dark ground (heading `--raqi-bg-panel`
+`#E8EBE2`, body `--raqi-text-muted-on-dark` `#A9AE9F`, eyebrow
+`--raqi-accent-on-dark` `#C79FA8`, tag rule `rgba(232,235,226,.2)`).
+Lightening the panel without recolouring all four would have made the Our
+Story copy invisible.
+
+### What was done
+
+| File | Bytes | MD5 | Verdict |
+|---|---|---|---|
+| `sections/raqi-story-sizes.liquid` | 8794 | `da2781a1822eaa7495dd04937bce8698` | PASS — matches the local original |
+
+A 1px hairline in the design system's own rule colour, added to the section's
+existing `<style>` block:
+
+    .raqi-story-sizes{ border-bottom:1px solid var(--raqi-rule); }
+
+`--raqi-rule` is `#C7CCBE`, so it reads as a light line against the dark panel
+and a soft one against the light half. Both backgrounds are untouched; the file
+contains no `background` property at all.
+
+Scoped to the section rather than added to `assets/raqi-theme.css`, which stays
+byte-identical at `04b1dfc029a326bd403f30e1c976fb56` and is shared with other
+old-design sections.
+
+Verification chain: the original was reconstructed locally and confirmed
+byte-identical to the theme copy (`3c31ec0f4095698b0c4ebeeee9b269b5`) before
+editing, the edit was applied mechanically, and the result was transferred by
+raw URL so the upload could not drift. Diff is an 8-line insertion and nothing
+else.
+
+`sections/footer-group.json` untouched — still `3d525e67c165656cd0dba57f1e3befe7`
+at the 13:49:45 duplication timestamp.
