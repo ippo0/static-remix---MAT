@@ -6,11 +6,18 @@ is reversible: re-upload the file and restore the template that used it.
 
 | File | Bytes | MD5 | Presets? | Superseded by | Deleted from theme |
 |---|---|---|---|---|---|
-| `raqi-collection-grid.liquid` | 9320 | `f413ce36bc79a124a5c2ffcc1041160f` | no | `rd-collection` | yes |
-| `raqi-collections.liquid` | 4827 | `cf19d4d50f2a3216339cfee02d60dc6a` | no | `rd-brands-index` | yes |
-| `raqi-concept-steps.liquid` | 5702 | `501cbe47f4e9094bc7ef9b4a40383672` | no | `rd-steps` | yes |
-| `raqi-page-heading.liquid` | 1269 | `f4c62003da9f758a1d112cdd38abb396` | **yes** | — | no, kept |
-| `collection-list-template.liquid` | 8025 | `8957cea039f04e3aaa6e5d211cf18c49` | no | `rd-brands-index` | no, kept |
+| `raqi-collection-grid.liquid` | 9320 | `f413ce36bc79a124a5c2ffcc1041160f` | no | `rd-collection` | cleared, not yet deleted |
+| `raqi-collections.liquid` | 4827 | `cf19d4d50f2a3216339cfee02d60dc6a` | no | `rd-brands-index` | cleared, not yet deleted |
+| `raqi-concept-steps.liquid` | 5702 | `501cbe47f4e9094bc7ef9b4a40383672` | no | `rd-steps` | cleared, not yet deleted |
+| `raqi-page-heading.liquid` | 1269 | `f4c62003da9f758a1d112cdd38abb396` | **yes** | — | keep |
+| `collection-list-template.liquid` | 8025 | `8957cea039f04e3aaa6e5d211cf18c49` | no | `rd-brands-index` | keep |
+
+> **Nothing has actually been deleted.** `themeFilesDelete` is refused by the
+> MCP server's safety policy ("Theme deletion is blocked — it could take down
+> the live storefront. Use Shopify admin."). The three files marked *cleared*
+> are verified unreferenced and safe for the owner to delete from
+> Shopify admin → Themes → box → Edit code. These archived copies make that
+> reversible.
 
 `raqi-page-heading` declares `presets`, so it is still addable from the theme
 editor even with no template using it. Deleting it would remove that option,
