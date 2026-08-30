@@ -1,0 +1,79 @@
+{% comment %}
+  RAQI Redesign — §2.2 Header.
+
+  ⚠ The four nav items are HARD-CODED ON PURPOSE. Shopify navigation menus are
+  store-level linklists shared with the live theme "Raqi box" (188008038707);
+  reading or editing one here would change the live storefront. At go-live the
+  linklist is switched over manually as a separate, deliberate step.
+
+  "Discovery Set" resolves to the in-page anchor on the homepage panel, never to
+  /pages/discovery-box — that page is unpublished and returns 404 by design.
+
+  2026-08-29: WhatsApp added to the utility row (icon only, monochrome, inherits
+  the row's link colour like the other utility links). Hidden below the rd-hide-sm
+  breakpoint — on mobile the floating button in snippets/raqi-whatsapp-float.liquid
+  covers it. Number is also in that snippet, sections/footer-group.json and
+  templates/page.contact.json — keep the four in sync.
+
+  2026-08-30: that snippet was named here but had never actually been created on
+  this theme, so between the rd-hide-sm breakpoint and the bottom of the page
+  there was no WhatsApp entry point on mobile at all. It exists now and is
+  rendered below. The float shows at <=900px and this icon at 901px and up —
+  the same breakpoint from both sides. Move one and you must move the other.
+{% endcomment %}
+{% render 'rd-fonts' %}
+<div class="rd-scope">
+  <header class="rd-header">
+    <div class="rd-header__inner">
+      <button class="rd-header__burger" type="button" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+
+      <nav class="rd-nav" aria-label="Primary">
+        <a href="{{ routes.all_products_collection_url }}">Shop</a>
+        <a href="{{ routes.collections_url }}">Brands</a>
+        <a href="{{ routes.root_url }}#discovery-set">Discovery Set</a>
+        <a href="{{ routes.root_url }}pages/about">Our Story</a>
+      </nav>
+
+      <a class="rd-logo" href="{{ routes.root_url }}" aria-label="{{ shop.name }} — home">
+        <span class="rd-logo__en">RAQI</span>
+        <span class="rd-logo__ar" lang="ar">راقي</span>
+      </a>
+
+      <div class="rd-header__right">
+        <a class="rd-hide-sm" href="{{ routes.search_url }}">Search</a>
+        <a class="rd-header__wa rd-hide-sm" href="https://wa.me/971585670055" target="_blank" rel="noopener" aria-label="Chat with RAQI on WhatsApp" title="WhatsApp">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path fill="currentColor" d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.885-9.885 9.885m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0 0 20.464 3.488"/></svg>
+        </a>
+        <a class="rd-header__lang rd-hide-sm" href="{{ routes.root_url }}" lang="ar">عربي</a>
+        <a class="rd-header__bag" href="{{ routes.cart_url }}" data-rd-bag>Bag (<span data-rd-bagcount>{{ cart.item_count }}</span>)</a>
+      </div>
+    </div>
+  </header>
+
+  {% render 'raqi-whatsapp-float' %}
+</div>
+
+{% style %}
+  .rd-header__wa {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+  }
+
+  .rd-header__wa svg {
+    width: 16px;
+    height: 16px;
+    display: block;
+  }
+{% endstyle %}
+
+{% schema %}
+{
+  "name": "RD Header",
+  "settings": [],
+  "presets": [{ "name": "RD Header" }]
+}
+{% endschema %}
