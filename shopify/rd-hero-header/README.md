@@ -502,3 +502,57 @@ deliberately opts in.
 > photos, the section order and every other setting survived. Only the
 > unrecognised key was removed. Because the schema default is `false`, a strip
 > can only ever turn structured data *off*, never on.
+
+## 2026-08-30 — Brands page rebuilt on rd-brands-index
+
+The page behind header nav "Brands" (`routes.collections_url` → `/collections`
+→ `templates/list-collections.json`) was never ported. It was still the base
+theme's `collection-list-template` with `display_type: "all"`, so it listed
+all 13 collections — Home page, Men, Women, Unisex, Niche, Best Sellers and
+Quantity Discount Eligible among them — under the theme vendor's placeholder
+copy: *"Here is your chance to upgrade your wardrobe with a variation of
+styles and fits that are both feminine and relaxed."*
+
+| File | Bytes | MD5 | Verdict |
+|---|---|---|---|
+| `sections/rd-brands-index.liquid` | 3903 | `2b53b621622dd7d83f669ceeafcee7b0` | PASS — identical to Redesign source |
+| `templates/list-collections.json` | 1284 | `7eb30aabddbc8bc8db15256fe682b59d` | PASS |
+
+Six curated houses, in Redesign order: Tom Ford (5), Creed (1), Amouage (2),
+Louis Vuitton (2), Maison Francis Kurkdjian (2), Xerjoff (1). The section
+switches `count_singular`/`count_plural` per card, so Creed and Xerjoff read
+"1 fragrance". Grid is 3 columns, 2 below 900px.
+
+No dependency needed adding. `rd-fonts` was already present, and every class
+the section uses — `rd-house*`, `rd-bidx__head`, `rd-bidx__h1`,
+`rd-bidx__intro`, `rd-bidx__grid`, `rd-frame`, `rd-section`, `rd-scope` — is
+already in `assets/raqi-redesign.css`, which is byte-identical to the
+Redesign copy.
+
+`sections/collection-list-template.liquid` is left on disk (8025 bytes,
+`8957cea0…`, byte-identical on both themes) but is now referenced by no
+template — inert, not deleted, so the swap is reversible by restoring the old
+`templates/list-collections.json`.
+
+### No house imagery is set
+
+Every block leaves `image` blank, exactly as in the Redesign draft, so all six
+cards render the `rd-house__ph` placeholder reading "House imagery pending"
+behind the scrim. The names and counts are real; only the photography is
+absent. Setting six images in the theme editor is all that is outstanding.
+
+### Correction to an earlier note
+
+Two "Brands page unaffected" notes above say `templates/list-collections.json`
+renders `sections/raqi-collection-grid.liquid`. That was wrong — it rendered
+`collection-list-template`. `raqi-collection-grid` was the *old*
+`templates/collection.json`. The conclusion in those notes (that the Brands
+page was untouched by the homepage and collection work) was correct, and the
+checksums quoted there were correct; only the section name was wrong.
+
+### The ordering rule held
+
+Written as two separate calls, section file first. Unlike the `rd_faq` batch,
+nothing was stripped: all six blocks kept their `collection` settings, the
+`block_order` survived, and the stored file matched the local original
+byte-for-byte on the first attempt.
