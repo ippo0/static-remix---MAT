@@ -180,3 +180,53 @@ Re-verified after this change. `templates/list-collections.json`
 `collection.*.json` variants and `sections/raqi-collection-grid.liquid`
 (`f413ce36…`) all still carry the 13:49:45 duplication timestamp with
 unchanged checksums.
+
+## 2026-08-30 — rd-ticker (new section, authored not copied)
+
+A new scrolling delivery/policy bar. Unlike every other `rd-*` file here this
+one has no Redesign source — it was written for this theme, so `theme/sections/
+rd-ticker.liquid` is the authoritative copy.
+
+| File | Bytes | MD5 | Verdict |
+|---|---|---|---|
+| `sections/rd-ticker.liquid` | 3797 | `a5aee02d7d0aaa4002907ea78d5dc2d4` | PASS — stored copy matches the local original |
+
+`templates/index.json` is now 9317 bytes, MD5 `0d1897d3f43111bd56d611496bceb821`.
+Order: `rd_hero`, `rd_steps`, `rd_collection`, `rd_profiles`, `raqi_selected`,
+`rd_ticker`, `raqi_story_sizes`.
+
+### Design notes
+
+- Styles live in the section's own `{% style %}` block, **not** in
+  `assets/raqi-redesign.css`. That shared stylesheet is byte-verified against
+  the Redesign source and was deliberately left untouched.
+- Colours and type are design-system tokens only: `--rd-panel` ground,
+  `--rd-rule` hairlines top and bottom, `--rd-ink` text, `--rd-wine` ticks,
+  `--rd-body` (Karla) at 11px / 0.16em / uppercase — the same type treatment as
+  `.rd-announce`, so it reads as a ticker rather than a section.
+- Rendered height is 39px desktop, 34px mobile.
+- Seamless loop verified by render: the item row is emitted twice and the track
+  translated -50%. Measured 1306 + 1306 = 2613px at 1280 wide and 1049 + 1049 =
+  2099px at 375, so the second copy lands exactly where the first began.
+- The duplicate row is `aria-hidden` and carries no `shopify_attributes`, so
+  assistive tech and the theme editor see one set of items, not two.
+- Pauses on hover and on focus-within; under `prefers-reduced-motion: reduce`
+  the animation is off and the items wrap statically.
+- Loop duration is a range setting (15–90s, default 38s); each point is an
+  editable block.
+
+### Position
+
+Placed immediately **before** `raqi_story_sizes`, the closing section whose
+heading is "Why commit to a fragrance before you know it's yours?" — the
+nearest thing on `box` to "Why RAQI".
+
+`rd-why.liquid` is **not** on `box`. Neither is `rd-trust.liquid`; the only
+trust-ish file present is `sections/raqi-trust-row.liquid`, a 124-byte stub
+that no template references. So no trust bar of any kind currently renders on
+this homepage, and there was nothing for `rd-ticker` to be confused with.
+
+When `rd_why` is eventually added it belongs between `rd_profiles` and
+`raqi_selected` (mapping the approved Redesign order onto box's). Moving
+`rd_ticker` to sit directly after it is then a one-line change to the `order`
+array.

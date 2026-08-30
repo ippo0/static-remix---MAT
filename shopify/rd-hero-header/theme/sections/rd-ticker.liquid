@@ -1,0 +1,118 @@
+{% comment %}
+  RAQI Redesign — delivery & policy ticker.
+
+  A NEW section, deliberately separate from rd-trust. rd-trust is the static
+  authenticity claim row near the top of the page; this is a thin scrolling
+  reminder of delivery and returns near the bottom. Do not merge them.
+
+  Seamless loop: the item row is rendered twice inside the track and the track
+  is translated by exactly -50%, so the second copy lands where the first
+  started and the join is invisible. The duplicate is aria-hidden and carries
+  no theme-editor attributes, so screen readers and the customizer only ever
+  see one set of items.
+
+  Styles are scoped here rather than added to assets/raqi-redesign.css so this
+  section stays self-contained and that shared stylesheet is left untouched.
+  Colours and type come from the design-system tokens only.
+{% endcomment %}
+{% render 'rd-fonts' %}
+<div class="rd-scope">
+  <aside class="rd-ticker" aria-label="{{ section.settings.label | escape }}">
+    <div class="rd-ticker__track" style="--rd-ticker-speed: {{ section.settings.speed }}s">
+      {%- for pass in (1..2) -%}
+        {%- assign is_original = forloop.first -%}
+        <div class="rd-ticker__group"{% unless is_original %} aria-hidden="true"{% endunless %}>
+          {%- for block in section.blocks -%}
+            <span class="rd-ticker__item"{% if is_original %} {{ block.shopify_attributes }}{% endif %}>
+              <span class="rd-ticker__tick" aria-hidden="true">&#10003;</span>{{ block.settings.text }}
+            </span>
+          {%- endfor -%}
+        </div>
+      {%- endfor -%}
+    </div>
+  </aside>
+</div>
+
+{% style %}
+  .rd-ticker {
+    background: var(--rd-panel);
+    border-top: 1px solid var(--rd-rule);
+    border-bottom: 1px solid var(--rd-rule);
+    padding: 12px 0;
+    overflow: hidden;
+  }
+
+  .rd-ticker__track {
+    display: flex;
+    width: max-content;
+    animation: rd-ticker-scroll var(--rd-ticker-speed, 38s) linear infinite;
+  }
+
+  .rd-ticker:hover .rd-ticker__track,
+  .rd-ticker:focus-within .rd-ticker__track {
+    animation-play-state: paused;
+  }
+
+  .rd-ticker__group {
+    display: flex;
+    flex: none;
+  }
+
+  .rd-ticker__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    flex: none;
+    padding: 0 34px;
+    font-family: var(--rd-body);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--rd-ink);
+    white-space: nowrap;
+  }
+
+  .rd-ticker__tick {
+    color: var(--rd-wine);
+    font-size: 12px;
+    line-height: 1;
+  }
+
+  @keyframes rd-ticker-scroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  @media (max-width: 900px) {
+    .rd-ticker { padding: 10px 0; }
+    .rd-ticker__item { font-size: 9.5px; letter-spacing: 0.14em; padding: 0 22px; gap: 7px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rd-ticker__track { animation: none; width: 100%; }
+    .rd-ticker__group { flex-wrap: wrap; justify-content: center; width: 100%; row-gap: 6px; }
+    .rd-ticker__group + .rd-ticker__group { display: none; }
+  }
+{% endstyle %}
+
+{% schema %}
+{
+  "name": "RD Delivery ticker",
+  "tag": "section",
+  "max_blocks": 8,
+  "settings": [
+    { "type": "text", "id": "label", "label": "Accessible label", "default": "Delivery and returns" },
+    { "type": "range", "id": "speed", "label": "Loop duration (seconds)", "min": 15, "max": 90, "step": 1, "default": 38, "info": "Higher is slower. The bar pauses on hover and does not animate under reduced-motion settings." }
+  ],
+  "blocks": [
+    {
+      "type": "item",
+      "name": "Point",
+      "settings": [
+        { "type": "text", "id": "text", "label": "Text", "default": "Free Delivery Over Dhs. 750" }
+      ]
+    }
+  ],
+  "presets": [{ "name": "RD Delivery ticker" }]
+}
+{% endschema %}
