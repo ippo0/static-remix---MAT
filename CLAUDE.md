@@ -76,3 +76,29 @@ Full detail, including QR print constraints, in `shopify/links-page/README.md`.
   owner edits it directly in the theme editor.
 - **Theme file deletion is blocked** by the MCP safety policy. Deletions must be
   done by the owner in Shopify admin.
+
+## Adding products — check the sales channel, not just the status
+
+`status: ACTIVE` is **not** enough for a product to exist on the storefront. It
+must also be published to the **Online Store** channel
+(`gid://shopify/Publication/286006542643`).
+
+On 2026-09-02 seven Active products — Creed Centaurus, Creed Aventus for Her,
+Creed Wind Flowers, Creed Silver Mountain Water, Creed Queen of Silk, Dior
+Elixir (Sauvage), Bleu de Chanel EDT — turned out to be published **only** to
+"Microsoft Copilot" (`292840243507`). They were absent from `collections['all']`,
+so their product pages did not resolve and they never appeared in the Discovery
+Set Builder, even though the admin showed them Active and correctly tagged.
+
+Whatever route created them defaults to Copilot only. So after adding products:
+
+```graphql
+resourcePublications(first: 6) { nodes { isPublished publication { name } } }
+```
+
+and confirm **Online Store** is in the list. `productsCount` and `status` will
+both look right while the storefront shows nothing.
+
+This bites anything that reads `collections['all']` — the Discovery Set Builder
+(both tier grids), `rd-collection`, and the brand collections, which are smart
+collections on VENDOR and therefore also storefront-scoped.
