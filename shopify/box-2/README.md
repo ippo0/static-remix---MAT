@@ -10,18 +10,18 @@ store; it has to be pushed back through the Admin API or the theme editor.
 ## Themes
 
 Roles move around on this store — check them before assuming. As of
-2026-09-03 12:46 UTC:
+2026-09-03 19:36 UTC:
 
 | Theme | ID | Role | What it is |
 |---|---|---|---|
-| `box 2` | `188491465011` | Unpublished | The **redesign, current work** — everything in this directory |
-| `box` | `188412231987` | **Live (MAIN)** | Same redesign sections, but an **older `rd-header`** (4,334 bytes): no mobile menu panel, no script, broken language link |
+| `box 2` | `188491465011` | **Live (MAIN)** | The redesign — everything in this directory |
+| `box` | `188412231987` | Unpublished | Same redesign sections, but an **older `rd-header`** (4,334 bytes): no mobile menu panel, no script, broken language link |
 | `Copy of Raqi box` | `188395618611` | Unpublished | Older Minimog-based theme, no `rd-*` sections. Was MAIN earlier on 2026-09-03. |
 
-`box` was published at 12:36 UTC on 2026-09-03, replacing `Copy of Raqi box`
-as MAIN. **`box 2` has never been published**, so nothing in this directory is
-live. The live `rd-header` predates both the mobile-menu build and this
-directory's fixes.
+`box 2` was published by the merchant on 2026-09-03, so this directory is now
+the live theme. Two consequences: the Admin API **refuses theme-file writes to
+MAIN**, so further changes to these files have to go through Admin → Edit code
+by hand; and any mistake here is customer-visible immediately.
 
 ## Files
 
@@ -184,3 +184,74 @@ Tested in headless Chromium with a mocked Shopify cart + Section Rendering API
 remaining item, subtotal and bag count update; remove the last → empty state; a 422
 re-renders truth and logs a warning; close works. 15/15 pass.
 MD5 `18afce431da3f2fcc3a4cf48ac630592`.
+
+## Catalogue conventions (Shopify data, not theme code)
+
+Recorded here because they are re-derived from scratch every session otherwise.
+Shopify remains the source of truth; this is a note, not a mirror.
+
+### Stock is handled by product status, never by inventory
+
+**Every** fragrance in the catalogue has `inventoryItem.tracked = false`.
+`inventoryQuantity` is 0 across the board and negative on a few
+(Creed Aventus 30ml is −2, Sospiro Vibrato 10ml is −1) — they all still sell,
+because Liquid's `variant.available` is unconditionally `true` for an untracked
+variant. Only `RAQI Discovery Box` is tracked (`998`, policy `CONTINUE`).
+
+So **setting quantity to 0 does nothing** — it is already 0. The established
+way to take a fragrance off sale is **status → DRAFT**, which is what the
+pre-existing draft products use (LV Ombre Nomade, LV Spell on You, Creed
+Absolu, PDM Herod, Mancera Roses Vanille, Givenchy Garçon Manqué).
+
+DRAFT **hides**, it does not label. There is no "Out of Stock" / "Sold Out"
+string anywhere in the redesign:
+
+| Surface | Availability logic |
+|---|---|
+| `snippets/rd-product-card.liquid` | **None.** No badge, no `available` check. |
+| `sections/raqi-discovery-box.liquid` | **None.** Both picker grids filter `collections['all'].products` by the `Signature` / `Discovery` tag only. |
+| `sections/raqi-product.liquid` | Honours `available` — it `disabled`s the size radios, the sticky size buttons and both Add-to-Cart buttons. But the label still reads "Add to Cart — Dhs. N"; nothing says why it is dead. And it can never fire while `tracked` is false. |
+
+A labelled "Out of Stock" state would need a badge in `rd-product-card`, a
+label swap in `raqi-product`, a dimmed/unclickable state in the builder grids,
+**and** `tracked: true` on the affected variants. Four changes, on the live
+theme. Not done — flagged as available follow-up work.
+
+`collections['all'].products` (what both builder grids and the collection grid
+iterate) contains only products published to the Online Store channel, so DRAFT
+removes a product from the storefront, both builder steps, and every rule-based
+collection at once, with no code change.
+
+2026-09-03: Creed Wind Flowers (`RAQI-39`) and Kilian Angels' Share (`RAQI-11`)
+set to DRAFT — out of stock. Verified `onlineStoreUrl: null` and
+`resourcePublicationsCount: 0` on both.
+
+### SKUs
+
+`RAQI-<n>-<size>`, `n` allocated sequentially per product, `size` ∈ {10, 30}.
+Highest as of 2026-09-03 is **RAQI-43** (Parfums de Marly Haltane). **RAQI-33 is
+an unused gap.** Some older products have no SKU at all (the five Tom Ford rows,
+RAQI Discovery Box).
+
+⚠ **Duplicate SKU:** Kilian Angels' Share carries `RAQI-11-10` on *both* its
+10ml and its 20ml variant, and Maison Crivelli Oud Maracuja carries
+`RAQI-15-10` on two of its three. Not fixed here — flagged.
+
+### Product record shape
+
+Recent additions carry **notes only** — no `raqi.scent_family`, and
+`descriptionHtml` is empty. Metafields are `raqi.notes_top` / `notes_heart` /
+`notes_base` (`single_line_text_field`), plus `global.title_tag` /
+`global.description_tag` written from the `seo` field.
+
+**Arabic notes are metafield *translations*, not separate `_ar` fields.**
+Register them against the metafield GID with `translationsRegister` (locale
+`ar`, key `value`, with the content digest). House format is a bare list with
+definite articles and the Arabic comma `،` — **no** `المقدمة:` / `القلب:` /
+`القاعدة:` prefix, because the theme renders those labels itself from
+`raqi.product.note_top` / `note_heart` / `note_base`.
+
+Tags: tier (`Signature` | `Discovery`) + `gender:<men|women|unisex>` +
+`profile:<woody|sweet|fresh|citrus|floral|spicy>`, plus optional `Niche`.
+`productType` mirrors the gender tag. Parfums de Marly is **not** tagged
+`Niche` on any product.
