@@ -6,7 +6,7 @@
   on every page.
 
   Contents are re-rendered server-side through the Section Rendering API
-  (?sections=rd_cart_drawer) after every change, so money formatting, discounts
+  (?sections=<section.id>) after every change, so money formatting, discounts
   and line properties always come from Liquid — never from JS arithmetic.
 
   Progressive enhancement: the product form still posts to /cart normally when
@@ -78,7 +78,12 @@
 <script>
 (function () {
   if (window.RDCart) return;
-  var SECTION = 'rd_cart_drawer';
+  // A section-group section's ID is NOT its key in header-group.json: Shopify
+  // gives it the form sections--<group-id>__rd_cart_drawer, and that is what
+  // the Section Rendering API expects in ?sections=. section.id is exactly that.
+  var SECTION  = {{ section.id | json }};
+  var ROOT     = {{ routes.root_url | json }};
+  var CART_URL = {{ routes.cart_url | json }};
 
   function root() { return document.getElementById('rd-cart-drawer'); }
 
@@ -101,12 +106,17 @@
     document.querySelectorAll('[data-rd-bagcount]').forEach(function (el) { el.textContent = n; });
   }
 
+  // Re-render through the Section Rendering API. Requested against the
+  // locale root rather than the current path: the drawer lives in
+  // header-group, which every page carries, and the root is the one URL that
+  // can never be a 404 or a non-theme route. A failed refresh must never block
+  // the drawer from opening, so this always resolves (see listener below).
   function refresh() {
-    var url = window.location.pathname + '?sections=' + SECTION;
+    var url = ROOT + (ROOT.indexOf('?') === -1 ? '?' : '&') + 'sections=' + SECTION;
     return fetch(url, { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
-      .then(function (r) { return r.json(); })
+      .then(function (r) { if (!r.ok) throw new Error('sections ' + r.status); return r.json(); })
       .then(function (j) {
-        var html = j[SECTION];
+        var html = j && j[SECTION];
         if (!html) return;
         var tmp = document.createElement('div');
         tmp.innerHTML = html;
@@ -116,7 +126,8 @@
           cur.innerHTML = fresh.innerHTML;
           paintCount(cur);
         }
-      });
+      })
+      .catch(function (e) { if (window.console) console.warn('[rd-cart-drawer] refresh failed:', e); });
   }
 
   function add(id, qty, props) {
@@ -131,9 +142,8 @@
       if (!r.ok) { return r.json().then(function (e) { throw new Error(e.description || e.message || 'add failed'); }); }
       return r.json();
     }).then(function () {
-      return refresh();
-    }).then(function () {
-      open();
+      open();              // confirm first — the customer must see it
+      return refresh();    // then bring the contents up to date
     });
   }
 
@@ -164,10 +174,21 @@
   // opened the OLD <m-cart-drawer> while the header's Bag link opened this
   // one — two different drawers on one site. This drawer now answers the same
   // event, and the Minimog drawer is no longer rendered (layout/theme.liquid).
+  //
+  // 2026-09-03 (bug: builder added to cart but no drawer appeared): the first
+  // version of this listener opened the drawer only AFTER refresh() resolved,
+  // and refresh() had no catch — so any non-JSON or non-200 answer from the
+  // sections request rejected the chain and open() was never reached. The
+  // customer saw nothing. Order is now: open immediately, then refresh; and
+  // if the drawer markup is somehow not on the page, fall back to /cart so
+  // the add is never silent.
   document.addEventListener('cart:refresh', function (e) {
-    refresh().then(function () {
-      if (e && e.detail && e.detail.open) open();
-    });
+    var wantOpen = !!(e && e.detail && e.detail.open);
+    if (wantOpen) {
+      if (!root()) { window.location.href = CART_URL; return; }
+      open();
+    }
+    refresh();
   });
 
   window.RDCart = { open: open, close: close, add: add, change: change, refresh: refresh };

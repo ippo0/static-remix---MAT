@@ -149,3 +149,21 @@ Performance fixes applied to box 2 (all MD5-verified):
 | `sections/rd-cart-drawer.liquid` | Listens to `cart:refresh` (dispatched by `raqi-product` and the Discovery builder) so Add-to-Bag opens the redesign drawer, not the old one. |
 | `snippets/scroll-top-button.liquid` | Hidden ≤900px — it sat at 86–126px, exactly where the WhatsApp float lands (75–127px) on product pages. |
 | `sections/rd-header.liquid` | "Our Story" now `pages['about'].url` (locale-aware). `routes.root_url \| append: 'pages/about'` produced `/ar-aepages/about` → 404 on the Arabic storefront. |
+
+### Cart drawer did not open after the Discovery Set "Add to Bag" (2026-09-03, fix)
+
+Root cause in `sections/rd-cart-drawer.liquid`, two compounding faults:
+
+1. `refresh()` requested `?sections=rd_cart_drawer`. That is the section's **key** in
+   `header-group.json`, not its **ID**. Shopify IDs a section-group section as
+   `sections--<group-id>__rd_cart_drawer` (Liquid: `section.id`), so the Section
+   Rendering API answered `{"rd_cart_drawer": null}` on every call and the drawer's
+   contents were never re-rendered.
+2. The `cart:refresh` listener called `open()` only after `refresh()` resolved, and
+   `refresh()` had no `.catch` — any rejection (non-200, non-JSON) silently ended the
+   chain before `open()`.
+
+Fix: `SECTION = {{ section.id | json }}`; open **first**, then refresh; `refresh()` is
+fetched against `routes.root_url` and always resolves (errors logged, never thrown);
+if the drawer markup is absent the page falls back to `/cart`. Same ordering applied to
+`RDCart.add()`. MD5 `d72016dbad8f6a65106e4361c660f9f1`.
