@@ -1,0 +1,541 @@
+{% comment %}
+  Raqi — product detail page.
+  2026-08-09e: the Shipping & Returns accordion's UAE line (ship_uae_body)
+  previously had "Dhs. 999" hardcoded inside the merchant-editable text
+  setting default. Consolidated per the free-shipping-threshold dedup task:
+  the rendered output now runs the setting value through a `replace` filter
+  that swaps the literal "999" for settings.raqi_free_shipping_threshold
+  (Theme Settings > Raqi), so a merchant changing the global threshold
+  updates this line too without editing the section setting directly. The
+  setting's own default text still reads "999" so it stays self-documenting
+  in the theme editor.
+  2026-08-09c CORRECTION: reverted the 30ml→20ml business change back to
+  30ml as the visible/active size, per explicit user correction. Matching
+  logic restored to `contains '30'`, hardcoded labels restored to "30 ml"
+  / "30ml", spray-count default restored (see note below on a 340+ vs 360
+  discrepancy, flagged to user rather than guessed). A 20ml variant will be
+  added later as a HIDDEN backend-only variant (not reflected in this
+  section's UI) once the user approves Step 1-2 of the correction.
+  2026-08-09 update (business change, NOW REVERTED): 30ml size discontinued,
+  replaced by 20ml sitewide. Renamed the Shopify variant option value from
+  "30ml" to "20ml" on all 22 products (Admin data change, not a theme edit)
+  and repriced per the new price list. CRITICAL fix made alongside that data
+  change: the variant-matching logic below used `variant.title contains
+  '30'` to find the second size — after the rename that pattern would never
+  match again and the whole size selector / sticky ATC bar would silently
+  lose its second option. Changed to `contains '20'`. Also updated the
+  hardcoded "30 ml" label text (size selector + sticky ATC button) to
+  "20 ml", and the spray-count schema default from ~240 to ~220 (10ml/120
+  sprays is unchanged, per business instruction).
+  2026-08-02 update: (a) moved Fragrance Notes up, directly under the size
+  selector and above Add to Cart, so it's visible without scrolling past the
+  purchase controls; (b) converted all copy from locale-key-only content to
+  real section settings (text/textarea with English defaults) so the section
+  is actually editable from Customize — this also matches the move toward
+  Shopify's own Translate & Adapt app for translation instead of a bespoke
+  locale namespace (settings content IS translatable via that app).
+  2026-08-02 fix: main product image was leaking the raw section.id string
+  (e.g. "template--27054302331187__main") as visible text next to the photo
+  on every product page. Root cause: the image_tag filter chain had
+  `| append: section.id` chained onto the END of the whole filter chain
+  instead of being scoped to just the `id:` parameter, so Liquid appended
+  the raw section.id as a plain text node after the rendered <img> tag.
+  Fixed by pre-computing the id string via assign (main_img_id) and passing
+  that plain variable into image_tag, matching the same safe pattern already
+  used for form_id below.
+  2026-08-02c fix: on the Arabic-rendered storefront, Shopify Translate &
+  Adapt had translated the variant option values (10ml -> "10مل", 30ml ->
+  "30 مل"). The old code matched variants with `where: 'title', '10ml'` /
+  `where: 'title', '30ml'` — an exact match against the English string —
+  so on ar it silently matched nothing and the whole 30ml (and, in fact,
+  10ml) price/option block disappeared. Fixed by matching on `contains '10'`
+  / `contains '30'` instead, since the numeral itself stays as a plain Latin
+  digit in both the English and Arabic-translated variant titles.
+  2026-08-09 update (item 1): added a small "Try it" / "Live with it" caption
+  under each size label in the size selector, per the RAQI business-model
+  framing (10ml = trial, 30ml = the size you buy once you know it's yours).
+  Both strings are section settings with these defaults, so they stay editable.
+  2026-08-09 update (item 3): added a one-line "ask for a photo of your
+  bottle" trust line directly under Add to Cart, mirroring the same offer
+  that already exists on the About page (paragraph_3) — this repeats the
+  authenticity proof at the exact moment a hesitant buyer is deciding to buy.
+  2026-08-09 update (Phase 3 item 1): added a mobile-only sticky Add-to-Cart
+  bar (price + 10ml/30ml size toggle + Add to Cart), fixed to the bottom of
+  the viewport below 900px.
+  2026-08-09 update (SEO item 6): main product image and gallery thumbnails
+  had no alt attribute at all. Added alt using the media's own alt text if
+  ever set, falling back to product.title — never empty/generic.
+{% endcomment %}
+{%- liquid
+  assign current_variant = product.selected_or_first_available_variant
+  for variant in product.variants
+    if variant.title contains '10' and ten_ml == blank
+      assign ten_ml = variant
+    endif
+    if variant.title contains '30' and thirty_ml == blank
+      assign thirty_ml = variant
+    endif
+  endfor
+  assign scent_family = product.metafields.raqi.scent_family.value
+  assign notes_top = product.metafields.raqi.notes_top.value
+  assign notes_heart = product.metafields.raqi.notes_heart.value
+  assign notes_base = product.metafields.raqi.notes_base.value
+  assign form_id = 'raqi-product-form-' | append: section.id
+  assign main_img_id = 'RaqiMainImageTag-' | append: section.id
+  assign main_img_alt = product.featured_media.alt | default: product.title
+  # 2026-09-03: re-indented. Each of these assign/if/endif triples used to
+  # start ten spaces deeper than the one above it, reaching 140 columns by
+  # the last one and running the closing tag off the edge of the editor.
+  # Whitespace carries no meaning inside a {% liquid %} block, so this is
+  # the same code, only readable. No logic changed.
+  assign lbl_select_size = section.settings.select_size_label
+  if lbl_select_size == blank
+    assign lbl_select_size = 'raqi.product.select_size' | t
+  endif
+  assign lbl_fragrance_notes = section.settings.fragrance_notes_label
+  if lbl_fragrance_notes == blank
+    assign lbl_fragrance_notes = 'raqi.product.fragrance_notes' | t
+  endif
+  assign lbl_note_top = section.settings.note_top_label
+  if lbl_note_top == blank
+    assign lbl_note_top = 'raqi.product.note_top' | t
+  endif
+  assign lbl_note_heart = section.settings.note_heart_label
+  if lbl_note_heart == blank
+    assign lbl_note_heart = 'raqi.product.note_heart' | t
+  endif
+  assign lbl_note_base = section.settings.note_base_label
+  if lbl_note_base == blank
+    assign lbl_note_base = 'raqi.product.note_base' | t
+  endif
+  assign lbl_add_to_cart = section.settings.add_to_cart_label
+  if lbl_add_to_cart == blank
+    assign lbl_add_to_cart = 'raqi.product.add_to_cart' | t
+  endif
+  assign lbl_trust_1 = section.settings.trust_1
+  if lbl_trust_1 == blank
+    assign lbl_trust_1 = 'raqi.product.trust_1' | t
+  endif
+  assign lbl_trust_2 = section.settings.trust_2
+  if lbl_trust_2 == blank
+    assign lbl_trust_2 = 'raqi.product.trust_2' | t
+  endif
+  assign lbl_trust_3 = section.settings.trust_3
+  if lbl_trust_3 == blank
+    assign lbl_trust_3 = 'raqi.product.trust_3' | t
+  endif
+  assign lbl_shipping_returns = section.settings.shipping_returns_label
+  if lbl_shipping_returns == blank
+    assign lbl_shipping_returns = 'raqi.product.shipping_returns' | t
+  endif
+  assign lbl_product_info = section.settings.product_info_label
+  if lbl_product_info == blank
+    assign lbl_product_info = 'raqi.product.product_info' | t
+  endif
+  assign lbl_ten_caption = section.settings.ten_ml_caption
+  if lbl_ten_caption == blank
+    assign lbl_ten_caption = 'Try it'
+  endif
+  assign lbl_thirty_caption = section.settings.thirty_ml_caption
+  if lbl_thirty_caption == blank
+    assign lbl_thirty_caption = 'Live with it'
+  endif
+  assign lbl_photo_proof = section.settings.photo_proof_text
+  if lbl_photo_proof == blank
+    assign lbl_photo_proof = "Want proof? Ask and we'll send a photo of the bottle yours was poured from, plus the batch date."
+  endif
+  assign raqi_ship_threshold = settings.raqi_free_shipping_threshold | default: 999
+-%}
+<div class="raqi-section" id="RaqiProductSection-{{ section.id }}" style="padding:36px 0 72px;">
+  <div class="raqi-container">
+
+    <p class="raqi-breadcrumb" style="font:400 10.5px var(--raqi-font-body);letter-spacing:.22em;color:var(--raqi-text-muted);text-transform:uppercase;margin:0 0 32px;">
+      <a href="{{ routes.all_products_collection_url }}" style="color:inherit;text-decoration:none;">{{ section.settings.breadcrumb_root | default: 'All perfumes' }}</a>
+      {%- if product.type != blank %} / {{ product.type }}{% endif %} / {{ product.vendor }}
+    </p>
+
+    <div class="raqi-product-grid">
+      <div class="raqi-product-gallery">
+        <div class="raqi-product-gallery__main" id="RaqiMainImage-{{ section.id }}">
+          {%- if product.featured_media != blank -%}
+            {{ product.featured_media.preview_image | image_url: width: 1000 | image_tag: loading: 'eager', id: main_img_id, alt: main_img_alt }}
+          {%- else -%}
+            <div class="raqi-photo-placeholder" style="width:100%;height:100%;"><span class="raqi-photo-placeholder__label">{{ section.settings.photo_placeholder | default: 'Product photo' }}</span></div>
+          {%- endif -%}
+        </div>
+        {%- if product.media.size > 1 -%}
+          <div class="raqi-product-gallery__thumbs">
+            {%- for media in product.media limit: 3 -%}
+              <button type="button" class="raqi-product-gallery__thumb{% if forloop.first %} is-active{% endif %}" data-raqi-thumb data-full="{{ media.preview_image | image_url: width: 1000 }}">
+                {{ media.preview_image | image_url: width: 140 | image_tag: loading: 'lazy', alt: media.alt | default: product.title }}
+              </button>
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+      </div>
+
+      <div class="raqi-product-info">
+        <p class="raqi-micro-label">{{ product.vendor | upcase }}</p>
+        <h1 class="raqi-product-title">{{ product.title }}</h1>
+        <div class="raqi-product-title-rule"></div>
+        <p class="raqi-product-category-line">
+          {{- product.type | default: 'Eau de Parfum' }} &middot; {{ section.settings.authentic_decant_label | default: 'Authentic decant' }}
+          {%- if scent_family != blank %} &middot; {{ scent_family }}{% endif -%}
+        </p>
+
+        <div class="raqi-product-price" id="RaqiPrice-{{ section.id }}">Dhs. {{ current_variant.price | money_without_currency }}</div>
+
+        {%- if product.description != blank -%}
+          <div class="raqi-product-desc">{{ product.description }}</div>
+        {%- endif -%}
+
+        {%- form 'product', product, id: form_id, novalidate: 'novalidate' -%}
+          <p class="raqi-micro-label" style="margin-bottom:12px;">{{ lbl_select_size}}</p>
+          <div class="raqi-size-select" id="RaqiSizeSelect-{{ section.id }}">
+            {%- if ten_ml -%}
+              <label class="raqi-size-option{% if current_variant.id == ten_ml.id %} is-active{% endif %}">
+                <input type="radio" name="id" value="{{ ten_ml.id }}" class="raqi-visually-hidden" data-raqi-variant-radio data-price="{{ ten_ml.price | money_without_currency }}" {% if current_variant.id == ten_ml.id %}checked{% endif %} {% unless ten_ml.available %}disabled{% endunless %}>
+                <span class="raqi-size-option__label">10 ml</span>
+                <span class="raqi-size-option__caption">{{ lbl_ten_caption }}</span>
+                <span class="raqi-size-option__meta">Dhs. {{ ten_ml.price | money_without_currency }} &middot; {{ section.settings.ten_ml_sprays | default: '≈ 80 sprays' }}</span>
+              </label>
+            {%- endif -%}
+            {%- if thirty_ml -%}
+              <label class="raqi-size-option{% if current_variant.id == thirty_ml.id %} is-active{% endif %}">
+                <input type="radio" name="id" value="{{ thirty_ml.id }}" class="raqi-visually-hidden" data-raqi-variant-radio data-price="{{ thirty_ml.price | money_without_currency }}" {% if current_variant.id == thirty_ml.id %}checked{% endif %} {% unless thirty_ml.available %}disabled{% endunless %}>
+                <span class="raqi-size-option__label">30 ml</span>
+                <span class="raqi-size-option__caption">{{ lbl_thirty_caption }}</span>
+                <span class="raqi-size-option__meta">Dhs. {{ thirty_ml.price | money_without_currency }} &middot; {{ section.settings.thirty_ml_sprays | default: '≈ 360 sprays' }}</span>
+              </label>
+            {%- endif -%}
+          </div>
+
+          {%- if notes_top != blank or notes_heart != blank or notes_base != blank -%}
+            <div class="raqi-notes-block" id="RaqiNotesBlock-{{ section.id }}">
+              <p class="raqi-micro-label">{{ lbl_fragrance_notes}}</p>
+              {%- if notes_top != blank -%}<p><span class="raqi-note-label">{{ lbl_note_top}}</span> — {{ notes_top }}</p>{%- endif -%}
+              {%- if notes_heart != blank -%}<p><span class="raqi-note-label">{{ lbl_note_heart}}</span> — {{ notes_heart }}</p>{%- endif -%}
+              {%- if notes_base != blank -%}<p><span class="raqi-note-label">{{ lbl_note_base}}</span> — {{ notes_base }}</p>{%- endif -%}
+            </div>
+          {%- endif -%}
+
+          {%- comment -%}
+            2026-09-03: this button was already rendered disabled when the
+            variant is unavailable, but its label still read "Add to Cart —
+            Dhs. N", so it looked like a button that had simply stopped
+            working. Say why instead. selected_or_first_available_variant
+            falls back to the first variant when NO variant is available, so
+            current_variant.available is the right test for "nothing on this
+            page can be bought"; when only one size is out, that size's radio
+            is disabled and the button keeps its normal priced label.
+          {%- endcomment -%}
+          <button type="submit" name="add" id="RaqiSubmit-{{ section.id }}" class="raqi-btn raqi-btn-accent" style="width:100%;margin-top:20px;" {% unless current_variant.available %}disabled{% endunless %}>
+            <span id="RaqiSubmitText-{{ section.id }}" data-add-label="{{ lbl_add_to_cart}}" data-add-label-priced="{{ lbl_add_to_cart}} — Dhs. {{ current_variant.price | money_without_currency }}">
+              {%- if current_variant.available -%}
+                {{- lbl_add_to_cart}} — Dhs. {{ current_variant.price | money_without_currency -}}
+              {%- else -%}
+                {{- 'products.product.out_of_stock' | t -}}
+              {%- endif -%}
+            </span>
+          </button>
+          <p class="raqi-photo-proof-line" id="RaqiPhotoProof-{{ section.id }}">{{ lbl_photo_proof }}</p>
+          <div class="raqi-product__message" id="RaqiFormMessage-{{ section.id }}" role="alert" aria-live="assertive"></div>
+        {%- endform -%}
+
+        <div class="raqi-trust-row">
+          <span>&#10003; {{ lbl_trust_1}}</span>
+          <span>&#10003; {{ lbl_trust_2}}</span>
+          <span>&#10003; {{ lbl_trust_3}}</span>
+        </div>
+
+        <details class="raqi-accordion" open>
+          <summary class="raqi-accordion__summary">{{ lbl_shipping_returns}}</summary>
+          <div class="raqi-accordion__body">
+            <p><strong>{{ section.settings.ship_uae_label | default: 'Across the UAE —' }}</strong> {{ section.settings.ship_uae_body | default: 'next-day delivery, free over Dhs. 999.' | replace: '999', raqi_ship_threshold }}</p>
+            {% comment %}
+              ⚠️ LEGALLY SENSITIVE — RETURN POLICY WORDING. DO NOT EDIT CASUALLY.
+
+              This text is legally sensitive (return policy wording). Any future
+              rewrite/republish of templates/product.json must manually verify
+              this text hasn't reverted to an older or auto-translated version
+              before publishing — this section previously reverted silently when
+              the block's instance ID changed during a template rewrite on
+              2026-08-02.
+
+              WHY IT BREAKS SILENTLY (read before touching templates/product.json):
+              The English source of this line is the `returns_body` section
+              setting, stored in templates/product.json under sections.main.
+              The Arabic customers actually read is NOT in locales/ar.json — it
+              is a Shopify Translate & Adapt override on the setting itself,
+              stored against the key:
+                  section.product.json.main.returns_body:152ydzhiz8y1k
+              That key is (section instance id) + (digest of the English source
+              string). If EITHER the section/block instance id changes (template
+              rewrite, section re-add, theme duplication) OR the English default
+              text changes by even one character, the digest no longer matches,
+              the Arabic override is orphaned, and the storefront silently falls
+              back to English or to a machine translation. Nothing errors. Nothing
+              warns. It just quietly becomes the wrong legal text.
+
+              APPROVED ARABIC (must render exactly this on /ar product pages):
+                الإرجاع — يمكن إرجاع العبوات غير المفتوحة خلال 14 يوماً لاسترداد كامل
+                للمبلغ. العبوات المفتوحة لا يمكن إعادة بيعها، لذلك لا يمكننا استرجاعها —
+                لكن إذا وصلك طلب تالف أو غير مطابق لما طلبته، راسلنا وسنستبدله لك.
+
+              CHECKLIST after ANY edit to templates/product.json or to the
+              returns_body default below:
+                1. Re-query the theme's translations and confirm a translation
+                   still exists for section.product.json.main.returns_body,
+                   and that `outdated` is false.
+                2. Compare its value character-for-character with the approved
+                   Arabic above.
+                3. Load a product page in Arabic and read the rendered line.
+                4. Only then publish.
+
+              NOTE: locales/ar.json previously carried a third, divergent Arabic
+              wording under `raqi.product.returns_body`. It rendered nowhere (this
+              line reads section.settings directly — there is no `| t` fallback for
+              returns copy) and was removed on 2026-08-16 to stop it being mistaken
+              for the live text. Do not re-add it.
+            {% endcomment %}
+            <p><strong>{{ section.settings.returns_label | default: 'Returns —' }}</strong> {{ section.settings.returns_body | default: "unopened decants can be returned within 14 days for a full refund. Opened decants can't be resold, so we can't take them back — but if something arrives damaged or isn't what you ordered, message us and we'll replace it." }}</p>
+            <p class="raqi-accordion__footnote">{{ section.settings.ship_footnote_pre | default: 'Questions?' }} <a href="{{ pages.contact.url | default: '/pages/contact' }}">{{ section.settings.ship_footnote_whatsapp | default: 'Contact us on WhatsApp' }}</a> {{ section.settings.ship_footnote_or | default: 'or read the full' }} <a href="{{ pages['shipping-policy'].url | default: '/pages/shipping-policy' }}">{{ section.settings.ship_footnote_policy | default: 'Shipping Policy' }}</a>.</p>
+          </div>
+        </details>
+
+        {%- if product.description != blank -%}
+          <div class="raqi-accordion">
+            <p class="raqi-micro-label" style="margin:18px 0 0;">{{ lbl_product_info}}</p>
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+
+  <div class="raqi-sticky-atc" id="RaqiStickyATC-{{ section.id }}">
+    <div class="raqi-sticky-atc__price" id="RaqiStickyPrice-{{ section.id }}">Dhs. {{ current_variant.price | money_without_currency }}</div>
+    <div class="raqi-sticky-atc__sizes" id="RaqiStickySizes-{{ section.id }}">
+      {%- if ten_ml -%}
+        <button type="button" class="raqi-sticky-atc__size{% if current_variant.id == ten_ml.id %} is-active{% endif %}" data-raqi-sticky-size="{{ ten_ml.id }}" {% unless ten_ml.available %}disabled{% endunless %}>10ml</button>
+      {%- endif -%}
+      {%- if thirty_ml -%}
+        <button type="button" class="raqi-sticky-atc__size{% if current_variant.id == thirty_ml.id %} is-active{% endif %}" data-raqi-sticky-size="{{ thirty_ml.id }}" {% unless thirty_ml.available %}disabled{% endunless %}>30ml</button>
+      {%- endif -%}
+    </div>
+    <button type="button" class="raqi-btn raqi-btn-accent raqi-sticky-atc__cta" id="RaqiStickyCta-{{ section.id }}" {% unless current_variant.available %}disabled{% endunless %}>{% if current_variant.available %}{{ lbl_add_to_cart }}{% else %}{{ 'products.product.out_of_stock' | t }}{% endif %}</button>
+  </div>
+</div>
+
+<style>
+  .raqi-product-grid{ display:grid;grid-template-columns:1fr 1fr;gap:52px; }
+  .raqi-product-gallery__main{ height:520px;background:var(--raqi-bg-panel);display:flex;align-items:center;justify-content:center;overflow:hidden; }
+  .raqi-product-gallery__main img{ width:100%;height:100%;object-fit:cover; }
+  .raqi-product-gallery__thumbs{ display:flex;gap:10px;margin-top:10px; }
+  .raqi-product-gallery__thumb{ width:72px;height:72px;padding:0;border:1px solid var(--raqi-rule);background:none;cursor:pointer;overflow:hidden; }
+  .raqi-product-gallery__thumb.is-active{ border-color:var(--raqi-accent); }
+  .raqi-product-gallery__thumb img{ width:100%;height:100%;object-fit:cover; }
+  .raqi-product-title{ font-family:var(--raqi-font-display);font-weight:400;font-size:42px;line-height:1.1;letter-spacing:.02em;color:var(--raqi-ink);margin:14px 0 16px; }
+  .raqi-product-title-rule{ width:44px;height:1px;background:var(--raqi-accent);margin-bottom:16px; }
+  .raqi-product-category-line{ font:400 11px var(--raqi-font-body);letter-spacing:.14em;text-transform:uppercase;color:var(--raqi-text-muted);margin:0 0 20px; }
+  .raqi-product-price{ font-family:var(--raqi-font-body);font-weight:500;font-size:30px;color:var(--raqi-ink);margin:0 0 20px; }
+  .raqi-product-desc{ font-size:14px;line-height:1.9;color:var(--raqi-text-muted);max-width:420px;margin:0 0 28px; }
+  .raqi-visually-hidden{ position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0; }
+  .raqi-size-select{ display:flex;gap:12px;max-width:420px;margin-bottom:20px; }
+  .raqi-size-option{ flex:1;border:1px solid var(--raqi-rule);padding:14px;cursor:pointer;display:block; }
+  .raqi-size-option.is-active{ border-color:var(--raqi-ink);background:var(--raqi-ink); }
+  .raqi-size-option.is-active .raqi-size-option__label, .raqi-size-option.is-active .raqi-size-option__meta, .raqi-size-option.is-active .raqi-size-option__caption{ color:var(--raqi-bg-page); }
+  .raqi-size-option__label{ display:block;font-family:var(--raqi-font-body);font-weight:500;font-size:15px;color:var(--raqi-ink);margin-bottom:2px; }
+  .raqi-size-option__caption{ display:block;font:500 10px var(--raqi-font-body);letter-spacing:.1em;text-transform:uppercase;color:var(--raqi-accent);margin-bottom:6px; }
+  .raqi-size-option.is-active .raqi-size-option__caption{ opacity:.9; }
+  .raqi-size-option__meta{ display:block;font-size:11.5px;color:var(--raqi-text-muted);opacity:.9; }
+  .raqi-notes-block{ border-top:1px solid var(--raqi-rule);border-bottom:1px solid var(--raqi-rule);padding:18px 0;margin-bottom:20px; }
+  .raqi-note-label{ font-family:var(--raqi-font-display);font-style:normal;color:var(--raqi-accent);font-size:14px; }
+  .raqi-photo-proof-line{ font-size:12px;line-height:1.7;color:var(--raqi-text-muted);margin:14px 0 0; }
+  .raqi-trust-row{ display:flex;gap:18px;flex-wrap:wrap;font-size:11.5px;color:var(--raqi-text-muted);margin:22px 0; }
+  .raqi-accordion{ border-top:1px solid var(--raqi-rule);padding:18px 0; }
+  .raqi-accordion__summary{ cursor:pointer;font:500 12px var(--raqi-font-body);letter-spacing:.14em;text-transform:uppercase;color:var(--raqi-ink);list-style:none; }
+  .raqi-accordion__summary::-webkit-details-marker{ display:none; }
+  .raqi-accordion__summary::after{ content:'+'; float:right; }
+  details[open] > .raqi-accordion__summary::after{ content:'−'; }
+  .raqi-accordion__body{ font-size:13px;line-height:1.85;color:var(--raqi-text-muted);margin-top:14px; }
+  .raqi-accordion__body a{ color:var(--raqi-accent);text-decoration:underline; }
+  .raqi-product__message{ margin-top:10px;font-size:13px; }
+  .raqi-product__message:empty{ display:none; }
+  .raqi-product__message--error{ color:#b3261e; }
+
+  .raqi-sticky-atc{ display:none; }
+  @media (max-width:900px){
+    .raqi-sticky-atc{
+      display:flex;align-items:center;gap:10px;
+      position:fixed;left:0;right:0;bottom:0;z-index:30;
+      background:var(--raqi-bg-page);border-top:1px solid var(--raqi-rule);
+      padding:10px 14px;box-shadow:0 -2px 10px rgba(0,0,0,.06);
+    }
+    .raqi-sticky-atc__price{ font:500 14px var(--raqi-font-body);color:var(--raqi-ink);white-space:nowrap; }
+    .raqi-sticky-atc__sizes{ display:flex;gap:6px; }
+    .raqi-sticky-atc__size{ font:500 11px var(--raqi-font-body);border:1px solid var(--raqi-rule);background:none;padding:6px 9px;cursor:pointer;color:var(--raqi-text-muted); }
+    .raqi-sticky-atc__size.is-active{ border-color:var(--raqi-ink);color:var(--raqi-ink);background:var(--raqi-bg-panel); }
+    .raqi-sticky-atc__cta{ flex:1;margin:0;padding:10px 12px;font-size:12.5px;white-space:nowrap; }
+  }
+
+  @media (max-width:900px){
+    .raqi-product-grid{ grid-template-columns:1fr;gap:28px; }
+    .raqi-breadcrumb{ display:none; }
+    .raqi-product-gallery__thumbs{ display:none; }
+    .raqi-section#RaqiProductSection-{{ section.id }}{ padding-bottom:88px; }
+  }
+</style>
+
+<script>
+(function(){
+  try {
+    var sectionId = {{ section.id | json }};
+    var root = document.getElementById('RaqiProductSection-' + sectionId);
+    if (!root) return;
+    var isMobile = window.matchMedia('(max-width:900px)').matches;
+
+    var priceEl = document.getElementById('RaqiPrice-' + sectionId);
+    var submitText = document.getElementById('RaqiSubmitText-' + sectionId);
+    var radios = root.querySelectorAll('#RaqiSizeSelect-' + sectionId + ' [data-raqi-variant-radio]');
+
+    var stickyPrice = document.getElementById('RaqiStickyPrice-' + sectionId);
+    var stickyCta = document.getElementById('RaqiStickyCta-' + sectionId);
+    var stickySizeBtns = root.querySelectorAll('#RaqiStickySizes-' + sectionId + ' [data-raqi-sticky-size]');
+
+    radios.forEach(function(radio){
+      radio.addEventListener('change', function(){
+        try {
+          var price = radio.getAttribute('data-price');
+          if (priceEl && price) priceEl.textContent = 'Dhs. ' + price;
+          if (submitText && price) {
+            submitText.textContent = isMobile ? submitText.getAttribute('data-add-label') : (submitText.getAttribute('data-add-label') + ' — Dhs. ' + price);
+          }
+          radios.forEach(function(r){
+            var label = r.closest('.raqi-size-option');
+            if (label) label.classList.toggle('is-active', r.checked);
+          });
+          if (stickyPrice && price) stickyPrice.textContent = 'Dhs. ' + price;
+          stickySizeBtns.forEach(function(b){
+            b.classList.toggle('is-active', b.getAttribute('data-raqi-sticky-size') === radio.value);
+          });
+        } catch(e) {}
+      });
+    });
+    // 2026-09-03: on mobile this line shortens the button by dropping the price
+    // from its label. When the variant is unavailable the span holds the
+    // out-of-stock label instead, and rewriting it here would put a
+    // working-looking "Add to Cart" back onto a dead button — so skip it while
+    // the button is disabled. The change handler below cannot reach this label
+    // either, because an unavailable size's radio is rendered disabled and so
+    // never fires a change event.
+    var submitBtnEl = submitText ? submitText.closest('button') : null;
+    if (isMobile && submitText && !(submitBtnEl && submitBtnEl.disabled)) { submitText.textContent = submitText.getAttribute('data-add-label'); }
+
+    stickySizeBtns.forEach(function(btn){
+      btn.addEventListener('click', function(){
+        try {
+          var variantId = btn.getAttribute('data-raqi-sticky-size');
+          var radio = root.querySelector('#RaqiSizeSelect-' + sectionId + ' input[value="' + variantId + '"]');
+          if (radio && !radio.checked) {
+            radio.checked = true;
+            radio.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+        } catch(e) {}
+      });
+    });
+    if (stickyCta) {
+      stickyCta.addEventListener('click', function(){
+        try {
+          var submitBtn = document.getElementById('RaqiSubmit-' + sectionId);
+          if (submitBtn) submitBtn.click();
+        } catch(e) {}
+      });
+    }
+
+    var thumbs = root.querySelectorAll('[data-raqi-thumb]');
+    var mainImg = document.getElementById('RaqiMainImageTag-' + sectionId);
+    thumbs.forEach(function(thumb){
+      thumb.addEventListener('click', function(){
+        try {
+          if (mainImg && thumb.dataset.full) mainImg.src = thumb.dataset.full;
+          thumbs.forEach(function(t){ t.classList.remove('is-active'); });
+          thumb.classList.add('is-active');
+        } catch(e) {}
+      });
+    });
+
+    var form = document.getElementById({{ form_id | json }});
+    if (!form) return;
+    function showMessage(text, isError){
+      try {
+        var msg = document.getElementById('RaqiFormMessage-' + sectionId);
+        if (!msg) return;
+        msg.textContent = text || '';
+        msg.classList.toggle('raqi-product__message--error', !!isError);
+      } catch(e){}
+    }
+    form.addEventListener('submit', function(event){
+      event.preventDefault();
+      try {
+        var submitBtn = document.getElementById('RaqiSubmit-' + sectionId);
+        if (submitBtn) submitBtn.setAttribute('aria-busy','true');
+        showMessage('');
+        var formData = new FormData(form);
+        fetch('/cart/add.js', { method:'POST', headers:{Accept:'application/json'}, body:formData })
+          .then(function(r){ return r.json().catch(function(){return {};}).then(function(d){ return {ok:r.ok, data:d}; }); })
+          .then(function(result){
+            if (result.ok) {
+              try { document.dispatchEvent(new CustomEvent('cart:refresh', { detail:{open:true} })); }
+              catch(e){ showMessage('Added to cart', false); }
+            } else {
+              var msg = (result.data && (result.data.description || result.data.message)) || 'Something went wrong. Please try again.';
+              showMessage(msg, true);
+            }
+          })
+          .catch(function(){ showMessage('Something went wrong. Please try again.', true); })
+          .finally(function(){ try { if (submitBtn) submitBtn.removeAttribute('aria-busy'); } catch(e){} });
+      } catch(e) { showMessage('Something went wrong. Please try again.', true); }
+    });
+  } catch(e) {}
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Raqi: Product",
+  "settings": [
+    { "type": "text", "id": "breadcrumb_root", "label": "Breadcrumb root label", "default": "All perfumes" },
+    { "type": "text", "id": "photo_placeholder", "label": "Photo placeholder text", "default": "Product photo" },
+    { "type": "text", "id": "authentic_decant_label", "label": "Category line suffix", "default": "Authentic decant" },
+    { "type": "text", "id": "select_size_label", "label": "Size selector label", "default": "Select size" },
+    { "type": "text", "id": "ten_ml_sprays", "label": "10ml sprays text", "default": "≈ 80 sprays" },
+    { "type": "text", "id": "thirty_ml_sprays", "label": "30ml sprays text", "default": "≈ 360 sprays" },
+    { "type": "text", "id": "ten_ml_caption", "label": "10ml caption (under size label)", "default": "Try it" },
+    { "type": "text", "id": "thirty_ml_caption", "label": "30ml caption (under size label)", "default": "Live with it" },
+    { "type": "header", "content": "Fragrance Notes (shown above Add to Cart)" },
+    { "type": "text", "id": "fragrance_notes_label", "label": "Section label", "default": "Fragrance Notes" },
+    { "type": "text", "id": "note_top_label", "label": "Top label", "default": "Top" },
+    { "type": "text", "id": "note_heart_label", "label": "Heart label", "default": "Heart" },
+    { "type": "text", "id": "note_base_label", "label": "Base label", "default": "Base" },
+    { "type": "header", "content": "Add to Cart / trust row" },
+    { "type": "text", "id": "add_to_cart_label", "label": "Add to Cart label", "default": "Add to Cart" },
+    { "type": "text", "id": "photo_proof_text", "label": "Photo-proof trust line (below Add to Cart)", "default": "Want proof? Ask and we'll send a photo of the bottle yours was poured from, plus the batch date." },
+    { "type": "text", "id": "trust_1", "label": "Trust badge 1", "default": "100% original" },
+    { "type": "text", "id": "trust_2", "label": "Trust badge 2", "default": "Filled to order" },
+    { "type": "text", "id": "trust_3", "label": "Trust badge 3", "default": "Ships next day (UAE)" },
+    { "type": "header", "content": "Shipping & Returns accordion" },
+    { "type": "text", "id": "shipping_returns_label", "label": "Accordion title", "default": "Shipping & Returns" },
+    { "type": "text", "id": "ship_uae_label", "label": "UAE line label", "default": "Across the UAE —" },
+    { "type": "text", "id": "ship_uae_body", "label": "UAE line body", "default": "next-day delivery, free over Dhs. 999.", "info": "The literal number 999 in this text is automatically replaced with the value of Theme Settings > Raqi > Free shipping threshold, so it's always accurate even if this line uses a different number." },
+    { "type": "text", "id": "ship_gcc_label", "label": "GCC line label", "default": "GCC —" },
+    { "type": "text", "id": "ship_gcc_body", "label": "GCC line body", "default": "2–4 working days to KSA, Kuwait, Qatar, Oman and Bahrain." },
+    { "type": "text", "id": "returns_label", "label": "⚠️ Returns line label (legally sensitive)", "default": "Returns —", "info": "Legally sensitive — this label and the Returns line body below combine into the published return policy sentence. Read the warning on the field below before changing either one." },
+    { "type": "textarea", "id": "returns_body", "label": "⚠️ Returns line body (legally sensitive)", "default": "unopened decants can be returned within 14 days for a full refund. Opened decants can't be resold, so we can't take them back — but if something arrives damaged or isn't what you ordered, message us and we'll replace it.", "info": "⚠️ LEGALLY SENSITIVE — return policy wording. Any rewrite/republish of templates/product.json must manually verify this text has not reverted to an older or auto-translated version before publishing: it reverted silently on 2026-08-02 when the block's instance ID changed during a template rewrite. The Arabic is a Translate & Adapt override tied to this exact English string, so editing either orphans it with no error. Full warning + approved Arabic: see sections/raqi-product.liquid." },
+    { "type": "text", "id": "ship_footnote_pre", "label": "Footnote prefix", "default": "Questions?" },
+    { "type": "text", "id": "ship_footnote_whatsapp", "label": "Footnote WhatsApp link text", "default": "Contact us on WhatsApp" },
+    { "type": "text", "id": "ship_footnote_or", "label": "Footnote joiner", "default": "or read the full" },
+    { "type": "text", "id": "ship_footnote_policy", "label": "Footnote policy link text", "default": "Shipping Policy" },
+    { "type": "text", "id": "product_info_label", "label": "Product Information label", "default": "Product Information" }
+  ]
+}
+{% endschema %}

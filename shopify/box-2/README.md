@@ -255,3 +255,81 @@ Tags: tier (`Signature` | `Discovery`) + `gender:<men|women|unisex>` +
 `profile:<woody|sweet|fresh|citrus|floral|spicy>`, plus optional `Niche`.
 `productType` mirrors the gender tag. Parfums de Marly is **not** tagged
 `Niche` on any product.
+
+## Out-of-stock badges (2026-09-03, later) — theme `box 3`
+
+Reverses the approach recorded above. Taking a fragrance off sale by setting it
+to DRAFT works, but it makes the product **vanish** from the Discovery Set
+builder rather than showing it as unavailable — which reads as "we never
+carried it" instead of "not right now". The merchant wants it visible, badged
+and unselectable.
+
+### Why DRAFT made it disappear (not `product.available`)
+
+`sections/raqi-discovery-box.liquid` has **no availability logic at all**. Both
+picker grids loop `collections['all'].products` and filter on nothing but the
+`Signature` / `Discovery` tag. `collections['all']` contains only products
+published to the Online Store, so a DRAFT product is not in the loop and no
+card is emitted. Nothing was filtering on `product.available` — it could not
+have been, because every fragrance had `tracked: false`, which makes
+`variant.available` unconditionally true.
+
+### The mechanism now
+
+Products stay **ACTIVE** with `inventoryItem.tracked: true`, policy `DENY`,
+quantity `0`. That is the only combination that makes `product.available` false
+in Liquid, and it also makes Shopify itself refuse the line at `/cart/add.js` —
+a real guard, not just a UI state. This is a **new** pattern for this catalogue
+(every other product is untracked); it applies to out-of-stock products only.
+
+⚠ Kilian Angels' Share's 20ml variant was `CONTINUE`, which would have kept
+`product.available` true on its own. It is now `DENY`.
+
+### Written to `box 3` (188518138163), a duplicate of live `box 2`
+
+The Admin API refuses theme-file writes to the live theme, so the work went to a
+duplicate. Every file MD5-verified on write:
+
+| File | MD5 | What changed |
+|---|---|---|
+| `sections/raqi-discovery-box.liquid` | `7cca68d0710d9b1b2c96be980fc7a9db` | Both grids compute `oos`; card gets `.is-oos`, `data-oos`, `aria-disabled`; badge span; CSS; `isPickable()` guard in `wireGrid` |
+| `snippets/rd-product-card.liquid` | `13a59621dff39fea98615e7d65403fe0` | Homepage + collection grid card badge |
+| `snippets/raqi-product-card.liquid` | `23af44cce4fdb22ca2610fb6d35fa9c6` | Product-page related row card badge |
+| `sections/raqi-selected.liquid` | `27a6cc6e912cb3d4a4a3be6f323a45b8` | Homepage carousel — inlines its own card markup, so the badge is repeated here |
+| `sections/raqi-product.liquid` | `fea3d231b22815b2786b1567459746cf` | Add-to-Cart + sticky CTA say "Out of stock" instead of a dead "Add to Cart — Dhs. N"; mobile JS no longer overwrites that label. Also re-indented the `{% liquid %}` label block (was escalating to 140 columns; whitespace-only change) |
+| `snippets/custom-code-head.liquid` | `e26a114bd575686dc255265e99da5b00` | One shared CSS rule set for all four card surfaces |
+
+**Four card surfaces, not one.** `raqi-selected` (homepage "Selected this
+season") hard-codes `kilian-angels-share` as a block in `templates/index.json`,
+so an out-of-stock fragrance cannot drop out of that row the way it does from a
+tag-driven grid. It needs the badge or it shows as purchasable.
+
+**No locale change needed.** `products.product.out_of_stock` ("Out of stock")
+already exists in `locales/en.default.json` — a Shopify/Minimog default key, so
+`locales/ar.json` (which is mostly bulk-translated Shopify defaults) very likely
+already carries the Arabic. Worth reading once on `/ar-ae` to confirm; if it is
+missing the fallback is the English string, not an error.
+
+**Badge is a sibling of the image, never a child.** The dimming is an `opacity`,
+and opacity on a parent fades its children with it — a badge nested inside the
+media would be the one element guaranteed to go unreadable.
+
+**Selection is blocked in JS, not by `aria-disabled`.** `aria-disabled` is
+advisory: a real browser still delivers the click. `isPickable()` in `wireGrid`
+is the actual guard, and it covers click and keyboard from one place. The notes
+button deliberately still works on an out-of-stock card.
+
+Tested in headless Chromium against the section's real script and CSS —
+`tests/out-of-stock.test.js`, 35 assertions, all passing: cards still render in
+both grids, badge visible/opaque/correct text, card dimmed and in-stock cards
+not, click and Enter/Space both refused, Continue stays disabled, notes modal
+still opens, in-stock selection unaffected, and a completed box can never
+contain an out-of-stock fragrance.
+
+### Remaining steps (in this order)
+
+1. Publish `box 3`. Until then the live theme has no badges.
+2. Set both products back to **Active** (they are DRAFT right now, deliberately
+   — activating before the publish would put them back in the builder fully
+   selectable on a theme with no badge).
+3. Reload `/pages/discovery-box` and confirm.

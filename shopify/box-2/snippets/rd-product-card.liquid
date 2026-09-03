@@ -1,0 +1,69 @@
+{% comment %}
+  RAQI Redesign — §2.7 product card. Five elements, nothing behind hover.
+  Price line shows BOTH sizes, always. Prices are read from the variants by
+  title so the card never needs hand-authoring per product (§4).
+  Accepts: product, tier_label
+{% endcomment %}
+{%- liquid
+  assign p10 = blank
+  assign p30 = blank
+  for v in product.variants
+    if v.title contains '10'
+      assign p10 = v.price
+    elsif v.title contains '30' or v.title contains '20'
+      assign p30 = v.price
+    endif
+  endfor
+  assign vendor_h = product.vendor | handle
+  # 2026-09-03: product.available is false only when every variant is
+  # unavailable, which for this catalogue means inventory is tracked, the
+  # policy is "deny" and the quantity is 0. The card stays a link — the
+  # product page is still the right place to read notes and see the price —
+  # it is only marked, dimmed and badged. Selection is blocked in the
+  # Discovery Set builder, not here.
+  assign oos = false
+  unless product.available
+    assign oos = true
+  endunless
+  assign profile = ''
+  for t in product.tags
+    if t contains 'profile:'
+      assign profile = t | remove: 'profile:'
+    endif
+  endfor
+-%}
+<a class="rd-card{% if oos %} rd-card--oos{% endif %}"
+   href="{{ product.url }}"
+   data-rd-card
+   data-oos="{% if oos %}true{% else %}false{% endif %}"
+   data-handle="{{ product.handle }}"
+   data-vendor="{{ vendor_h }}"
+   data-type="{{ product.type | handle }}"
+   data-niche="{% if product.tags contains 'Niche' %}true{% else %}false{% endif %}"
+   data-profile="{{ profile }}">
+  <div class="rd-card__media">
+    {%- if product.featured_image -%}
+      <img src="{{ product.featured_image | image_url: width: 600 }}"
+           srcset="{{ product.featured_image | image_url: width: 300 }} 300w, {{ product.featured_image | image_url: width: 600 }} 600w"
+           sizes="(max-width: 640px) 45vw, 20vw"
+           alt="{{ product.featured_image.alt | default: product.title | escape }}"
+           width="{{ product.featured_image.width }}" height="{{ product.featured_image.height }}"
+           loading="lazy">
+    {%- else -%}
+      <span class="rd-card__ph">Image pending</span>
+    {%- endif -%}
+    {%- if oos -%}
+      <span class="rd-card__oos">{{ 'products.product.out_of_stock' | t }}</span>
+    {%- endif -%}
+  </div>
+  <span class="rd-card__brand">{{ product.vendor }}</span>
+  <span class="rd-card__name">{{ product.title | remove_first: product.vendor | strip }}</span>
+  <span class="rd-card__price">
+    {%- if p10 != blank -%}10ml {{ p10 | money_without_trailing_zeros }}{%- endif -%}
+    {%- if p10 != blank and p30 != blank %} &middot; {% endif -%}
+    {%- if p30 != blank -%}30ml {{ p30 | money_without_trailing_zeros }}{%- endif -%}
+  </span>
+  {%- if tier_label != blank -%}
+    <span class="rd-card__tier">{{ tier_label }}</span>
+  {%- endif -%}
+</a>

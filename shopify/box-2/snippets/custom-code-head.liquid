@@ -24,3 +24,72 @@
   (Karla 600 and Noto Naskh 700 were only in rd-fonts) — one CSS request now.
 {%- endcomment -%}
 {{ 'raqi-redesign.css' | asset_url | stylesheet_tag }}
+{%- comment -%}
+  2026-09-03: the out-of-stock card treatment, shared by every card surface.
+
+  Lives here rather than in assets/raqi-redesign.css or assets/raqi-theme.css so
+  both shared stylesheets stay untouched, and so ONE rule set covers all four
+  surfaces that render a product card — the homepage grid and the collection
+  grid (.rd-card, via snippets/rd-product-card.liquid), the "Selected this
+  season" carousel (sections/raqi-selected.liquid, which inlines its own card
+  markup) and the product page's related row (snippets/raqi-product-card.liquid)
+  — instead of the same rules being pasted into four section style blocks and
+  drifting apart.
+
+  The badge is a SIBLING of the image, never a child. The dimming below is an
+  opacity, and opacity on a parent fades its children with it, so a badge nested
+  inside the media would be the one element guaranteed to go unreadable.
+
+  The two card systems use different token sets (--rd-* for the redesign,
+  --raqi-* for the older Raqi system), so geometry is shared and only the
+  colours and face are split.
+{%- endcomment -%}
+{% style %}
+  .rd-card__media,
+  .raqi-product-card__media { position: relative; }
+
+  .rd-card__oos,
+  .raqi-product-card__oos {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline: 0;
+    z-index: 1;
+    padding: 6px 4px;
+    font-size: 9px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .rd-card__oos {
+    font-family: var(--rd-body);
+    background: var(--rd-ink);
+    color: var(--rd-bone);
+  }
+
+  .raqi-product-card__oos {
+    font-family: var(--raqi-font-body);
+    background: var(--raqi-ink);
+    color: var(--raqi-bg-page);
+  }
+
+  .rd-card--oos .rd-card__media img,
+  .raqi-product-card--oos .raqi-product-card__media img {
+    opacity: 0.34;
+    filter: grayscale(1);
+  }
+
+  .rd-card--oos .rd-card__brand,
+  .rd-card--oos .rd-card__name,
+  .rd-card--oos .rd-card__price,
+  .rd-card--oos .rd-card__tier,
+  .raqi-product-card--oos .raqi-product-card__brand,
+  .raqi-product-card--oos .raqi-product-card__name,
+  .raqi-product-card--oos .raqi-product-card__sizes,
+  .raqi-product-card--oos .raqi-product-card__price {
+    opacity: 0.5;
+  }
+{% endstyle %}

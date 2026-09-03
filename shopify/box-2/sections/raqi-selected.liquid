@@ -1,0 +1,170 @@
+{% comment %}
+  Raqi — "Selected this season" (design_spec_en.md section 2, item 6).
+  Rebuilt 2026-08-02. Merchandised carousel: each block references a real
+  product (settings-driven, never invented). Lightweight vanilla JS — no
+  slider library — auto-advances by 264px every 2600ms (matching the
+  mockup's own advance() component) and supports click-drag; hovering or
+  dragging pauses autoplay. Uses native overflow-x scroll + scroll-snap,
+  not a full carousel widget (no dots/arrows in the mockup).
+
+  JUDGMENT CALL: the mockup names 10 fictional products (e.g. "Xerjoff
+  Naxos", "Amouage Interlude 53", "Byredo Gypsy Water") that do not exist in
+  the real 22-product catalog. Per "never invent products," the 10 block
+  defaults in templates/index.json substitute the closest real product from
+  the same vendor for the 3 that don't exist (Xerjoff Torino 21, Amouage
+  Reflection Man, Byredo Black Saffron) and use exact real matches for the
+  other 7. Flagged in the build report.
+{% endcomment %}
+{%- liquid
+  assign lbl_selected_heading = section.settings.heading
+    if lbl_selected_heading == blank or lbl_selected_heading == 'Selected this season'
+        assign lbl_selected_heading = 'raqi.selected.heading' | t
+          endif
+            assign lbl_selected_view_all = section.settings.view_all_label
+              if lbl_selected_view_all == blank or lbl_selected_view_all == 'View All Perfumes'
+                  assign lbl_selected_view_all = 'raqi.selected.view_all' | t
+                    endif
+                    -%}
+                     <section class="raqi-selected raqi-section" data-raqi-carousel>
+  <div class="raqi-container">
+    <div class="raqi-selected__header">
+      <div>
+        <h2 class="raqi-selected__heading">{{ lbl_selected_heading }}</h2>
+        <p class="raqi-selected__subhead">{{ section.settings.subhead }}</p>
+      </div>
+      <a href="{{ section.settings.view_all_url | default: '/collections/all' }}" class="raqi-selected__view-all">{{ lbl_selected_view_all }} &rarr;</a>
+    </div>
+    <div class="raqi-selected__track" data-raqi-carousel-track>
+      {% for block in section.blocks %}
+        {% liquid
+          assign product = block.settings.product
+          if product == blank
+            continue
+          endif
+          assign variant_10ml = product.variants | where: 'title', '10ml' | first
+          if variant_10ml == blank
+            assign variant_10ml = product.selected_or_first_available_variant
+          endif
+          # 2026-09-03: this row is hand-merchandised in templates/index.json,
+          # so an out-of-stock fragrance cannot drop out of it the way it does
+          # from a tag- or collection-driven grid — the block keeps pointing at
+          # it. Badge and dim it instead of leaving it looking purchasable. The
+          # card markup here is inlined rather than rendered from
+          # snippets/raqi-product-card.liquid, so the class and badge have to be
+          # repeated; the CSS for both lives once in snippets/custom-code-head.
+          assign oos = false
+          unless product.available
+            assign oos = true
+          endunless
+        %}
+        <a href="{{ product.url }}" class="raqi-product-card{% if oos %} raqi-product-card--oos{% endif %}" data-oos="{% if oos %}true{% else %}false{% endif %}" {{ block.shopify_attributes }}>
+          <div class="raqi-product-card__media">
+            {% if product.featured_image %}
+              {{ product.featured_image | image_url: width: 500 | image_tag: loading: 'lazy', alt: product.title }}
+            {% else %}
+              <div class="raqi-photo-placeholder raqi-photo-placeholder-inner">
+                <span class="raqi-photo-placeholder__label">Product<br>Photo</span>
+              </div>
+            {% endif %}
+            {% if oos %}
+              <span class="raqi-product-card__oos">{{ 'products.product.out_of_stock' | t }}</span>
+            {% endif %}
+          </div>
+          <p class="raqi-product-card__brand">{{ product.vendor }}</p>
+          <p class="raqi-product-card__name">{{ product.title | remove_first: product.vendor | strip }}</p>
+          {% if variant_10ml %}
+            <p class="raqi-product-card__price">10 ml &middot; {{ variant_10ml.price | money }}</p>
+          {% endif %}
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<script>
+(function () {
+  var sections = document.querySelectorAll('[data-raqi-carousel]');
+  sections.forEach(function (section) {
+    var track = section.querySelector('[data-raqi-carousel-track]');
+    if (!track) return;
+
+    var AUTOPLAY_MS = 2600;
+    var STEP_PX = 264;
+    var timer = null;
+    var isDragging = false;
+    var startX = 0;
+    var startScroll = 0;
+    var moved = false;
+
+    function play() {
+      stop();
+      timer = setInterval(function () {
+        var atEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 2;
+        if (atEnd) {
+          track.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+          track.scrollBy({ left: STEP_PX, behavior: 'smooth' });
+        }
+      }, AUTOPLAY_MS);
+    }
+    function stop() {
+      if (timer) clearInterval(timer);
+      timer = null;
+    }
+
+    section.addEventListener('mouseenter', stop);
+    section.addEventListener('mouseleave', play);
+
+    track.addEventListener('pointerdown', function (e) {
+      isDragging = true;
+      moved = false;
+      track.classList.add('is-dragging');
+      startX = e.clientX;
+      startScroll = track.scrollLeft;
+      stop();
+    });
+    window.addEventListener('pointermove', function (e) {
+      if (!isDragging) return;
+      var dx = e.clientX - startX;
+      if (Math.abs(dx) > 4) moved = true;
+      track.scrollLeft = startScroll - dx;
+    });
+    window.addEventListener('pointerup', function () {
+      if (!isDragging) return;
+      isDragging = false;
+      track.classList.remove('is-dragging');
+      play();
+    });
+    track.addEventListener('click', function (e) {
+      if (moved) {
+        e.preventDefault();
+        moved = false;
+      }
+    });
+
+    play();
+  });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Raqi: Selected",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Selected this season" },
+    { "type": "textarea", "id": "subhead", "label": "Subhead", "default": "What we're reaching for right now — the carousel moves on its own, or drag to browse." },
+    { "type": "text", "id": "view_all_label", "label": "View-all label", "default": "View All Perfumes" },
+    { "type": "url", "id": "view_all_url", "label": "View-all link" }
+  ],
+  "blocks": [
+    {
+      "type": "product",
+      "name": "Product",
+      "settings": [
+        { "type": "product", "id": "product", "label": "Product" }
+      ]
+    }
+  ],
+  "max_blocks": 12
+}
+{% endschema %}

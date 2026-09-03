@@ -1,0 +1,67 @@
+{% comment %} Raqi — shared product card (catalog, related, home carousel). Real Niche tag drives data-niche.
+  2026-08-09c CORRECTION: reverted 20ml back to 30ml matching/label per
+  explicit user correction — the 30ml→20ml business change is undone.
+  2026-08-09 update (Phase 3 item 3): added a small "10ml · 30ml" size-
+  availability tag so a visitor scanning the grid knows both sizes exist
+  before opening a product. Uses the same 'contains 10' / 'contains 30'
+  variant-title matching already used on the PDP (raqi-product.liquid),
+  since Translate & Adapt can localize variant titles but the numeral
+  itself stays a plain Latin digit.
+  2026-08-12 update (Raqi box design system, item 4 dependency): added
+  data-tier ("signature" / "discovery" / blank) from the new Signature /
+  Discovery product tags, so the collection grid's tier filter (Explore by
+  Taste cards + header nav links) and the Discovery Box step 1/2 pickers
+  can all filter the exact same card markup client-side, the same pattern
+  already used for data-niche.
+{% endcomment %}
+{%- liquid
+  assign is_niche = false
+  if product.tags contains 'Niche'
+    assign is_niche = true
+  endif
+  assign tier = ''
+  if product.tags contains 'Signature'
+    assign tier = 'signature'
+  elsif product.tags contains 'Discovery'
+    assign tier = 'discovery'
+  endif
+  assign low_variant = product.variants | sort: 'price' | first
+  # 2026-09-03: out-of-stock marking. Badge and dim only — the card stays a
+  # link, because the product page is still where the notes and sizes are.
+  assign oos = false
+  unless product.available
+    assign oos = true
+  endunless
+  assign has_10ml = false
+  assign has_30ml = false
+  for variant in product.variants
+    if variant.title contains '10' and has_10ml == false
+      assign has_10ml = true
+    endif
+    if variant.title contains '30' and has_30ml == false
+      assign has_30ml = true
+    endif
+  endfor
+-%}
+<a href="{{ product.url }}" class="raqi-product-card{% if oos %} raqi-product-card--oos{% endif %}" data-niche="{{ is_niche }}" data-tier="{{ tier }}" data-oos="{% if oos %}true{% else %}false{% endif %}" data-product-id="{{ product.id }}" data-product-handle="{{ product.handle }}">
+  <div class="raqi-product-card__media">
+    {%- if product.featured_image != blank -%}
+      {{ product.featured_image | image_url: width: 500 | image_tag: loading: 'lazy', alt: product.title }}
+    {%- else -%}
+      <div class="raqi-photo-placeholder" style="width:100%;height:100%;"><span class="raqi-photo-placeholder__label">Product photo</span></div>
+    {%- endif -%}
+    {%- if oos -%}
+      <span class="raqi-product-card__oos">{{ 'products.product.out_of_stock' | t }}</span>
+    {%- endif -%}
+  </div>
+  <p class="raqi-product-card__brand">{{ product.vendor }}</p>
+  <p class="raqi-product-card__name">{{ product.title }}</p>
+  {%- if has_10ml or has_30ml -%}
+    <p class="raqi-product-card__sizes">
+      {%- if has_10ml -%}<span>10ml</span>{%- endif -%}
+      {%- if has_10ml and has_30ml -%}<span class="raqi-product-card__sizes-dot">&middot;</span>{%- endif -%}
+      {%- if has_30ml -%}<span>30ml</span>{%- endif -%}
+    </p>
+  {%- endif -%}
+  <p class="raqi-product-card__price">from {{ low_variant.price | money }}</p>
+</a>
