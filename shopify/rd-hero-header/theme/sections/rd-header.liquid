@@ -20,12 +20,25 @@
   there was no WhatsApp entry point on mobile at all. It exists now and is
   rendered below. The float shows at <=900px and this icon at 901px and up —
   the same breakpoint from both sides. Move one and you must move the other.
+
+  2026-09-03: the burger button existed and was styled, but nothing listened to
+  it — this section carried no JavaScript at all, and raqi-redesign.css had no
+  open state for .rd-nav, only `display:none` below 900px. So the mobile menu
+  was never built rather than broken. Added the panel, its styles and its
+  script here, self-contained, so the shared stylesheet stays untouched.
+
+  The panel also carries Search, WhatsApp and عربي, which are .rd-hide-sm and
+  therefore invisible below 900px — without them the mobile menu would offer
+  less than the desktop header does.
+
+  Stacking: WhatsApp float 500 < this panel 800 < cart drawer 900, so opening
+  the cart covers the menu rather than fighting it.
 {% endcomment %}
 {% render 'rd-fonts' %}
 <div class="rd-scope">
   <header class="rd-header">
     <div class="rd-header__inner">
-      <button class="rd-header__burger" type="button" aria-label="Open menu" aria-expanded="false">
+      <button class="rd-header__burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="rd-menu" data-rd-burger>
         <span></span><span></span><span></span>
       </button>
 
@@ -52,6 +65,24 @@
     </div>
   </header>
 
+  <div class="rd-menu" id="rd-menu" data-rd-menu hidden>
+    <div class="rd-menu__scrim" data-rd-menu-close></div>
+    <div class="rd-menu__panel" role="dialog" aria-modal="true" aria-label="Menu">
+      <button class="rd-menu__close" type="button" aria-label="Close menu" data-rd-menu-close>&times;</button>
+      <nav class="rd-menu__nav" aria-label="Primary mobile">
+        <a href="{{ routes.all_products_collection_url }}">Shop</a>
+        <a href="{{ routes.collections_url }}">Brands</a>
+        <a href="{{ routes.root_url }}#discovery-set">Discovery Set</a>
+        <a href="{{ routes.root_url }}pages/about">Our Story</a>
+      </nav>
+      <div class="rd-menu__utils">
+        <a href="{{ routes.search_url }}">Search</a>
+        <a href="https://wa.me/971585670055" target="_blank" rel="noopener">WhatsApp</a>
+        <a href="{{ routes.root_url }}" lang="ar" class="rd-menu__lang">عربي</a>
+      </div>
+    </div>
+  </div>
+
   {% render 'raqi-whatsapp-float' %}
 </div>
 
@@ -68,7 +99,119 @@
     height: 16px;
     display: block;
   }
+
+  /* Mobile menu. Hidden outright above the burger's breakpoint so a stale open
+     state can never leak onto desktop. */
+  .rd-menu[hidden] { display: none; }
+  .rd-menu { display: none; }
+
+  @media (max-width: 900px) {
+    .rd-menu { position: fixed; inset: 0; z-index: 800; display: block; }
+
+    .rd-menu__scrim { position: absolute; inset: 0; background: rgba(34, 38, 31, 0.45); }
+
+    .rd-menu__panel {
+      position: absolute; inset-block: 0; inset-inline-start: 0;
+      inline-size: min(84vw, 340px);
+      background: var(--rd-bone);
+      border-inline-end: 1px solid var(--rd-rule);
+      padding: 22px 26px calc(26px + env(safe-area-inset-bottom, 0px));
+      display: flex; flex-direction: column;
+      overflow-y: auto;
+      transform: translateX(0);
+      animation: rd-menu-in 220ms ease both;
+    }
+
+    [dir="rtl"] .rd-menu__panel { animation-name: rd-menu-in-rtl; }
+
+    @keyframes rd-menu-in     { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+    @keyframes rd-menu-in-rtl { from { transform: translateX(100%);  } to { transform: translateX(0); } }
+
+    .rd-menu__close {
+      align-self: flex-end; background: none; border: 0; cursor: pointer;
+      font-size: 26px; line-height: 1; color: var(--rd-ink);
+      padding: 4px 6px; margin-block-end: 18px;
+    }
+
+    .rd-menu__nav { display: flex; flex-direction: column; gap: 4px; }
+    .rd-menu__nav a {
+      font-family: var(--rd-display); font-size: 27px; line-height: 1.5;
+      color: var(--rd-ink); text-decoration: none; padding-block: 6px;
+    }
+    .rd-menu__nav a:active { color: var(--rd-wine); }
+
+    .rd-menu__utils {
+      margin-block-start: auto; padding-block-start: 26px;
+      border-block-start: 1px solid var(--rd-rule);
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .rd-menu__utils a {
+      font-family: var(--rd-body); font-size: 12px; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--rd-grey); text-decoration: none;
+    }
+    .rd-menu__lang { font-family: var(--rd-body-ar); text-transform: none; letter-spacing: 0; font-size: 14px; }
+  }
+
+  /* Scroll lock while the panel is open. */
+  html.rd-menu-open, html.rd-menu-open body { overflow: hidden; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rd-menu__panel { animation: none; }
+  }
 {% endstyle %}
+
+<script>
+(function () {
+  var burger = document.querySelector('[data-rd-burger]');
+  var menu   = document.querySelector('[data-rd-menu]');
+  if (!burger || !menu) return;
+
+  var lastFocus = null;
+
+  function open() {
+    menu.hidden = false;
+    burger.setAttribute('aria-expanded', 'true');
+    document.documentElement.classList.add('rd-menu-open');
+    lastFocus = document.activeElement;
+    var close = menu.querySelector('.rd-menu__close');
+    if (close) close.focus();
+  }
+
+  function close() {
+    menu.hidden = true;
+    burger.setAttribute('aria-expanded', 'false');
+    document.documentElement.classList.remove('rd-menu-open');
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
+  function isOpen() { return !menu.hidden; }
+
+  burger.addEventListener('click', function () { isOpen() ? close() : open(); });
+
+  menu.addEventListener('click', function (e) {
+    if (e.target.closest('[data-rd-menu-close]')) close();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && isOpen()) close();
+  });
+
+  // A link inside the panel navigates; the in-page #discovery-set anchor does
+  // not, so close on any link tap or the panel would stay over the target.
+  menu.addEventListener('click', function (e) {
+    if (e.target.closest('a')) close();
+  });
+
+  // Resizing past the burger's breakpoint leaves an open panel unreachable and
+  // the scroll lock stuck, so drop it.
+  if (window.matchMedia) {
+    var mq = window.matchMedia('(min-width: 901px)');
+    var onChange = function (ev) { if (ev.matches && isOpen()) close(); };
+    if (mq.addEventListener) mq.addEventListener('change', onChange);
+    else if (mq.addListener) mq.addListener(onChange);
+  }
+})();
+</script>
 
 {% schema %}
 {
