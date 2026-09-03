@@ -1,0 +1,275 @@
+
+
+{% liquid
+  assign enable_rtl = false
+  if request.locale.iso_code == 'ar'
+    assign enable_rtl = true
+  endif
+
+  assign body_classes = 'template-' | append: template.name | append: ' ' | append: template.suffix | append: ' m-gradient m-color-' | append: settings.default_color_scheme
+  if settings.page_transition
+    assign body_classes = body_classes | append: ' m:overflow-hidden'
+  endif
+  if template.suffix == 'about-us'
+    assign body_classes = body_classes | append: ' sf__page-about'
+  endif
+%}
+<!doctype html>
+<html
+  class="no-js {% if settings.page_transition %} m:overflow-hidden{% endif %}"
+  lang="{{ request.locale.iso_code }}"
+  data-template="{{ template.name }}"
+  {% if enable_rtl %}
+    dir="rtl"
+  {% else %}
+    dir="ltr"
+  {% endif %}
+>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=0">
+    <meta name="theme-color" content="{{ settings.color_primary }}">
+    <link rel="canonical" href="{{ canonical_url }}">
+    <link rel="preconnect" href="https://fonts.shopifycdn.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
+
+    {%- if settings.use_favicon == true and settings.favicon != blank -%}
+      <link rel="shortcut icon" type="image/png" href="{{ settings.favicon | image_url: width: 32, height: 32 }}">
+    {%- endif -%}
+
+    {%- comment -%}
+      SEO foundation (2026-08-09; 2026-08-09c CORRECTION: 30ml→20ml business
+      change reverted, meta description formulas below restored to "10ml &
+      30ml" per explicit user correction). Title format: homepage gets a
+      crafted, keyword-informed title; every other page keeps Shopify's own
+      page_title (which already respects an explicit Admin SEO title if the
+      merchant ever sets one, falling back to the resource's own title
+      otherwise) with a " | RAQI" suffix instead of the previous " – {{
+      shop.name }}" suffix, since shop.name is "Raqi" (mixed case) and the
+      brand's own wordmark/copy is consistently "RAQI" (all caps).
+
+      raqi_page_title (plain-text, no HTML entities) mirrors the same logic
+      for reuse in OG/Twitter tags below — fixes a bug where og:title on the
+      homepage was falling back to shop.name ("Raqi") because Shopify's raw
+      page_title global still resolves to shop.name on index regardless of
+      what the <title> tag itself displays.
+    {%- endcomment -%}
+    {%- liquid
+      assign raqi_page_title = blank
+      if template.name == 'index'
+        assign raqi_page_title = "RAQI — Luxury Fragrance Decants UAE | Niche & Designer Perfumes"
+      else
+        assign raqi_page_title = page_title
+        unless raqi_page_title contains 'RAQI' or raqi_page_title contains 'Raqi'
+          assign raqi_page_title = raqi_page_title | append: ' | RAQI'
+        endunless
+      endif
+    -%}
+    <title>
+      {%- if template.name == 'index' -%}
+        RAQI &mdash; Luxury Fragrance Decants UAE | Niche &amp; Designer Perfumes
+      {%- else -%}
+        {{- page_title -}}
+        {%- if current_tags -%}
+          {%- assign meta_tags = current_tags | join: ', ' %} &ndash; {{ 'general.meta.tags' | t: tags: meta_tags -}}
+        {%- endif -%}
+        {%- if current_page != 1 %} &ndash; {{ 'general.meta.page' | t: page: current_page }}{% endif -%}
+        {%- if template == 'password' -%}
+          {{- shop.name -}}
+        {%- else -%}
+          {%- unless page_title contains 'RAQI' or page_title contains 'Raqi' %} | RAQI{% endunless -%}
+        {%- endif -%}
+      {%- endif -%}
+    </title>
+
+    {%- comment -%}
+      Meta description (2026-08-09, revised; 2026-08-09c CORRECTION: "20ml"
+      reverted back to "30ml" in the formulas below — the earlier business
+      change is undone). IMPORTANT distinction: Shopify's blended
+      `page_description` global auto-falls-back to a raw truncation of the
+      resource's body content (e.g. product.description) even when no
+      explicit Admin SEO description was ever set — confirmed live this was
+      silently overriding the crafted, keyword-informed copy below for every
+      product. Fixed by checking each resource's own `.seo.description`
+      field directly (the TRUE explicit-override signal, confirmed blank on
+      every product/collection right now) instead of the blended global, so
+      the crafted fallback actually renders until/unless the merchant sets a
+      real custom SEO description in Admin. Every branch is kept under 160
+      characters by construction, with a truncate as a hard safety net.
+
+      2026-08-09e: the homepage branch's "Dhs 999" is now consolidated —
+      whichever branch runs, the result is passed through a `replace` filter
+      that swaps a literal "999" for settings.raqi_free_shipping_threshold
+      (Theme Settings > Raqi), same single source of truth as the
+      announcement bar, PDP shipping accordion and cart progress bar. Only
+      the index branch currently contains "999", so this is a safe no-op
+      for every other branch.
+    {%- endcomment -%}
+    {%- liquid
+      assign raqi_meta_description = blank
+      case template.name
+        when 'index'
+          assign raqi_meta_description = "Try niche and designer perfumes in the UAE before you commit. Authentic 10ml & 30ml decants, hand-poured from the bottle. Free UAE delivery over Dhs 999."
+        when 'product'
+          assign raqi_meta_description = product.seo.description
+          if raqi_meta_description == blank
+            assign raqi_meta_description = product.title | append: " decant — 10ml & 30ml, 100% authentic, hand-poured in the UAE. Try it before you commit to the bottle."
+          endif
+        when 'collection'
+          assign raqi_meta_description = collection.seo.description
+          if raqi_meta_description == blank
+            if collection.handle == 'all' or collection.handle == blank
+              assign raqi_meta_description = "Niche & designer perfume decants in the UAE — 10ml & 30ml, 100% authentic. Try before you commit to the full bottle."
+            elsif collection.title == 'Niche'
+              assign raqi_meta_description = "Niche perfume decants in the UAE — rare and exclusive fragrance houses, 10ml & 30ml, 100% authentic. Try before you commit to the full bottle."
+            else
+              assign raqi_meta_description = "Niche & designer perfume decants for " | append: collection.title | append: " in the UAE — 10ml & 30ml, 100% authentic. Try before you commit to the full bottle."
+            endif
+          endif
+        when 'page'
+          assign raqi_meta_description = page.seo.description
+          if raqi_meta_description == blank
+            if template.suffix == 'about-us'
+              assign raqi_meta_description = "RAQI is a UAE niche & luxury fragrance house — authentic decants poured from the bottle, so you can live with a scent before buying it in full."
+            elsif template.suffix == 'contact'
+              assign raqi_meta_description = "Questions about sizing, authenticity or delivery? Reach RAQI on WhatsApp or email — a real person answers, usually within a couple of hours."
+            endif
+          endif
+        else
+          assign raqi_meta_description = page_description
+      endcase
+      assign raqi_ship_threshold = settings.raqi_free_shipping_threshold | default: 999
+      assign raqi_meta_description = raqi_meta_description | replace: '999', raqi_ship_threshold | strip_html | truncate: 157
+    -%}
+    {%- if raqi_meta_description != blank -%}
+      <meta name="description" content="{{ raqi_meta_description | escape }}">
+    {%- endif -%}
+
+    {%- liquid
+      render 'social-meta-tags', raqi_page_title: raqi_page_title, raqi_meta_description: raqi_meta_description
+      render 'raqi-structured-data'
+      render 'font-face'
+      render 'critical-css'
+
+      echo 'main.css' | asset_url | stylesheet_tag: preload: true
+
+      render 'style-tags'
+    -%}
+
+    <script src="{{ 'vendor.js' | asset_url }}" defer="defer"></script>
+    <script src="{{ 'theme-global.js' | asset_url }}" defer="defer"></script>
+    {%- if settings.animations != 'none' -%}
+      <script src="{{ 'animations.js' | asset_url }}" defer="defer"></script>
+    {%- endif -%}
+    {%- if request.design_mode -%}
+      <script src="{{ 'theme-editor.js' | asset_url }}" defer="defer"></script>
+    {%- endif -%}
+
+    {{ content_for_header }}
+   
+    
+
+    <script>
+      document.documentElement.className = document.documentElement.className.replace('no-js', 'js');
+      if (Shopify.designMode) {
+        document.documentElement.classList.add('shopify-design-mode');
+      }
+    </script>
+    {% render 'theme-data' %}
+    {% render 'custom-code-head' %}
+
+    {%- comment -%}
+      Raqi perf audit (2026-07-30): removed unconditional loads of
+      product-page.css (~166KB), compaign.css (~140KB), compaign-v1.css
+      (~62KB), compaignv-v2.css (~3.6KB) and the cdnfonts.com/Inter
+      stylesheet. Verified 100% unused by Raqi's active pages: these are
+      compiled Tailwind/CSS-module bundles (hashed classnames, --tw-*
+      vars, Neuzeit-Grotesk font) from an old page-builder feature, with
+      zero overlap with any raqi-*/m-* class used in the 6 active
+      templates. product-page.css/compaign.css also contain the exact
+      `button,[type=submit]{background-color:transparent}` reset that
+      caused the earlier Add-to-Cart color bug (worked around via
+      !important in custom-code-head.liquid, which stays in place as a
+      safety net). Files themselves are left untouched in the theme.
+    {%- endcomment -%}
+
+  </head>
+
+  <body
+    id="m-theme"
+    class="{{ body_classes }} template-{{ template | replace: '.', '-' | replace: '/', '-' }}"
+    {% if template.name == 'product' %}
+      data-product-id="{{ product.id }}"
+    {% endif %}
+
+
+  >
+    {%- liquid
+      render 'page-transition'
+      render 'scroll-top-button'
+      sections 'header-group'
+    -%}
+
+    <main role="main" id="MainContent">
+      {{ content_for_layout }}
+    </main>
+
+    
+    {%- liquid
+      sections 'footer-group'
+      render 'script-tags'
+      render 'cookie-banner'
+      render 'custom-code-body'
+    -%}
+
+    <script src="{{ 'product-quick-view.js' | asset_url }}" defer="defer"></script>
+
+    {%- comment -%}
+      Raqi perf audit (2026-07-30): removed unconditional wishlist.js and
+      compare-product.js. Confirmed both features are fully off in the
+      active UI: header-group.json sets show_wishlist_icon=false and
+      show_compare_icon=false (so header.liquid never renders those
+      icons), settings_data.json sets show_compare_button=false, and
+      snippets/product-card-1.liquid hardcodes show_wishlist_button=false
+      for every card. No reachable button anywhere calls into either
+      script. product-quick-view.js is kept above: show_quickview_button
+      defaults true and is not overridden, so the Quickview button is a
+      genuinely live feature on product cards.
+    {%- endcomment -%}
+
+    {%- if settings.enable_predictive_search -%}
+      <script src="{{ 'predictive-search.js' | asset_url }}" defer="defer"></script>
+    {%- endif -%}
+
+    {%- if linklists['gift-wrapping'].links != blank
+      and linklists['gift-wrapping'].links.first.type == 'product_link'
+    -%}
+      <script src="{{ 'gift-wrapping.js' | asset_url }}" defer="defer"></script>
+    {%- endif -%}
+
+    {%- if settings.show_swatch_option -%}
+      <script src="{{ 'product-card-swatch.js' | asset_url }}" defer="defer"></script>
+    {%- endif -%}
+
+    {%- comment -%}
+      2026-09-03: the Minimog cart drawer ({% render 'cart-drawer' %}, gated on
+      settings.enable_cart_drawer) is no longer rendered. The redesign ships its
+      own drawer in sections/rd-cart-drawer.liquid via header-group, and having
+      both meant Add to Bag opened one drawer and the header's Bag link opened
+      the other. assets/cart.js went with it; /cart still loads what it needs
+      from sections/cart-template.liquid.
+    {%- endcomment -%}
+
+
+    {%- comment -%}
+      2026-09-03 (pre-launch perf pass): removed an inline script that fetched
+      /cart.js every 2 seconds, forever, on every page, to update
+      .m-cart-count-bubble — an element that only exists in the Minimog header
+      (sections/header.liquid), which this theme no longer renders. The live
+      header is sections/rd-header.liquid; its bag count is [data-rd-bagcount]
+      and sections/rd-cart-drawer.liquid updates it after every cart change.
+    {%- endcomment -%}
+
+  </body>
+</html>

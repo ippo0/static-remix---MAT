@@ -1,0 +1,194 @@
+{% comment %}
+  RAQI Redesign — cart drawer.
+
+  Self-contained: it does not touch the base theme's cart.js / cart.css, which
+  belong to the old design. Mounted once in header-group.json so it is present
+  on every page.
+
+  Contents are re-rendered server-side through the Section Rendering API
+  (?sections=rd_cart_drawer) after every change, so money formatting, discounts
+  and line properties always come from Liquid — never from JS arithmetic.
+
+  Progressive enhancement: the product form still posts to /cart normally when
+  JS is unavailable, and /cart remains a working page.
+{% endcomment %}
+{% render 'rd-fonts' %}
+<div class="rd-scope">
+  <div class="rd-cd" id="rd-cart-drawer" data-rd-cd hidden>
+    <button class="rd-cd__scrim" type="button" data-rd-cd-close tabindex="-1" aria-label="{{ section.settings.close_label }}"></button>
+    <aside class="rd-cd__panel" role="dialog" aria-modal="true" aria-labelledby="rd-cd-h">
+      <div data-rd-cd-inner>
+        <span hidden data-rd-cd-count>{{ cart.item_count }}</span>
+        <header class="rd-cd__head">
+          <h2 class="rd-cd__h2" id="rd-cd-h">{{ section.settings.heading }}</h2>
+          <button class="rd-cd__x" type="button" data-rd-cd-close aria-label="{{ section.settings.close_label }}">&times;</button>
+        </header>
+
+        {%- if cart.item_count == 0 -%}
+          <div class="rd-cd__empty">
+            <p class="rd-cd__emptyline">{{ section.settings.empty_text }}</p>
+            <a class="rd-cd__cont" href="{{ routes.all_products_collection_url }}">{{ section.settings.continue_label }}</a>
+          </div>
+        {%- else -%}
+          <ul class="rd-cd__items" role="list">
+            {%- for line in cart.items -%}
+              <li class="rd-cd__item">
+                <span class="rd-cd__media">
+                  {%- if line.image -%}
+                    <img src="{{ line.image | image_url: width: 240 }}"
+                         alt="{{ line.title | escape }}" width="120" height="120" loading="lazy">
+                  {%- else -%}
+                    <span class="rd-card__ph">Image pending</span>
+                  {%- endif -%}
+                </span>
+                <span class="rd-cd__meta">
+                  <span class="rd-cd__brand">{{ line.product.vendor }}</span>
+                  <span class="rd-cd__name">{{ line.product.title | remove_first: line.product.vendor | strip }}</span>
+                  <span class="rd-cd__var">{{ line.variant.title }} &middot; {{ section.settings.qty_label }} {{ line.quantity }}</span>
+                  {%- for p in line.properties -%}
+                    {%- unless p.last == blank or p.first == blank -%}
+                      <span class="rd-cd__prop">{{ p.first }}: {{ p.last }}</span>
+                    {%- endunless -%}
+                  {%- endfor -%}
+                  <span class="rd-cd__price">{{ line.final_line_price | money }}</span>
+                  <button class="rd-cd__rm" type="button" data-rd-cd-remove="{{ forloop.index }}">{{ section.settings.remove_label }}</button>
+                </span>
+              </li>
+            {%- endfor -%}
+          </ul>
+
+          <div class="rd-cd__foot">
+            <div class="rd-cd__sub">
+              <span class="rd-cd__sublabel">{{ section.settings.subtotal_label }}</span>
+              <span class="rd-cd__subval">{{ cart.total_price | money }}</span>
+            </div>
+            {%- if section.settings.note != blank -%}
+              <p class="rd-cd__note">{{ section.settings.note }}</p>
+            {%- endif -%}
+            <form action="{{ routes.cart_url }}" method="post">
+              <button class="rd-cd__checkout" type="submit" name="checkout">{{ section.settings.checkout_label }}</button>
+            </form>
+          </div>
+        {%- endif -%}
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+(function () {
+  if (window.RDCart) return;
+  var SECTION = 'rd_cart_drawer';
+
+  function root() { return document.getElementById('rd-cart-drawer'); }
+
+  function open() {
+    var d = root(); if (!d) return;
+    d.removeAttribute('hidden');
+    document.documentElement.classList.add('rd-cd-open');
+    var x = d.querySelector('.rd-cd__x'); if (x) x.focus();
+  }
+  function close() {
+    var d = root(); if (!d) return;
+    d.setAttribute('hidden', '');
+    document.documentElement.classList.remove('rd-cd-open');
+  }
+
+  function paintCount(scope) {
+    var src = scope.querySelector('[data-rd-cd-count]');
+    if (!src) return;
+    var n = src.textContent.trim();
+    document.querySelectorAll('[data-rd-bagcount]').forEach(function (el) { el.textContent = n; });
+  }
+
+  function refresh() {
+    var url = window.location.pathname + '?sections=' + SECTION;
+    return fetch(url, { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        var html = j[SECTION];
+        if (!html) return;
+        var tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        var fresh = tmp.querySelector('[data-rd-cd-inner]');
+        var cur = document.querySelector('[data-rd-cd-inner]');
+        if (fresh && cur) {
+          cur.innerHTML = fresh.innerHTML;
+          paintCount(cur);
+        }
+      });
+  }
+
+  function add(id, qty, props) {
+    var item = { id: id, quantity: qty || 1 };
+    if (props) item.properties = props;
+    return fetch('/cart/add.js', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ items: [item] })
+    }).then(function (r) {
+      if (!r.ok) { return r.json().then(function (e) { throw new Error(e.description || e.message || 'add failed'); }); }
+      return r.json();
+    }).then(function () {
+      return refresh();
+    }).then(function () {
+      open();
+    });
+  }
+
+  function change(line, qty) {
+    return fetch('/cart/change.js', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ line: line, quantity: qty })
+    }).then(function (r) { return r.json(); }).then(function () { return refresh(); });
+  }
+
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    if (!t || !t.closest) return;
+    if (t.closest('[data-rd-cd-close]')) { e.preventDefault(); close(); return; }
+    var rm = t.closest('[data-rd-cd-remove]');
+    if (rm) { e.preventDefault(); change(parseInt(rm.getAttribute('data-rd-cd-remove'), 10), 0); }
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' || e.keyCode === 27) close();
+  });
+
+  // 2026-09-03: sections/raqi-product.liquid and sections/raqi-discovery-box.liquid
+  // announce a successful add with `cart:refresh` ({ detail: { open: true } }).
+  // Until now the only listener was Minimog's assets/cart.js, so Add to Bag
+  // opened the OLD <m-cart-drawer> while the header's Bag link opened this
+  // one — two different drawers on one site. This drawer now answers the same
+  // event, and the Minimog drawer is no longer rendered (layout/theme.liquid).
+  document.addEventListener('cart:refresh', function (e) {
+    refresh().then(function () {
+      if (e && e.detail && e.detail.open) open();
+    });
+  });
+
+  window.RDCart = { open: open, close: close, add: add, change: change, refresh: refresh };
+})();
+</script>
+
+{% schema %}
+{
+  "name": "RD Cart drawer",
+  "tag": "section",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Your bag" },
+    { "type": "text", "id": "close_label", "label": "Close label", "default": "Close" },
+    { "type": "text", "id": "qty_label", "label": "Quantity word", "default": "Qty" },
+    { "type": "text", "id": "remove_label", "label": "Remove label", "default": "Remove" },
+    { "type": "text", "id": "subtotal_label", "label": "Subtotal label", "default": "Subtotal" },
+    { "type": "textarea", "id": "note", "label": "Note under subtotal", "default": "Shipping and taxes calculated at checkout. Free UAE delivery over Dhs. 750." },
+    { "type": "text", "id": "checkout_label", "label": "Checkout button", "default": "Checkout" },
+    { "type": "textarea", "id": "empty_text", "label": "Empty message", "default": "Nothing in your bag yet." },
+    { "type": "text", "id": "continue_label", "label": "Empty-state link", "default": "Browse fragrances" }
+  ],
+  "presets": [{ "name": "RD Cart drawer" }]
+}
+{% endschema %}

@@ -131,3 +131,21 @@ mutation($themeId: ID!, $files: [OnlineStoreThemeFilesUpsertFileInput!]!) {
 Compare the returned `checksumMd5` against `md5sum` of the local file before
 treating a write as done. Note the Admin API refuses theme-file writes to the
 live (MAIN) theme — that guard is why this work goes to `box 2`.
+
+## Pre-launch readiness audit (2026-09-03, later)
+
+Full reachability scan of all 652 theme files — see `UNUSED-FILES.md` (categorised,
+with proof class per file) and `unused-files.txt` (plain paths). Result: **164 files
+reachable, 488 removable (6.7 MB, 86 % of theme bytes)**. Deletion is blocked for the
+API tooling, so the list is for manual removal in Admin → Themes → Edit code.
+
+Performance fixes applied to box 2 (all MD5-verified):
+
+| File | Change |
+|---|---|
+| `snippets/rd-fonts.liquid` | Emptied. Was rendered by all 13 `rd-*` sections → 12× Google Fonts `<link>` + 12× `raqi-redesign.css` per homepage, all in `<body>`. |
+| `snippets/custom-code-head.liquid` | Now the single loader: one Google Fonts URL (superset of the two that were requested) + `raqi-redesign.css`, in `<head>`. |
+| `layout/theme.liquid` | Removed a `setInterval` that fetched `/cart.js` every 2 s forever (targeted the dead Minimog header's `.m-cart-count-bubble`). Removed the Minimog `cart-drawer` render + `cart.js` — the site was running two cart drawers. |
+| `sections/rd-cart-drawer.liquid` | Listens to `cart:refresh` (dispatched by `raqi-product` and the Discovery builder) so Add-to-Bag opens the redesign drawer, not the old one. |
+| `snippets/scroll-top-button.liquid` | Hidden ≤900px — it sat at 86–126px, exactly where the WhatsApp float lands (75–127px) on product pages. |
+| `sections/rd-header.liquid` | "Our Story" now `pages['about'].url` (locale-aware). `routes.root_url \| append: 'pages/about'` produced `/ar-aepages/about` → 404 on the Arabic storefront. |

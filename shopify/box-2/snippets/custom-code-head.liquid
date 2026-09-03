@@ -1,0 +1,26 @@
+{%- comment -%}
+  Custom code before </head>
+  Rebuilt 2026-08-02 (post-erase rebuild, phase 1: design system + header/
+  footer/home). Loads:
+  1. Google Fonts — Italiana (EN display), Karla 300/400/500 (EN body/UI),
+     Noto Naskh Arabic 400/500/600 (AR display) and Noto Kufi Arabic
+     300/400/500 (AR body) — both languages' fonts are loaded now so the
+     later Arabic content-wiring pass does not need to touch typography.
+  2. assets/raqi-theme.css — the full Raqi design-system stylesheet
+     (palette custom properties, utility classes, header/footer/home
+     component styles).
+{%- endcomment -%}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link
+  href="https://fonts.googleapis.com/css2?family=Italiana&family=Karla:wght@300;400;500;600&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@300;400;500&display=swap"
+  rel="stylesheet"
+>
+{{ 'raqi-theme.css' | asset_url | stylesheet_tag }}
+{%- comment -%}
+  2026-09-03: raqi-redesign.css moved here from snippets/rd-fonts.liquid so it
+  loads once in <head> instead of once per rd-* section in <body>. The Google
+  Fonts URL above is the superset of the two URLs that used to be requested
+  (Karla 600 and Noto Naskh 700 were only in rd-fonts) — one CSS request now.
+{%- endcomment -%}
+{{ 'raqi-redesign.css' | asset_url | stylesheet_tag }}

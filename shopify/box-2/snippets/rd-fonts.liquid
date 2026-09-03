@@ -1,0 +1,11 @@
+{% comment %}
+  RAQI Redesign — typography loading. Spec §1.
+
+  2026-09-03 (pre-launch perf pass): this snippet is now intentionally EMPTY.
+  It is rendered by all 13 rd-* sections, so on the homepage it used to emit
+  the Google Fonts <link>, two preconnects and raqi-redesign.css TWELVE times,
+  all inside <body>. The browser dedupes the downloads but not the tags, and
+  the stylesheet arrived after first paint. Both now load exactly once, in
+  <head>, from snippets/custom-code-head.liquid. The file stays so the
+  existing {% render 'rd-fonts' %} calls keep resolving; nothing else to do.
+{% endcomment %}

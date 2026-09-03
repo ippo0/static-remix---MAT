@@ -83,7 +83,10 @@
 {%- liquid
   assign shop_url = routes.all_products_collection_url
   assign brands_url = routes.collections_url
-  assign story_url = routes.root_url | append: 'pages/about'
+  # pages['about'].url is locale-aware (Shopify prefixes *.url with the
+  # current locale root), unlike routes.root_url | append: 'pages/about',
+  # which produced '/ar-aepages/about' — a 404 — on the Arabic storefront.
+  assign story_url = pages['about'].url | default: '/pages/about'
   assign here = request.path
 
   # --- Language switch target -------------------------------------------
@@ -153,7 +156,7 @@
         <a href="{{ routes.all_products_collection_url }}">{{ 'raqi.rd.nav.shop' | t }}</a>
         <a href="{{ routes.collections_url }}">{{ 'raqi.rd.nav.brands' | t }}</a>
         <a href="{{ routes.root_url }}#discovery-set">{{ 'raqi.rd.nav.discovery_set' | t }}</a>
-        <a href="{{ routes.root_url }}pages/about">{{ 'raqi.rd.nav.our_story' | t }}</a>
+        <a href="{{ story_url }}">{{ 'raqi.rd.nav.our_story' | t }}</a>
       </nav>
 
       <a class="rd-logo" href="{{ routes.root_url }}" aria-label="{{ shop.name }} — home">
