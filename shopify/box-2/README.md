@@ -9,12 +9,19 @@ store; it has to be pushed back through the Admin API or the theme editor.
 
 ## Themes
 
+Roles move around on this store — check them before assuming. As of
+2026-09-03 12:46 UTC:
+
 | Theme | ID | Role | What it is |
 |---|---|---|---|
-| `box 2` | `188491465011` | Unpublished | The **redesign** — `rd-header`, `rd-announcement`, `rd-cart-drawer`, `assets/raqi-redesign.css` |
-| `Copy of Raqi box` | `188395618611` | **Live (MAIN)** | The older Minimog-based theme. Has no `rd-*` sections at all. |
+| `box 2` | `188491465011` | Unpublished | The **redesign, current work** — everything in this directory |
+| `box` | `188412231987` | **Live (MAIN)** | Same redesign sections, but an **older `rd-header`** (4,334 bytes): no mobile menu panel, no script, broken language link |
+| `Copy of Raqi box` | `188395618611` | Unpublished | Older Minimog-based theme, no `rd-*` sections. Was MAIN earlier on 2026-09-03. |
 
-The redesign has **not** been published. Anything under `box-2/` is draft.
+`box` was published at 12:36 UTC on 2026-09-03, replacing `Copy of Raqi box`
+as MAIN. **`box 2` has never been published**, so nothing in this directory is
+live. The live `rd-header` predates both the mobile-menu build and this
+directory's fixes.
 
 ## Files
 
@@ -31,7 +38,29 @@ the §1 tokens (bone `#F3F4EE`, wine `#7B4A56`, ink `#22261F`, panel `#E8EBE2`,
 rule `#C7CCBE`, grey `#5C6153`) and the Italiana/Karla faces via `--rd-display`
 / `--rd-body`. See the comment at the top of the file for the full rationale.
 
-Verified on write by MD5: `d8703970e6cac3741801df341897126e`.
+2026-09-03c: fixed the عربي language switch. Both links (desktop header and
+mobile panel) pointed at `routes.root_url` — the root of the locale you are
+*already* in — so tapping عربي reloaded the English homepage and switched
+nothing. Rebuilt as a real toggle that preserves the current page and query
+string, matching `snippets/raqi-language-switcher.liquid`, which already had
+this right but was never called from this section.
+
+Verified against the Admin API:
+
+- `ar` is a **published**, non-primary locale on the store.
+- The UAE market (`subfolderSuffix: "ae"`) serves it at **`/ar-ae/`**
+  (`rootUrls`: `en → https://raqi.ae/en-ae/`, `ar → https://raqi.ae/ar-ae/`).
+- Products, pages, collections and menu links have real Arabic translations.
+
+⚠ The link fix alone does **not** make the theme Arabic. All 13 `rd-*`
+sections contain **zero** `| t` translation keys — their chrome is literal
+English markup (`Shop`, `Brands`, `Discovery Set`, `Our Story`, `Search`,
+`WhatsApp`, `Elsewhere`, `Bag`, the collection filters, the hero step labels).
+Those cannot be translated without a code change. The settings-driven copy in
+the other sections *is* translatable, but `box 2` has **0** Arabic
+translations for any `rd-*` section or for `header-group`.
+
+Verified on write by MD5: `7816057a882014d90d0ec395d53098d0`.
 
 ## Re-applying a file to the theme
 

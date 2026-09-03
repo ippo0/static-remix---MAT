@@ -64,6 +64,22 @@
   Colours are the six §1 tokens only, type is Italiana/Karla via --rd-display /
   --rd-body, so the panel inherits the Arabic faces automatically under
   html[lang="ar"] like the rest of the redesign.
+
+  2026-09-03c: the عربي switch never worked, in the header or the panel. Both
+  links were href set to routes.root_url — the root of the locale you are
+  ALREADY in — so tapping عربي reloaded the English homepage. Verified against
+  the Admin API: `ar` IS a published, non-primary locale on this store, and the
+  UAE market (subfolderSuffix "ae") serves it from /ar-ae/, so there was a real
+  destination to point at the whole time. Rebuilt as a genuine toggle — see the
+  liquid block below — that preserves the current page and the query string.
+
+  ⚠ Fixing the link does NOT make this theme Arabic. Every rd-* section
+  hard-codes its English chrome as literal markup — zero `| t` keys across all
+  13 of them — so Shop / Brands / Discovery Set / Our Story / Search /
+  WhatsApp / Elsewhere / Bag stay English on /ar-ae/ no matter what. Only
+  store-level content (products, pages, collections, menu links) is actually
+  translated. The settings-driven copy in the other rd-* sections is
+  translatable in principle but has no Arabic entered on this theme.
 {% endcomment %}
 {% render 'rd-fonts' %}
 
@@ -72,6 +88,61 @@
   assign brands_url = routes.collections_url
   assign story_url = routes.root_url | append: 'pages/about'
   assign here = request.path
+
+  # --- Language switch target -------------------------------------------
+  # Both عربي links used to point at routes.root_url. That is the root of the
+  # locale you are ALREADY in, so the link reloaded the homepage in the same
+  # language — it never switched anything. Arabic is a published locale on
+  # this store (ar, non-primary) served from the UAE market's /ar-ae
+  # subfolder, so the target has to be built from the other language's own
+  # root_url.
+  #
+  # Strip the current locale's root prefix off request.path and re-attach the
+  # target language's, so the visitor lands on the SAME page translated
+  # rather than being dropped on the homepage. The query string is carried
+  # over too, so ?preview_theme_id= survives the switch while this theme is
+  # still a draft. Same approach as snippets/raqi-language-switcher.liquid,
+  # which already got this right; this section never called it.
+  assign en_lang = null
+  assign ar_lang = null
+  for lang in localization.available_languages
+    if lang.iso_code == 'en'
+      assign en_lang = lang
+    elsif lang.iso_code == 'ar'
+      assign ar_lang = lang
+    endif
+  endfor
+
+  assign is_ar = false
+  if request.locale.iso_code == 'ar'
+    assign is_ar = true
+  endif
+
+  assign target_lang = ar_lang
+  assign target_label = 'عربي'
+  assign target_code = 'ar'
+  if is_ar
+    assign target_lang = en_lang
+    assign target_label = 'English'
+    assign target_code = 'en'
+  endif
+
+  # The '/' guard matters: this market uses /en-ae and /ar-ae so root_url is
+  # never bare, but on a market without a subfolder it would be '/', and
+  # remove_first would then eat the leading slash and yield '/ar-aeproducts/x'.
+  assign locale_root = localization.language.root_url
+  assign path_suffix = request.path
+  if locale_root != blank and locale_root != '/' and path_suffix contains locale_root
+    assign path_suffix = path_suffix | remove_first: locale_root
+  endif
+
+  assign lang_href = ''
+  if target_lang
+    assign lang_href = target_lang.root_url | append: path_suffix
+    if request.query_string != blank
+      assign lang_href = lang_href | append: '?' | append: request.query_string
+    endif
+  endif
 -%}
 
 <div class="rd-scope">
@@ -98,7 +169,9 @@
         <a class="rd-header__wa rd-hide-sm" href="https://wa.me/971585670055" target="_blank" rel="noopener" aria-label="Chat with RAQI on WhatsApp" title="WhatsApp">
           <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path fill="currentColor" d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.885-9.885 9.885m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0 0 20.464 3.488"/></svg>
         </a>
-        <a class="rd-header__lang rd-hide-sm" href="{{ routes.root_url }}" lang="ar">عربي</a>
+        {%- if target_lang -%}
+          <a class="rd-header__lang rd-hide-sm" href="{{ lang_href }}" hreflang="{{ target_code }}" lang="{{ target_code }}">{{ target_label }}</a>
+        {%- endif -%}
         <a class="rd-header__bag" href="{{ routes.cart_url }}" data-rd-bag>Bag (<span data-rd-bagcount>{{ cart.item_count }}</span>)</a>
       </div>
     </div>
@@ -133,7 +206,9 @@
           <a href="{{ routes.search_url }}">Search</a>
           <a href="https://wa.me/971585670055" target="_blank" rel="noopener">WhatsApp</a>
         </div>
-        <a href="{{ routes.root_url }}" lang="ar" class="rd-menu__lang">عربي</a>
+        {%- if target_lang -%}
+          <a href="{{ lang_href }}" hreflang="{{ target_code }}" lang="{{ target_code }}" class="rd-menu__lang">{{ target_label }}</a>
+        {%- endif -%}
       </div>
     </div>
   </div>
@@ -153,6 +228,15 @@
     width: 16px;
     height: 16px;
     display: block;
+  }
+
+  /* The switcher now names the language you'd switch TO, so on the Arabic
+     storefront it reads "English" and must drop the Arabic face. Beats the
+     unconditional !important on .rd-header__lang in raqi-redesign.css. */
+  .rd-header__lang[lang="en"] {
+    font-family: var(--rd-body) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.14em !important;
   }
 
   /* Mobile menu. Hidden outright above the burger's breakpoint so a stale open
@@ -278,6 +362,11 @@
       margin-block-start: 4px;
     }
     .rd-menu__utils a.rd-menu__lang:active { border-color: var(--rd-wine); }
+    /* Same flip as the desktop chip when the target language is English. */
+    .rd-menu__utils a.rd-menu__lang[lang="en"] {
+      font-family: var(--rd-body);
+      text-transform: uppercase; letter-spacing: 0.18em; font-size: 12px;
+    }
   }
 
   /* Scroll lock while the panel is open. */
