@@ -1,90 +1,13 @@
-{% comment %}
-  RAQI Redesign — cart drawer.
 
-  Self-contained: it does not touch the base theme's cart.js / cart.css, which
-  belong to the old design. Mounted once in header-group.json so it is present
-  on every page.
-
-  Contents are re-rendered server-side through the Section Rendering API
-  (?sections=<section.id>) after every change, so money formatting, discounts
-  and line properties always come from Liquid — never from JS arithmetic.
-
-  Progressive enhancement: the product form still posts to /cart normally when
-  JS is unavailable, and /cart remains a working page.
-{% endcomment %}
-{% render 'rd-fonts' %}
-<div class="rd-scope">
-  <div class="rd-cd" id="rd-cart-drawer" data-rd-cd hidden>
-    <button class="rd-cd__scrim" type="button" data-rd-cd-close tabindex="-1" aria-label="{{ section.settings.close_label }}"></button>
-    <aside class="rd-cd__panel" role="dialog" aria-modal="true" aria-labelledby="rd-cd-h">
-      <div data-rd-cd-inner>
-        <span hidden data-rd-cd-count>{{ cart.item_count }}</span>
-        <header class="rd-cd__head">
-          <h2 class="rd-cd__h2" id="rd-cd-h">{{ section.settings.heading }}</h2>
-          <button class="rd-cd__x" type="button" data-rd-cd-close aria-label="{{ section.settings.close_label }}">&times;</button>
-        </header>
-
-        {%- if cart.item_count == 0 -%}
-          <div class="rd-cd__empty">
-            <p class="rd-cd__emptyline">{{ section.settings.empty_text }}</p>
-            <a class="rd-cd__cont" href="{{ routes.all_products_collection_url }}">{{ section.settings.continue_label }}</a>
-          </div>
-        {%- else -%}
-          <ul class="rd-cd__items" role="list">
-            {%- for line in cart.items -%}
-              <li class="rd-cd__item">
-                <span class="rd-cd__media">
-                  {%- if line.image -%}
-                    <img src="{{ line.image | image_url: width: 240 }}"
-                         alt="{{ line.title | escape }}" width="120" height="120" loading="lazy">
-                  {%- else -%}
-                    <span class="rd-card__ph">Image pending</span>
-                  {%- endif -%}
-                </span>
-                <span class="rd-cd__meta">
-                  <span class="rd-cd__brand">{{ line.product.vendor }}</span>
-                  <span class="rd-cd__name">{{ line.product.title | remove_first: line.product.vendor | strip }}</span>
-                  <span class="rd-cd__var">{{ line.variant.title }} &middot; {{ section.settings.qty_label }} {{ line.quantity }}</span>
-                  {%- for p in line.properties -%}
-                    {%- unless p.last == blank or p.first == blank -%}
-                      <span class="rd-cd__prop">{{ p.first }}: {{ p.last }}</span>
-                    {%- endunless -%}
-                  {%- endfor -%}
-                  <span class="rd-cd__price">{{ line.final_line_price | money }}</span>
-                  <button class="rd-cd__rm" type="button" data-rd-cd-remove="{{ line.key }}" aria-label="{{ section.settings.remove_label }} {{ line.product.title | escape }}">{{ section.settings.remove_label }}</button>
-                </span>
-              </li>
-            {%- endfor -%}
-          </ul>
-
-          <div class="rd-cd__foot">
-            <div class="rd-cd__sub">
-              <span class="rd-cd__sublabel">{{ section.settings.subtotal_label }}</span>
-              <span class="rd-cd__subval">{{ cart.total_price | money }}</span>
-            </div>
-            {%- if section.settings.note != blank -%}
-              <p class="rd-cd__note">{{ section.settings.note }}</p>
-            {%- endif -%}
-            <form action="{{ routes.cart_url }}" method="post">
-              <button class="rd-cd__checkout" type="submit" name="checkout">{{ section.settings.checkout_label }}</button>
-            </form>
-          </div>
-        {%- endif -%}
-      </div>
-    </aside>
-  </div>
-</div>
-
-<script>
 (function () {
   if (window.RDCart) return;
   // A section-group section's ID is NOT its key in header-group.json: Shopify
   // gives it the form sections--<group-id>__rd_cart_drawer, and that is what
   // the Section Rendering API expects in ?sections=. section.id is exactly that.
-  var SECTION  = {{ section.id | json }};
-  var ROOT     = {{ routes.root_url | json }};
-  var CART_URL = {{ routes.cart_url | json }};
-  var CHANGE_URL = {{ routes.cart_change_url | json }};
+  var SECTION  = "sections--77__rd_cart_drawer";
+  var ROOT     = "/";
+  var CART_URL = "/cart";
+  var CHANGE_URL = "/cart/change";
 
   function root() { return document.getElementById('rd-cart-drawer'); }
 
@@ -210,23 +133,3 @@
 
   window.RDCart = { open: open, close: close, add: add, change: change, refresh: refresh };
 })();
-</script>
-
-{% schema %}
-{
-  "name": "RD Cart drawer",
-  "tag": "section",
-  "settings": [
-    { "type": "text", "id": "heading", "label": "Heading", "default": "Your bag" },
-    { "type": "text", "id": "close_label", "label": "Close label", "default": "Close" },
-    { "type": "text", "id": "qty_label", "label": "Quantity word", "default": "Qty" },
-    { "type": "text", "id": "remove_label", "label": "Remove label", "default": "Remove" },
-    { "type": "text", "id": "subtotal_label", "label": "Subtotal label", "default": "Subtotal" },
-    { "type": "textarea", "id": "note", "label": "Note under subtotal", "default": "Shipping and taxes calculated at checkout. Free UAE delivery over Dhs. 750." },
-    { "type": "text", "id": "checkout_label", "label": "Checkout button", "default": "Checkout" },
-    { "type": "textarea", "id": "empty_text", "label": "Empty message", "default": "Nothing in your bag yet." },
-    { "type": "text", "id": "continue_label", "label": "Empty-state link", "default": "Browse fragrances" }
-  ],
-  "presets": [{ "name": "RD Cart drawer" }]
-}
-{% endschema %}

@@ -167,3 +167,20 @@ Fix: `SECTION = {{ section.id | json }}`; open **first**, then refresh; `refresh
 fetched against `routes.root_url` and always resolves (errors logged, never thrown);
 if the drawer markup is absent the page falls back to `/cart`. Same ordering applied to
 `RDCart.add()`. MD5 `d72016dbad8f6a65106e4361c660f9f1`.
+
+### Cart drawer "Remove" did nothing (2026-09-03, fix)
+
+Same root as the Add-to-Bag bug: the button was wired and called a valid endpoint
+(`/cart/change.js`, quantity 0), so the line *was* removed server-side — but the
+re-render used the wrong section ID, so the drawer never updated and it looked like
+nothing happened. Two hardening changes on top: removal now targets the **line-item
+key** (`line.key` → `{id, quantity: 0}`) instead of the 1-based index — an index is
+only correct when the visible list is current, which it never was — and `change()`
+uses `routes.cart_change_url`, checks `r.ok`, never rejects, and always re-renders
+the server's truth afterwards. Double-taps are ignored while a removal is in flight.
+
+Tested in headless Chromium with a mocked Shopify cart + Section Rendering API
+(`tests/rd-cart-drawer.test.js`): Add-to-Bag opens + refreshes; remove one of two →
+remaining item, subtotal and bag count update; remove the last → empty state; a 422
+re-renders truth and logs a warning; close works. 15/15 pass.
+MD5 `18afce431da3f2fcc3a4cf48ac630592`.
