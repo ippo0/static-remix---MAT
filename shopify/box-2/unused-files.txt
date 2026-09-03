@@ -26,6 +26,7 @@ assets/compaignv-v2.css
 assets/compare-product.js
 assets/component-cascading-collection-card.css
 assets/component-cascading-product-card.css
+assets/component-collection-card.css
 assets/component-image-card.css
 assets/component-photoswipe.css
 assets/countdown-timer.css
@@ -46,6 +47,8 @@ assets/gallery.css
 assets/google-maps.css
 assets/gp-global.css
 assets/handpicked-products.js
+assets/header.css
+assets/header.js
 assets/hero.css
 assets/hotspots-image.css
 assets/hotspots-image.js
@@ -64,6 +67,7 @@ assets/lookbook-hero.js
 assets/lookbook-slider.js
 assets/lookbook.css
 assets/maps.js
+assets/mega-menu.js
 assets/multiple-iwt.css
 assets/newsletter.css
 assets/parallax.js
@@ -198,6 +202,7 @@ sections/gp-section-604722904462000811.liquid
 sections/gp-section-604722904462001121.liquid
 sections/gp-section-604728122109068093.liquid
 sections/gp-variant-selected.liquid
+sections/header.liquid
 sections/hero-features.liquid
 sections/hero-section.liquid
 sections/horizontal-ticker.liquid
@@ -304,6 +309,14 @@ snippets/gp-section-604508780276744879-1.liquid
 snippets/gp-section-604539708722119339-0.liquid
 snippets/gp-section-604539708755673771-0.liquid
 snippets/gp-section-604539708755673771-1.liquid
+snippets/header-logo.liquid
+snippets/header-main-menu-container.liquid
+snippets/header-menu-drawer.liquid
+snippets/header-option-item__account.liquid
+snippets/header-option-item__compare.liquid
+snippets/header-option-item__search.liquid
+snippets/header-option-item__wishlist.liquid
+snippets/header__topbar.liquid
 snippets/icon-3d-model.liquid
 snippets/icon-play.liquid
 snippets/icon-testimonials.liquid
@@ -313,6 +326,8 @@ snippets/lookbook-card-slider.liquid
 snippets/lookbook-card.liquid
 snippets/lookbook-hero.liquid
 snippets/main-product-blocks.liquid
+snippets/mega-menu-customer.liquid
+snippets/mega-menu-link.liquid
 snippets/mm-socialshopwave-widget-recommends.liquid
 snippets/mm-ssw-widget-avg-rate-listing.liquid
 snippets/product-card-bundle.liquid
@@ -331,6 +346,7 @@ snippets/quick-order-list-row.liquid
 snippets/raqi-db-summary-fix.liquid
 snippets/raqi-ingredients.liquid
 snippets/sales-items.liquid
+snippets/search-popup.liquid
 snippets/selected-tags-filter.liquid
 snippets/shop-this-look.liquid
 snippets/sticky-atc.liquid

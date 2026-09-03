@@ -2,10 +2,11 @@
 
 Generated 2026-09-03 from a full reachability scan of all 652 theme files.
 Roots: layout/theme.liquid, layout/password.liquid, every template a store resource actually uses,
-config/*, locales/*. Edges: JSON `type` → section, `render`/`include`/`section`/`sections`/`layout`
-tags (both `{% %}` and bare-in-`{% liquid %}` forms), `| asset_url` and literal asset filenames; comments stripped.
+config/*, locales/*. Edges: section `type` values inside JSON templates/section groups, `render`/`include`/
+`section`/`sections`/`layout` tags (both `{% %}` and bare-in-`{% liquid %}` forms), `| asset_url` and literal
+asset filenames; comments stripped first.
 
-Total 652 files / 7802 KB · reachable 250 · **removable 402 files / 6114 KB**
+Total 652 files / 7802 KB · reachable 234 · **removable 418 files / 6264 KB (80 % of theme bytes)**
 
 Three proof classes:
 
@@ -13,7 +14,7 @@ Three proof classes:
 - **B. Zero references anywhere** — filename/type never appears in any other file, live or dead.
 - **C. Referenced only from dead files** — every referrer is itself in this list. Safe once the referrers go too; delete as one batch (templates → sections → snippets → assets).
 
-## Minimog stock (unused features) — 214 files, 1770 KB
+## Minimog stock (unused features) — 215 files, 1773 KB
 
 | file | KB | proof | referenced only by |
 |---|---:|:-:|---|
@@ -38,6 +39,7 @@ Three proof classes:
 | `assets/compare-product.js` | 5.3 | C | theme.gempages.blank.liquid, theme.gempages.footer.liquid, theme.gempages.header.liquid |
 | `assets/component-cascading-collection-card.css` | 0.3 | C | cascading-collection.liquid |
 | `assets/component-cascading-product-card.css` | 0.9 | C | cascading-product.liquid |
+| `assets/component-collection-card.css` | 3.1 | C | collection-list-template.liquid, collection-list.liquid, header-main-menu-container.liquid … |
 | `assets/component-image-card.css` | 2.4 | C | custom-content.liquid, featured-collection-banner.liquid, image-with-text-1.liquid … |
 | `assets/component-photoswipe.css` | 2.1 | C | main-product.liquid, product-quickview.liquid |
 | `assets/countdown-timer.css` | 0.5 | C | countdown-timer.liquid |
@@ -114,7 +116,7 @@ Three proof classes:
 | `sections/apps.liquid` | 3.2 | C | product.bof.json, product.collagen-drops.json, product.collagen.json … |
 | `sections/blog-posts.liquid` | 11.9 | B |  |
 | `sections/brands-list.liquid` | 12.4 | B |  |
-| `sections/breadcrumb.liquid` | 2.3 | C | main-product.liquid, page.faqs.json, product.custom-layout-1.json … |
+| `sections/breadcrumb.liquid` | 2.3 | C | page.faqs.json, product.custom-layout-1.json, product.custom-layout-2.json … |
 | `sections/cart-count.liquid` | 0.2 | B |  |
 | `sections/cart-drawer.liquid` | 0.0 | B |  |
 | `sections/cart-gift-wrapping.liquid` | 2.6 | B |  |
@@ -124,7 +126,7 @@ Three proof classes:
 | `sections/collapsible-tabs.liquid` | 16.0 | C | product.gem-1769844747-template.json, product.gem-backup-default.json, product.grid-1-column.json … |
 | `sections/collection-image-showcase.liquid` | 8.8 | B |  |
 | `sections/collection-list-template.liquid` | 7.8 | B |  |
-| `sections/collection-list.liquid` | 23.8 | C | header.liquid, collection.custom-content-banner.json |
+| `sections/collection-list.liquid` | 23.8 | C | collection.custom-content-banner.json |
 | `sections/collection-page-header.liquid` | 11.3 | C | collection.canvas-sidebar.json, collection.custom-content-banner.json, collection.filter-by-tags.json … |
 | `sections/collection-showcase.liquid` | 17.5 | B |  |
 | `sections/collection-tabs.liquid` | 11.6 | B |  |
@@ -149,12 +151,12 @@ Three proof classes:
 | `sections/image-with-text-2.liquid` | 16.4 | B |  |
 | `sections/image-with-text.liquid` | 14.5 | C | product.collagen-drops.json, product.glove-2.json, product.grid-1-column.json … |
 | `sections/legal-footer.liquid` | 15.9 | C | page.campaigns-dentaguard.json, page.campaigns-petlyra.json |
-| `sections/lookbook.liquid` | 32.3 | C | custom-content.liquid |
+| `sections/lookbook.liquid` | 32.3 | B |  |
 | `sections/main-collection-product-grid.liquid` | 19.8 | C | collection.canvas-sidebar.json, collection.custom-content-banner.json, collection.filter-by-tags.json … |
 | `sections/main-product.liquid` | 70.5 | C | product.bof.json, product.collagen-drops.json, product.collagen.json … |
 | `sections/maps.liquid` | 9.5 | B |  |
 | `sections/multiple-image-with-text.liquid` | 12.9 | B |  |
-| `sections/newsletter.liquid` | 13.6 | C | custom-content.liquid, footer.liquid |
+| `sections/newsletter.liquid` | 13.6 | B |  |
 | `sections/page-about-us.liquid` | 0.0 | B |  |
 | `sections/page-contact.liquid` | 2.5 | B |  |
 | `sections/page-faqs.liquid` | 11.1 | C | page.faqs.json |
@@ -177,7 +179,7 @@ Three proof classes:
 | `sections/scrolling-promotion.liquid` | 12.6 | C | product.gem-1769844747-template.json, product.gem-backup-default.json, product.grid-mix-columns.json … |
 | `sections/slider.liquid` | 34.0 | C | index.gem-1769844747-template.json, index.gem-1770999669-template.json, index.gem-backup-default.json … |
 | `sections/testimonials.liquid` | 12.4 | C | product.grid-1-column.json |
-| `sections/video.liquid` | 12.7 | C | custom-content.liquid, product-videos.liquid, video-hero.liquid … |
+| `sections/video.liquid` | 12.7 | B |  |
 | `snippets/agree-terms-checkbox.liquid` | 1.1 | C | main-product-blocks.liquid, product-form.liquid |
 | `snippets/article-card-placeholder.liquid` | 1.0 | C | blog-posts.liquid, custom-content.liquid |
 | `snippets/cart-line-item.liquid` | 22.6 | B |  |
@@ -269,7 +271,7 @@ Three proof classes:
 | `sections/dog-weight.liquid` | 10.6 | C | page.campaigns-dentaguard.json, page.campaigns-petlyra.json |
 | `sections/expert-testimonial.liquid` | 10.9 | C | product.bof.json, product.collagen-drops.json, product.collagen.json … |
 | `sections/favorite-product-slider.liquid` | 17.1 | B |  |
-| `sections/feature.liquid` | 11.8 | C | custom-hero-section.liquid, hero-features.liquid, quiz-expert.liquid … |
+| `sections/feature.liquid` | 11.8 | C | product.gem-1769844747-template.json, product.gem-backup-default.json, product.old-product-page.json |
 | `sections/gif-section.liquid` | 5.2 | C | product.custom-layout-1.json, product.gem-1769844747-template.json, product.gem-backup-default.json … |
 | `sections/hero-features.liquid` | 23.7 | C | page.campaigns-dentaguard.json, page.campaigns-petlyra.json |
 | `sections/hero-section.liquid` | 48.2 | C | index.gem-1769844747-template.json, index.gem-1770999669-template.json, index.gem-backup-default.json … |
@@ -293,7 +295,7 @@ Three proof classes:
 | `sections/quiz-routine.liquid` | 10.3 | C | product.bof.json, product.collagen-drops.json, product.collagen.json … |
 | `sections/raqi-ingredients.liquid` | 3.5 | B |  |
 | `sections/reviews-heading.liquid` | 4.6 | C | product.bof.json, product.collagen-drops.json, product.collagen.json … |
-| `sections/reviews.liquid` | 8.9 | C | product-details-tabs.liquid |
+| `sections/reviews.liquid` | 8.9 | B |  |
 | `sections/scaling-logo.liquid` | 6.6 | B |  |
 | `sections/signs.liquid` | 8.4 | B |  |
 | `sections/simple-image-2.liquid` | 4.9 | C | product.gem-1769844747-template.json, product.gem-backup-default.json, product.old-product-page.json |
@@ -423,6 +425,26 @@ Three proof classes:
 | `templates/product.old-product-page.json` | 38.0 | A |  |
 | `templates/search.foxkit.liquid` | 2.0 | A |  |
 
+## Minimog header (replaced by rd-header) — 15 files, 147 KB
+
+| file | KB | proof | referenced only by |
+|---|---:|:-:|---|
+| `assets/header.css` | 19.7 | C | header.liquid |
+| `assets/header.js` | 3.4 | C | header.liquid |
+| `assets/mega-menu.js` | 11.8 | C | header.liquid |
+| `sections/header.liquid` | 43.1 | B |  |
+| `snippets/header-logo.liquid` | 3.4 | C | header.liquid, search-popup.liquid |
+| `snippets/header-main-menu-container.liquid` | 20.3 | C | header.liquid |
+| `snippets/header-menu-drawer.liquid` | 19.7 | C | header.liquid |
+| `snippets/header-option-item__account.liquid` | 1.4 | C | header.liquid, search-popup.liquid |
+| `snippets/header-option-item__compare.liquid` | 2.1 | C | header.liquid, search-popup.liquid |
+| `snippets/header-option-item__search.liquid` | 2.7 | C | header.liquid |
+| `snippets/header-option-item__wishlist.liquid` | 2.6 | C | header.liquid, search-popup.liquid |
+| `snippets/header__topbar.liquid` | 5.1 | C | header.liquid |
+| `snippets/mega-menu-customer.liquid` | 2.1 | C | header-menu-drawer.liquid |
+| `snippets/mega-menu-link.liquid` | 1.7 | C | header-menu-drawer.liquid |
+| `snippets/search-popup.liquid` | 7.8 | C | header.liquid |
+
 ## Superseded raqi-* (RAQI v1) — 12 files, 9 KB
 
 | file | KB | proof | referenced only by |
@@ -442,8 +464,8 @@ Three proof classes:
 
 ## Keep (reachable) — for reference
 
-Sections: 404-template.liquid, age-verifier-popup.liquid, article.liquid, blog-template.liquid, cart-template.liquid, footer-group.json, footer.liquid, header-group.json, header.liquid, main-account.liquid, main-activate-account.liquid, main-addresses.liquid, main-login.liquid, main-order.liquid, main-register.liquid, main-reset-password.liquid, mobile-sticky-bar.liquid, page-search.liquid, page.liquid, password-template.liquid, petlyra-policy.liquid, raqi-about.liquid, raqi-contact.liquid, raqi-discovery-box.liquid, raqi-product.liquid, raqi-related.liquid, raqi-selected.liquid, raqi-story-sizes.liquid, rd-announcement.liquid, rd-brands-index.liquid, rd-cart-drawer.liquid, rd-collection.liquid, rd-discovery.liquid, rd-faq.liquid, rd-header.liquid, rd-hero.liquid, rd-profiles.liquid, rd-steps.liquid, rd-ticker.liquid, rd-trust.liquid, rd-why.liquid, recent-viewed-products.liquid
+Sections: 404-template.liquid, age-verifier-popup.liquid, article.liquid, blog-template.liquid, cart-template.liquid, footer-group.json, footer.liquid, header-group.json, main-account.liquid, main-activate-account.liquid, main-addresses.liquid, main-login.liquid, main-order.liquid, main-register.liquid, main-reset-password.liquid, mobile-sticky-bar.liquid, page-search.liquid, page.liquid, password-template.liquid, petlyra-policy.liquid, raqi-about.liquid, raqi-contact.liquid, raqi-discovery-box.liquid, raqi-product.liquid, raqi-related.liquid, raqi-selected.liquid, raqi-story-sizes.liquid, rd-announcement.liquid, rd-brands-index.liquid, rd-cart-drawer.liquid, rd-collection.liquid, rd-discovery.liquid, rd-faq.liquid, rd-header.liquid, rd-hero.liquid, rd-profiles.liquid, rd-steps.liquid, rd-ticker.liquid, rd-trust.liquid, rd-why.liquid, recent-viewed-products.liquid
 
-Snippets: article-card.liquid, blog-sidebar.liquid, breadcrumb.liquid, cart-addons.liquid, cart-discount-item.liquid, cart-drawer-item.liquid, cart-drawer.liquid, cart.liquid, collection-filters-facets.liquid, collection-page-toolbar.liquid, cookie-banner.liquid, countdown-timer.liquid, country-selector.liquid, critical-css.liquid, currency-switcher.liquid, custom-code-body.liquid, custom-code-head.liquid, customer-challenge-style.liquid, customer-navs.liquid, customer-orders.liquid, font-face.liquid, footer-block__html.liquid, footer-block__text.liquid, footer-blocks.liquid, footer-design.liquid, form__error.liquid, form__success.liquid, foxkit-preorder-badge.liquid, get_swatch_texture.liquid, header-logo.liquid, header-main-menu-container.liquid, header-menu-drawer.liquid, header-option-item__account.liquid, header-option-item__compare.liquid, header-option-item__search.liquid, header-option-item__wishlist.liquid, header__topbar.liquid, icon.liquid, language-switcher.liquid, mega-menu-customer.liquid, mega-menu-link.liquid, mm-judgeme-widgets.liquid, mm-ssw-widget-faveicon.liquid, new-locale.liquid, newsletter-form.liquid, other-review-app-snippet.liquid, page-title.liquid, page-transition.liquid, pagination.liquid, payment-icons.liquid, product-card-1.liquid, product-card-2.liquid, product-card-3.liquid, product-card-4.liquid, product-card-5.liquid, product-card-option.liquid, product-card-quick-add-btn.liquid, product-prices.liquid, product-reviews-app__badge.liquid, raqi-delivery-line.liquid, raqi-free-shipping-bar.liquid, raqi-language-switcher.liquid, raqi-product-card.liquid, raqi-structured-data.liquid, raqi-whatsapp-float.liquid, rd-fonts.liquid, rd-product-card.liquid, responsive-image.liquid, script-tags.liquid, scroll-top-button.liquid, search-popup.liquid, slider-controls.liquid, social-media-links.liquid, social-meta-tags.liquid, social-sharing.liquid, sort-by-mobile.liquid, storefront-filters.liquid, style-tags.liquid, theme-data.liquid, tooltip.liquid
+Snippets: article-card.liquid, blog-sidebar.liquid, breadcrumb.liquid, cart-addons.liquid, cart-discount-item.liquid, cart-drawer-item.liquid, cart-drawer.liquid, cart.liquid, collection-filters-facets.liquid, collection-page-toolbar.liquid, cookie-banner.liquid, countdown-timer.liquid, country-selector.liquid, critical-css.liquid, currency-switcher.liquid, custom-code-body.liquid, custom-code-head.liquid, customer-challenge-style.liquid, customer-navs.liquid, customer-orders.liquid, font-face.liquid, footer-block__html.liquid, footer-block__text.liquid, footer-blocks.liquid, footer-design.liquid, form__error.liquid, form__success.liquid, foxkit-preorder-badge.liquid, get_swatch_texture.liquid, icon.liquid, language-switcher.liquid, mm-judgeme-widgets.liquid, mm-ssw-widget-faveicon.liquid, new-locale.liquid, newsletter-form.liquid, other-review-app-snippet.liquid, page-title.liquid, page-transition.liquid, pagination.liquid, payment-icons.liquid, product-card-1.liquid, product-card-2.liquid, product-card-3.liquid, product-card-4.liquid, product-card-5.liquid, product-card-option.liquid, product-card-quick-add-btn.liquid, product-prices.liquid, product-reviews-app__badge.liquid, raqi-delivery-line.liquid, raqi-free-shipping-bar.liquid, raqi-language-switcher.liquid, raqi-product-card.liquid, raqi-structured-data.liquid, raqi-whatsapp-float.liquid, rd-fonts.liquid, rd-product-card.liquid, responsive-image.liquid, script-tags.liquid, scroll-top-button.liquid, slider-controls.liquid, social-media-links.liquid, social-meta-tags.liquid, social-sharing.liquid, sort-by-mobile.liquid, storefront-filters.liquid, style-tags.liquid, theme-data.liquid, tooltip.liquid
 
-Assets: about-us.css, age-verifier.css, age-verifier.js, animations.js, ar-down.svg, arrow-down-white.svg, arrow-down.svg, article.css, blog-sidebar.css, blog.css, cart.css, cart.js, collection.css, collection.js, component-article-card.css, component-collection-card.css, component-countdown-timer.css, component-newsletter.css, component-product-bundles.css, component-product-inventory.css, component-quantity-popover.css, component-volume-pricing.css, cookie-banner.css, countdown-timer.js, custom-style.css, custom.css, customer.css, customer.js, facet-remove.js, filter_color1.png, filter_color2.png, footer.css, footer.js, gift-wrapping.css, gift-wrapping.js, giftcard.css, header.css, header.js, localization-form.js, main.css, mega-menu.js, mobile-sticky-bar.css, password.css, predictive-search.js, price-range.js, product-card-swatch.js, product-info.js, product-list.js, product-media.js, product-model.js, product-quick-view.js, product.css, quantity-popover.js, raqi-redesign.css, raqi-theme.css, recently-viewed-products.js, rtl.css, storefont-filters.js, theme-editor.js, theme-global.js, tpo-integration.css, variant-picker.js, vendor.css, vendor.js
+Assets: about-us.css, age-verifier.css, age-verifier.js, animations.js, ar-down.svg, arrow-down-white.svg, arrow-down.svg, article.css, blog-sidebar.css, blog.css, cart.css, cart.js, collection.css, collection.js, component-article-card.css, component-countdown-timer.css, component-newsletter.css, component-product-bundles.css, component-product-inventory.css, component-quantity-popover.css, component-volume-pricing.css, cookie-banner.css, countdown-timer.js, custom-style.css, custom.css, customer.css, customer.js, facet-remove.js, filter_color1.png, filter_color2.png, footer.css, footer.js, gift-wrapping.css, gift-wrapping.js, giftcard.css, localization-form.js, main.css, mobile-sticky-bar.css, password.css, predictive-search.js, price-range.js, product-card-swatch.js, product-info.js, product-list.js, product-media.js, product-model.js, product-quick-view.js, product.css, quantity-popover.js, raqi-redesign.css, raqi-theme.css, recently-viewed-products.js, rtl.css, storefont-filters.js, theme-editor.js, theme-global.js, tpo-integration.css, variant-picker.js, vendor.css, vendor.js
