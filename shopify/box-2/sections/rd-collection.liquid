@@ -1,0 +1,244 @@
+{% comment %}
+  RAQI Redesign — §2.7 The collection, with category tabs and brand chips.
+
+  Counts are dynamic throughout — product count and brand count are computed from
+  the live catalogue, never hard-coded (the old spec's "30 fragrances" and
+  "All 13" were both already wrong).
+
+  Filtering is client-side over the loaded collection and ANDed. State is mirrored
+  into the URL query string so a filtered view can be shared. Category is derived
+  from product type, plus the Niche tag as a cross-cutting fifth tab.
+
+  2026-09-02: the whole grid is wrapped in a paginate block sized at 250, the
+  documented maximum. Referencing col.products outside one fetches only the
+  first 50 rows, which silently drops every product past the fiftieth: no
+  error, no gap, just a short grid. At 42 published products nothing was being
+  lost yet, but the failure is invisible when it arrives, so it is fixed before
+  the catalogue reaches 51 rather than after. Both passes over the products —
+  the brand-chip pass and the card pass — sit inside the block, so the chips can
+  never describe a different set of products than the cards. If a collection
+  ever exceeds one page, rd-coll__truncated says so out loud and page links are
+  rendered; the grid is never quietly short again.
+{% endcomment %}
+{% render 'rd-fonts' %}
+{%- liquid
+  # 2026-08-30: this section now also renders templates/collection.json, so it
+  # must follow the page's own collection instead of always showing the whole
+  # catalogue. A collection chosen in the section settings still wins (that is
+  # how the homepage instance could be configured); otherwise fall back to the
+  # collection being viewed, and only then to all products.
+  assign on_collection_page = false
+  if template.name == 'collection'
+    assign on_collection_page = true
+  endif
+
+  assign col = collections[section.settings.collection]
+  if col.handle == blank
+    if on_collection_page
+      assign col = collection
+    else
+      assign col = collections.all
+    endif
+  endif
+
+  # /collections/all is Shopify's virtual all-products collection and has no
+  # meaningful title of its own, so it keeps the section heading. A real
+  # collection page uses its own name.
+  assign rd_heading = section.settings.heading
+  if on_collection_page and section.settings.collection == blank and collection.handle != 'all'
+    assign rd_heading = collection.title
+  endif
+
+  # 2026-09-02: internal bundle products are excluded from every regular grid.
+  # The RAQI Discovery Box is not a standalone purchasable fragrance — the
+  # Discovery Set Builder adds it to the cart directly, with the three chosen
+  # fragrances attached as line-item properties — so it must never be browsable
+  # here, on a brand page, or under Men/Women/Unisex/Niche. Matched on the
+  # 'bundle' tag the product already carries, with the handle list as a
+  # belt-and-braces fallback in case that tag is ever removed. The brand chips
+  # are built from the same filtered pass, so an excluded product cannot leave a
+  # stray vendor chip behind, and the displayed count is reduced to match.
+  assign rd_excluded_handles = 'raqi-discovery-box'
+-%}
+{%- paginate col.products by 250 -%}
+{%- liquid
+  assign products = col.products
+  assign rd_excluded_count = 0
+  assign vendors = ''
+  for p in products
+    if p.tags contains 'bundle' or rd_excluded_handles contains p.handle
+      assign rd_excluded_count = rd_excluded_count | plus: 1
+      continue
+    endif
+    assign vh = p.vendor | handle
+    unless vendors contains vh
+      assign vendors = vendors | append: vh | append: '|' | append: p.vendor | append: '~~'
+    endunless
+  endfor
+  assign total = col.all_products_count | minus: rd_excluded_count
+  assign vendor_pairs = vendors | split: '~~'
+-%}
+<div class="rd-scope">
+  <section class="rd-section rd-frame" aria-labelledby="rd-coll-h" id="collection">
+    <div class="rd-coll__head">
+      <h2 class="rd-h2" id="rd-coll-h">{{ rd_heading }}</h2>
+      <div class="rd-coll__meta">
+        <p class="rd-coll__count">{{ total }} {{ section.settings.count_suffix }}</p>
+        <p class="rd-coll__tiers">{{ section.settings.tier_line }}</p>
+      </div>
+    </div>
+
+    <div class="rd-tabs" role="group" aria-label="Filter by category">
+      <button class="rd-tab" type="button" data-rd-tab="all" aria-pressed="true">{{ 'raqi.rd.filters.all' | t }}</button>
+      <button class="rd-tab" type="button" data-rd-tab="men" aria-pressed="false">{{ 'raqi.rd.filters.men' | t }}</button>
+      <button class="rd-tab" type="button" data-rd-tab="women" aria-pressed="false">{{ 'raqi.rd.filters.women' | t }}</button>
+      <button class="rd-tab" type="button" data-rd-tab="unisex" aria-pressed="false">{{ 'raqi.rd.filters.unisex' | t }}</button>
+      <button class="rd-tab" type="button" data-rd-tab="niche" aria-pressed="false">{{ 'raqi.rd.filters.niche' | t }}</button>
+    </div>
+
+    <div class="rd-chips is-collapsed" role="group" aria-label="Filter by brand" data-rd-chips>
+      <button class="rd-chip" type="button" data-rd-brand="all" aria-pressed="true">All brands</button>
+      {%- for pair in vendor_pairs -%}
+        {%- liquid
+          assign bits = pair | split: '|'
+          assign vh = bits[0]
+          assign vlabel = bits[1]
+        -%}
+        {%- if vh != blank -%}
+          <button class="rd-chip" type="button" data-rd-brand="{{ vh }}" aria-pressed="false">{{ vlabel }}</button>
+        {%- endif -%}
+      {%- endfor -%}
+      <button class="rd-chips__more" type="button" data-rd-chips-more>All {{ vendor_pairs.size | minus: 1 }} &rarr;</button>
+    </div>
+
+    <div class="rd-cards" data-rd-cards>
+      {%- for product in products -%}
+        {%- unless product.tags contains 'bundle' or rd_excluded_handles contains product.handle -%}
+          {% render 'rd-product-card', product: product, tier_label: section.settings.card_tier_label %}
+        {%- endunless -%}
+      {%- endfor -%}
+    </div>
+
+    <p class="rd-coll__empty" data-rd-empty hidden>{{ section.settings.empty_text }}</p>
+
+    {%- comment -%}
+      Silent-truncation guard. A page size of 250 covers this catalogue many
+      times over, so this should never render. If it ever does, the grid is
+      showing a subset and the tabs and brand chips above are filtering only
+      what is on this page — which is exactly the kind of quiet wrongness the
+      50-row default caused. Say it plainly and give a route to the rest.
+    {%- endcomment -%}
+    {%- if paginate.pages > 1 -%}
+      <p class="rd-coll__truncated" role="status">
+        {{ section.settings.truncated_text }}
+        <span class="rd-coll__truncated-count">{{ paginate.items }} in total &middot; page {{ paginate.current_page }} of {{ paginate.pages }}</span>
+      </p>
+      <nav class="rd-coll__pagination" aria-label="Pagination">{{ paginate | default_pagination }}</nav>
+    {%- endif -%}
+
+    {%- comment -%}
+      Off-collection this is the route into the full catalogue. On a collection
+      page it would link to the page already being viewed, so it is suppressed.
+    {%- endcomment -%}
+    {%- if section.settings.more_label != blank and on_collection_page == false -%}
+      <div class="rd-coll__more">
+        <a class="rd-btn rd-btn--ghost" href="{{ col.url | default: routes.all_products_collection_url }}">
+          {{ section.settings.more_label }} {{ total }} {{ section.settings.count_suffix_short }}
+        </a>
+      </div>
+    {%- endif -%}
+  </section>
+</div>
+{%- endpaginate -%}
+
+<script>
+(function () {
+  var root = document.querySelector('[data-rd-cards]');
+  if (!root) return;
+  var cards = root.querySelectorAll('[data-rd-card]');
+  var tabs = document.querySelectorAll('[data-rd-tab]');
+  var chips = document.querySelectorAll('[data-rd-brand]');
+  var empty = document.querySelector('[data-rd-empty]');
+  var more = document.querySelector('[data-rd-chips-more]');
+  var chipWrap = document.querySelector('[data-rd-chips]');
+  var state = { cat: 'all', brand: 'all' };
+
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('cat')) state.cat = params.get('cat');
+  if (params.get('brand')) state.brand = params.get('brand');
+
+  function press(list, attr, val) {
+    for (var i = 0; i < list.length; i++) {
+      list[i].setAttribute('aria-pressed', list[i].getAttribute(attr) === val ? 'true' : 'false');
+    }
+  }
+
+  function apply(pushUrl) {
+    var shown = 0;
+    for (var i = 0; i < cards.length; i++) {
+      var c = cards[i];
+      var okCat = state.cat === 'all'
+        || (state.cat === 'niche' ? c.getAttribute('data-niche') === 'true' : c.getAttribute('data-type') === state.cat);
+      var okBrand = state.brand === 'all' || c.getAttribute('data-vendor') === state.brand;
+      var on = okCat && okBrand;
+      c.style.display = on ? '' : 'none';
+      if (on) shown++;
+    }
+    if (empty) { if (shown === 0) { empty.removeAttribute('hidden'); } else { empty.setAttribute('hidden', ''); } }
+    press(tabs, 'data-rd-tab', state.cat);
+    press(chips, 'data-rd-brand', state.brand);
+    if (pushUrl) {
+      var u = new URL(window.location.href);
+      if (state.cat === 'all') { u.searchParams.delete('cat'); } else { u.searchParams.set('cat', state.cat); }
+      if (state.brand === 'all') { u.searchParams.delete('brand'); } else { u.searchParams.set('brand', state.brand); }
+      window.history.replaceState({}, '', u);
+    }
+  }
+
+  for (var t = 0; t < tabs.length; t++) {
+    (function (el) { el.addEventListener('click', function () { state.cat = el.getAttribute('data-rd-tab'); apply(true); }); })(tabs[t]);
+  }
+  for (var b = 0; b < chips.length; b++) {
+    (function (el) { el.addEventListener('click', function () { state.brand = el.getAttribute('data-rd-brand'); apply(true); }); })(chips[b]);
+  }
+  if (more && chipWrap) {
+    more.addEventListener('click', function () { chipWrap.classList.remove('is-collapsed'); more.style.display = 'none'; });
+  }
+  apply(false);
+})();
+</script>
+
+{% style %}
+  /* Guard chrome only. Lives here rather than in assets/raqi-redesign.css so the
+     shared stylesheet stays untouched, matching rd-brands-index.liquid. */
+  .rd-coll__truncated { font-family: var(--rd-body); font-size: 12px; line-height: 1.7;
+    color: var(--rd-wine); background: var(--rd-panel); border: 1px solid var(--rd-rule);
+    padding: 14px 18px; margin-block-start: 32px; text-align: center; }
+  .rd-coll__truncated-count { display: block; font-size: 10px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: #565A51; margin-block-start: 6px; }
+  .rd-coll__pagination { margin-block-start: 18px; text-align: center;
+    font-family: var(--rd-body); font-size: 12px; color: #565A51; }
+  .rd-coll__pagination a { color: var(--rd-wine); }
+  .rd-coll__pagination .page, .rd-coll__pagination .next,
+  .rd-coll__pagination .prev, .rd-coll__pagination .deco { display: inline-block; padding: 4px 9px; }
+  .rd-coll__pagination .current { color: var(--rd-ink); font-weight: 500; }
+{% endstyle %}
+
+{% schema %}
+{
+  "name": "RD Collection grid",
+  "tag": "section",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading", "default": "The collection" },
+    { "type": "collection", "id": "collection", "label": "Collection", "info": "Defaults to all products." },
+    { "type": "text", "id": "count_suffix", "label": "Count suffix", "default": "fragrances, poured to order" },
+    { "type": "text", "id": "count_suffix_short", "label": "Count suffix (button)", "default": "fragrances" },
+    { "type": "text", "id": "tier_line", "label": "Discount line", "default": "Buy 2, save 5% · Buy 3 or more, save 10%" },
+    { "type": "text", "id": "card_tier_label", "label": "Card discount line", "default": "Buy 2, save 5%" },
+    { "type": "text", "id": "more_label", "label": "Button label prefix", "default": "View all" },
+    { "type": "text", "id": "empty_text", "label": "No-results text", "default": "Nothing matches that combination yet." },
+    { "type": "text", "id": "truncated_text", "label": "Paginated-view notice", "info": "Only ever shown if a collection is larger than one page of 250, when the tabs and brand chips can filter just the fragrances on screen.", "default": "This view is paginated — the filters above apply to this page only." }
+  ],
+  "presets": [{ "name": "RD Collection grid" }]
+}
+{% endschema %}

@@ -62,6 +62,61 @@ translations for any `rd-*` section or for `header-group`.
 
 Verified on write by MD5: `7816057a882014d90d0ec395d53098d0`.
 
+### Translation keys (2026-09-03d)
+
+The redesign's English chrome moved from literal markup to `| t` keys under a
+new **`raqi.rd.*`** namespace — prefixed to match the `.rd-` CSS convention and
+to avoid colliding with the legacy `raqi.nav.*` / `raqi.catalog.*` keys, whose
+Arabic differs (`raqi.catalog.men` is "رجال", the redesign uses "رجالي").
+
+| File | Keys |
+|---|---|
+| `sections/rd-header.liquid` | `nav.shop`, `nav.brands`, `nav.discovery_set`, `nav.our_story`, `utils.search`, `utils.whatsapp`, `utils.elsewhere`, `utils.bag` |
+| `sections/rd-collection.liquid` | `filters.all`, `filters.men`, `filters.women`, `filters.unisex`, `filters.niche` |
+| `sections/rd-hero.liquid` | `hero.try_it`, `hero.live_with_it`, `hero.decide` |
+
+English lives in `locales/en.default.json` (committed here).
+
+### ⚠ Arabic is NOT fully applied — one manual step remains
+
+`locales/ar.json` could not be written from here, for two independent reasons:
+
+1. **It does not round-trip.** Fetched via the Admin API it is 319,062 UTF-8
+   bytes, but the theme reports `size` 272,779 and a different `checksumMd5`.
+   `en.default.json` (pure ASCII) round-trips exactly, so the discrepancy is
+   specific to the non-ASCII content. Writing a file that cannot be verified
+   risks corrupting 272 KB of existing Arabic used across the whole theme.
+2. **It is too large to transmit** in a single `themeFilesUpsert` call, and the
+   API has no partial-write.
+
+The API fallback is also exhausted: `translationsRegister` against
+`gid://shopify/OnlineStoreThemeLocaleContent/188491465011` accepts at most **2
+keys per call** and then fails with `Too many translation keys` — box 2 already
+carries **3,400** registered Arabic translations and is at Shopify's cap. Only
+2 of the 16 keys landed (`raqi.rd.filters.niche`, `raqi.rd.filters.unisex`).
+
+**To finish:** open `locales/ar.json` in the theme code editor and paste the
+block in `locales/ar.PASTE-INTO-ar.json` as a new sibling inside the existing
+`"raqi"` object — directly after the `"discovery_box"` object closes. Change:
+
+```json
+    }
+  }
+}
+```
+
+to:
+
+```json
+    },
+    "rd": { ...the block... }
+  }
+}
+```
+
+Until that is done the nav renders **English** on `/ar-ae/` (a clean fallback
+to `en.default.json`, not a "translation missing" error).
+
 ## Re-applying a file to the theme
 
 ```graphql

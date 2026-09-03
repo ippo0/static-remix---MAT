@@ -73,13 +73,10 @@
   destination to point at the whole time. Rebuilt as a genuine toggle — see the
   liquid block below — that preserves the current page and the query string.
 
-  ⚠ Fixing the link does NOT make this theme Arabic. Every rd-* section
-  hard-codes its English chrome as literal markup — zero `| t` keys across all
-  13 of them — so Shop / Brands / Discovery Set / Our Story / Search /
-  WhatsApp / Elsewhere / Bag stay English on /ar-ae/ no matter what. Only
-  store-level content (products, pages, collections, menu links) is actually
-  translated. The settings-driven copy in the other rd-* sections is
-  translatable in principle but has no Arabic entered on this theme.
+  2026-09-03d: the chrome is now translatable. Every literal English string in
+  this section moved to a `| t` key under raqi.rd.* (English in
+  locales/en.default.json). Previously this section carried zero translation
+  keys, so the nav stayed English on /ar-ae/ no matter what.
 {% endcomment %}
 {% render 'rd-fonts' %}
 
@@ -153,10 +150,10 @@
       </button>
 
       <nav class="rd-nav" aria-label="Primary">
-        <a href="{{ routes.all_products_collection_url }}">Shop</a>
-        <a href="{{ routes.collections_url }}">Brands</a>
-        <a href="{{ routes.root_url }}#discovery-set">Discovery Set</a>
-        <a href="{{ routes.root_url }}pages/about">Our Story</a>
+        <a href="{{ routes.all_products_collection_url }}">{{ 'raqi.rd.nav.shop' | t }}</a>
+        <a href="{{ routes.collections_url }}">{{ 'raqi.rd.nav.brands' | t }}</a>
+        <a href="{{ routes.root_url }}#discovery-set">{{ 'raqi.rd.nav.discovery_set' | t }}</a>
+        <a href="{{ routes.root_url }}pages/about">{{ 'raqi.rd.nav.our_story' | t }}</a>
       </nav>
 
       <a class="rd-logo" href="{{ routes.root_url }}" aria-label="{{ shop.name }} — home">
@@ -165,14 +162,14 @@
       </a>
 
       <div class="rd-header__right">
-        <a class="rd-hide-sm" href="{{ routes.search_url }}">Search</a>
-        <a class="rd-header__wa rd-hide-sm" href="https://wa.me/971585670055" target="_blank" rel="noopener" aria-label="Chat with RAQI on WhatsApp" title="WhatsApp">
+        <a class="rd-hide-sm" href="{{ routes.search_url }}">{{ 'raqi.rd.utils.search' | t }}</a>
+        <a class="rd-header__wa rd-hide-sm" href="https://wa.me/971585670055" target="_blank" rel="noopener" aria-label="Chat with RAQI on WhatsApp" title="{{ 'raqi.rd.utils.whatsapp' | t }}">
           <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path fill="currentColor" d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.885-9.885 9.885m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0 0 20.464 3.488"/></svg>
         </a>
         {%- if target_lang -%}
           <a class="rd-header__lang rd-hide-sm" href="{{ lang_href }}" hreflang="{{ target_code }}" lang="{{ target_code }}">{{ target_label }}</a>
         {%- endif -%}
-        <a class="rd-header__bag" href="{{ routes.cart_url }}" data-rd-bag>Bag (<span data-rd-bagcount>{{ cart.item_count }}</span>)</a>
+        <a class="rd-header__bag" href="{{ routes.cart_url }}" data-rd-bag>{{ 'raqi.rd.utils.bag' | t }} (<span data-rd-bagcount>{{ cart.item_count }}</span>)</a>
       </div>
     </div>
   </header>
@@ -194,17 +191,17 @@
       </div>
 
       <nav class="rd-menu__nav" aria-label="Primary mobile">
-        <a href="{{ shop_url }}"{% if here == shop_url %} aria-current="page"{% endif %}>Shop</a>
-        <a href="{{ brands_url }}"{% if here == brands_url %} aria-current="page"{% endif %}>Brands</a>
-        <a href="{{ routes.root_url }}#discovery-set">Discovery Set</a>
-        <a href="{{ story_url }}"{% if here == story_url %} aria-current="page"{% endif %}>Our Story</a>
+        <a href="{{ shop_url }}"{% if here == shop_url %} aria-current="page"{% endif %}>{{ 'raqi.rd.nav.shop' | t }}</a>
+        <a href="{{ brands_url }}"{% if here == brands_url %} aria-current="page"{% endif %}>{{ 'raqi.rd.nav.brands' | t }}</a>
+        <a href="{{ routes.root_url }}#discovery-set">{{ 'raqi.rd.nav.discovery_set' | t }}</a>
+        <a href="{{ story_url }}"{% if here == story_url %} aria-current="page"{% endif %}>{{ 'raqi.rd.nav.our_story' | t }}</a>
       </nav>
 
       <div class="rd-menu__utils">
-        <span class="rd-menu__eyebrow">Elsewhere</span>
+        <span class="rd-menu__eyebrow">{{ 'raqi.rd.utils.elsewhere' | t }}</span>
         <div class="rd-menu__links">
-          <a href="{{ routes.search_url }}">Search</a>
-          <a href="https://wa.me/971585670055" target="_blank" rel="noopener">WhatsApp</a>
+          <a href="{{ routes.search_url }}">{{ 'raqi.rd.utils.search' | t }}</a>
+          <a href="https://wa.me/971585670055" target="_blank" rel="noopener">{{ 'raqi.rd.utils.whatsapp' | t }}</a>
         </div>
         {%- if target_lang -%}
           <a href="{{ lang_href }}" hreflang="{{ target_code }}" lang="{{ target_code }}" class="rd-menu__lang">{{ target_label }}</a>

@@ -1,0 +1,27 @@
+
+    "rd": {
+      "nav": {
+        "shop": "تسوق",
+        "brands": "الماركات",
+        "discovery_set": "بكس راقي",
+        "our_story": "قصتنا"
+      },
+      "utils": {
+        "search": "بحث",
+        "whatsapp": "واتساب",
+        "elsewhere": "أماكن أخرى",
+        "bag": "السلة"
+      },
+      "filters": {
+        "all": "الكل",
+        "men": "رجالي",
+        "women": "نسائي",
+        "unisex": "للجنسين",
+        "niche": "نيش"
+      },
+      "hero": {
+        "try_it": "جرّبه",
+        "live_with_it": "عِشه",
+        "decide": "قرّر"
+      }
+    }
