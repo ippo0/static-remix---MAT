@@ -135,9 +135,8 @@ live (MAIN) theme — that guard is why this work goes to `box 2`.
 ## Pre-launch readiness audit (2026-09-03, later)
 
 Full reachability scan of all 652 theme files — see `UNUSED-FILES.md` (categorised,
-with proof class per file) and `unused-files.txt` (plain paths). Result: **250 files
-reachable, 402 removable (6.1 MB, 78 % of theme bytes)** — recount after fixing the scanner
-to also follow `render`/`sections` tags written inside `{% liquid %}` blocks. Deletion is blocked for the
+with proof class per file) and `unused-files.txt` (plain paths). Result: **234 files reachable, 418 removable (6.1 MB, 80 % of theme bytes)**.
+Deletion is blocked for the
 API tooling, so the list is for manual removal in Admin → Themes → Edit code.
 
 Performance fixes applied to box 2 (all MD5-verified):
