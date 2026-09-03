@@ -1,0 +1,379 @@
+{% comment %}
+  RAQI Redesign — §2.2 Header.
+
+  ⚠ The four nav items are HARD-CODED ON PURPOSE. Shopify navigation menus are
+  store-level linklists shared with the live theme "Raqi box" (188008038707);
+  reading or editing one here would change the live storefront. At go-live the
+  linklist is switched over manually as a separate, deliberate step.
+
+  "Discovery Set" resolves to the in-page anchor on the homepage panel, never to
+  /pages/discovery-box — that page is unpublished and returns 404 by design.
+
+  2026-08-29: WhatsApp added to the utility row (icon only, monochrome, inherits
+  the row's link colour like the other utility links). Hidden below the rd-hide-sm
+  breakpoint — on mobile the floating button in snippets/raqi-whatsapp-float.liquid
+  covers it. Number is also in that snippet, sections/footer-group.json and
+  templates/page.contact.json — keep the four in sync.
+
+  2026-08-30: that snippet was named here but had never actually been created on
+  this theme, so between the rd-hide-sm breakpoint and the bottom of the page
+  there was no WhatsApp entry point on mobile at all. It exists now and is
+  rendered below. The float shows at <=900px and this icon at 901px and up —
+  the same breakpoint from both sides. Move one and you must move the other.
+
+  2026-09-03: the burger button existed and was styled, but nothing listened to
+  it — this section carried no JavaScript at all, and raqi-redesign.css had no
+  open state for .rd-nav, only `display:none` below 900px. So the mobile menu
+  was never built rather than broken. Added the panel, its styles and its
+  script here, self-contained, so the shared stylesheet stays untouched.
+
+  The panel also carries Search, WhatsApp and عربي, which are .rd-hide-sm and
+  therefore invisible below 900px — without them the mobile menu would offer
+  less than the desktop header does.
+
+  Stacking: WhatsApp float 500 < this panel 800 < cart drawer 900, so opening
+  the cart covers the menu rather than fighting it.
+
+  2026-09-03b: visual pass on that panel. It worked but had never been given the
+  redesign's own treatment — a bare &times; glyph floated above the links, 4px
+  between nav rows, no panel header, no rule work, and the shared stylesheet
+  still has no .rd-menu rules at all (grep raqi-redesign.css for "rd-menu": zero
+  hits), so it was rendering on Minimog leftovers rather than on the system.
+  Rebuilt against the §1 tokens and the §2.5 ruled-table motif already used by
+  "How a decant is made" and the cart drawer:
+
+    · panel header — RAQI/راقي wordmark left, hairline circular ✕ right, on its
+      own rule. The close control now has a 40px tap target and an axis to sit
+      on instead of hanging off the top-right corner.
+    · nav — Italiana 30px on a ruled list, 20px of block padding per row. No
+      index numerals: Shop/Brands/Discovery Set/Our Story are destinations,
+      not steps, and this system already reserves numbering for the things
+      that genuinely are ordered (.rd-steps__num on "How a decant is made",
+      .rd-bld__step-n on the builder). The only marked row is the current
+      page, via aria-current.
+    · utilities — pushed to the foot behind an "Elsewhere" eyebrow, with عربي
+      promoted out of the link run into a bordered chip so the language switch
+      reads as a control rather than a fifth link.
+    · motion — scrim fade + panel slide on the cart drawer's own curve
+      (cubic-bezier(.22,.61,.36,1)), contents rising on a short stagger, and a
+      real close animation: close() now holds the panel for 200ms behind an
+      .is-closing class before setting [hidden], so dismissing no longer snaps.
+      The timeout always fires, so [hidden] is set even if the animation is
+      dropped. prefers-reduced-motion takes the instant path on both.
+
+  Colours are the six §1 tokens only, type is Italiana/Karla via --rd-display /
+  --rd-body, so the panel inherits the Arabic faces automatically under
+  html[lang="ar"] like the rest of the redesign.
+{% endcomment %}
+{% render 'rd-fonts' %}
+
+{%- liquid
+  assign shop_url = routes.all_products_collection_url
+  assign brands_url = routes.collections_url
+  assign story_url = routes.root_url | append: 'pages/about'
+  assign here = request.path
+-%}
+
+<div class="rd-scope">
+  <header class="rd-header">
+    <div class="rd-header__inner">
+      <button class="rd-header__burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="rd-menu" data-rd-burger>
+        <span></span><span></span><span></span>
+      </button>
+
+      <nav class="rd-nav" aria-label="Primary">
+        <a href="{{ routes.all_products_collection_url }}">Shop</a>
+        <a href="{{ routes.collections_url }}">Brands</a>
+        <a href="{{ routes.root_url }}#discovery-set">Discovery Set</a>
+        <a href="{{ routes.root_url }}pages/about">Our Story</a>
+      </nav>
+
+      <a class="rd-logo" href="{{ routes.root_url }}" aria-label="{{ shop.name }} — home">
+        <span class="rd-logo__en">RAQI</span>
+        <span class="rd-logo__ar" lang="ar">راقي</span>
+      </a>
+
+      <div class="rd-header__right">
+        <a class="rd-hide-sm" href="{{ routes.search_url }}">Search</a>
+        <a class="rd-header__wa rd-hide-sm" href="https://wa.me/971585670055" target="_blank" rel="noopener" aria-label="Chat with RAQI on WhatsApp" title="WhatsApp">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path fill="currentColor" d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.885-9.885 9.885m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0 0 20.464 3.488"/></svg>
+        </a>
+        <a class="rd-header__lang rd-hide-sm" href="{{ routes.root_url }}" lang="ar">عربي</a>
+        <a class="rd-header__bag" href="{{ routes.cart_url }}" data-rd-bag>Bag (<span data-rd-bagcount>{{ cart.item_count }}</span>)</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="rd-menu" id="rd-menu" data-rd-menu hidden>
+    <div class="rd-menu__scrim" data-rd-menu-close></div>
+    <div class="rd-menu__panel" role="dialog" aria-modal="true" aria-label="Menu">
+
+      <div class="rd-menu__head">
+        <span class="rd-menu__mark" aria-hidden="true">
+          <span class="rd-menu__mark-en">RAQI</span>
+          <span class="rd-menu__mark-ar" lang="ar">راقي</span>
+        </span>
+        <button class="rd-menu__close" type="button" aria-label="Close menu" data-rd-menu-close>
+          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+            <path d="M3 3 L13 13 M13 3 L3 13" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <nav class="rd-menu__nav" aria-label="Primary mobile">
+        <a href="{{ shop_url }}"{% if here == shop_url %} aria-current="page"{% endif %}>Shop</a>
+        <a href="{{ brands_url }}"{% if here == brands_url %} aria-current="page"{% endif %}>Brands</a>
+        <a href="{{ routes.root_url }}#discovery-set">Discovery Set</a>
+        <a href="{{ story_url }}"{% if here == story_url %} aria-current="page"{% endif %}>Our Story</a>
+      </nav>
+
+      <div class="rd-menu__utils">
+        <span class="rd-menu__eyebrow">Elsewhere</span>
+        <div class="rd-menu__links">
+          <a href="{{ routes.search_url }}">Search</a>
+          <a href="https://wa.me/971585670055" target="_blank" rel="noopener">WhatsApp</a>
+        </div>
+        <a href="{{ routes.root_url }}" lang="ar" class="rd-menu__lang">عربي</a>
+      </div>
+    </div>
+  </div>
+
+  {% render 'raqi-whatsapp-float' %}
+</div>
+
+{% style %}
+  .rd-header__wa {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+  }
+
+  .rd-header__wa svg {
+    width: 16px;
+    height: 16px;
+    display: block;
+  }
+
+  /* Mobile menu. Hidden outright above the burger's breakpoint so a stale open
+     state can never leak onto desktop. */
+  .rd-menu[hidden] { display: none; }
+  .rd-menu { display: none; }
+
+  @media (max-width: 900px) {
+    .rd-menu { position: fixed; inset: 0; z-index: 800; display: block; }
+
+    .rd-menu__scrim {
+      position: absolute; inset: 0;
+      background: rgba(34, 38, 31, 0.45);
+      animation: rd-menu-fade 220ms ease both;
+    }
+
+    .rd-menu__panel {
+      position: absolute; inset-block: 0; inset-inline-start: 0;
+      inline-size: min(86vw, 360px);
+      background: var(--rd-bone);
+      border-inline-end: 1px solid var(--rd-rule);
+      padding: 24px 24px calc(28px + env(safe-area-inset-bottom, 0px));
+      display: flex; flex-direction: column;
+      overflow-y: auto;
+      transform: translateX(0);
+      animation: rd-menu-in 260ms cubic-bezier(.22, .61, .36, 1) both;
+    }
+
+    [dir="rtl"] .rd-menu__panel { animation-name: rd-menu-in-rtl; }
+
+    @keyframes rd-menu-fade     { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes rd-menu-in       { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+    @keyframes rd-menu-in-rtl   { from { transform: translateX(100%);  } to { transform: translateX(0); } }
+    @keyframes rd-menu-rise     { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Contents rise on a short stagger behind the panel edge. */
+    .rd-menu__head,
+    .rd-menu__nav a,
+    .rd-menu__utils { animation: rd-menu-rise 420ms cubic-bezier(.22, .61, .36, 1) both; }
+    .rd-menu__head          { animation-delay: 90ms; }
+    .rd-menu__nav a:nth-child(1) { animation-delay: 130ms; }
+    .rd-menu__nav a:nth-child(2) { animation-delay: 170ms; }
+    .rd-menu__nav a:nth-child(3) { animation-delay: 210ms; }
+    .rd-menu__nav a:nth-child(4) { animation-delay: 250ms; }
+    .rd-menu__utils         { animation-delay: 290ms; }
+
+    /* Dismissal. The panel is held for 200ms by the script behind .is-closing
+       so it slides out instead of snapping; the staggered children are frozen
+       flat first or their fill would hold them mid-rise. */
+    .rd-menu.is-closing .rd-menu__head,
+    .rd-menu.is-closing .rd-menu__nav a,
+    .rd-menu.is-closing .rd-menu__utils { animation: none; }
+    .rd-menu.is-closing .rd-menu__scrim { animation: rd-menu-fade 200ms ease both reverse; }
+    .rd-menu.is-closing .rd-menu__panel { animation: rd-menu-in 200ms ease both reverse; }
+    [dir="rtl"] .rd-menu.is-closing .rd-menu__panel { animation-name: rd-menu-in-rtl; }
+
+    /* Panel header — wordmark on the left, close on the right, one rule under. */
+    .rd-menu__head {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; padding-block-end: 20px;
+      border-block-end: 1px solid var(--rd-rule);
+    }
+    .rd-menu__mark { display: flex; align-items: baseline; gap: 9px; line-height: 1; }
+    .rd-menu__mark-en {
+      font-family: var(--rd-display); font-size: 21px;
+      letter-spacing: 0.14em; color: var(--rd-wine);
+    }
+    .rd-menu__mark-ar {
+      font-family: var(--rd-display-ar); font-size: 13px;
+      color: var(--rd-wine); opacity: 0.75;
+    }
+    .rd-menu__close {
+      flex: 0 0 auto; inline-size: 40px; block-size: 40px;
+      margin-inline-end: -6px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: none; border: 1px solid var(--rd-rule); border-radius: 50%;
+      color: var(--rd-grey); cursor: pointer; padding: 0;
+      transition: color 200ms ease, border-color 200ms ease;
+    }
+    .rd-menu__close svg { inline-size: 14px; block-size: 14px; display: block; }
+    .rd-menu__close:active { color: var(--rd-wine); border-color: var(--rd-wine); }
+
+    /* Nav — Italiana on a ruled list. No index numerals: the four destinations
+       are not a sequence, and this system reserves numbering for things that
+       genuinely are (.rd-steps__num, .rd-bld__step-n). Rank comes from the
+       rules and the block rhythm; the only marked row is the current page. */
+    .rd-menu__nav { display: flex; flex-direction: column; margin-block-start: 6px; }
+    .rd-menu__nav a {
+      display: block; padding-block: 20px;
+      border-block-end: 1px solid var(--rd-rule);
+      text-decoration: none;
+      font-family: var(--rd-display); font-weight: 400;
+      font-size: 30px; line-height: 1.12; color: var(--rd-ink);
+      transition: color 200ms ease;
+    }
+    .rd-menu__nav a:last-child { border-block-end: 0; }
+    .rd-menu__nav a:active,
+    .rd-menu__nav a[aria-current="page"] { color: var(--rd-wine); }
+
+    /* Utilities — held at the foot, behind their own eyebrow and rule. */
+    .rd-menu__utils {
+      margin-block-start: auto; padding-block-start: 26px;
+      border-block-start: 1px solid var(--rd-rule);
+      display: flex; flex-direction: column; align-items: flex-start; gap: 16px;
+    }
+    .rd-menu__eyebrow {
+      font-family: var(--rd-body); font-size: 10px;
+      letter-spacing: 0.24em; text-transform: uppercase; color: var(--rd-wine);
+    }
+    .rd-menu__links { display: flex; flex-direction: column; gap: 14px; }
+    .rd-menu__utils a {
+      font-family: var(--rd-body); font-size: 12px; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--rd-grey); text-decoration: none;
+    }
+    .rd-menu__utils a:active { color: var(--rd-ink); }
+    /* Scoped past `.rd-menu__utils a` on specificity rather than !important,
+       so the chip can restate the Arabic face and drop the uppercase run. */
+    .rd-menu__utils a.rd-menu__lang {
+      font-family: var(--rd-body-ar);
+      text-transform: none; letter-spacing: 0;
+      font-size: 14px; color: var(--rd-wine);
+      border: 1px solid var(--rd-rule); padding: 9px 18px;
+      margin-block-start: 4px;
+    }
+    .rd-menu__utils a.rd-menu__lang:active { border-color: var(--rd-wine); }
+  }
+
+  /* Scroll lock while the panel is open. */
+  html.rd-menu-open, html.rd-menu-open body { overflow: hidden; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rd-menu__panel,
+    .rd-menu__scrim,
+    .rd-menu__head,
+    .rd-menu__nav a,
+    .rd-menu__utils,
+    .rd-menu.is-closing .rd-menu__panel,
+    .rd-menu.is-closing .rd-menu__scrim { animation: none; }
+  }
+{% endstyle %}
+
+<script>
+(function () {
+  var burger = document.querySelector('[data-rd-burger]');
+  var menu   = document.querySelector('[data-rd-menu]');
+  if (!burger || !menu) return;
+
+  // Must match the .is-closing animation duration above.
+  var CLOSE_MS = 200;
+
+  var lastFocus  = null;
+  var closeTimer = null;
+
+  function reducedMotion() {
+    return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }
+
+  // Always reached: close() schedules this on a timeout rather than waiting on
+  // animationend, so a dropped or interrupted animation still sets [hidden].
+  function finishClose() {
+    closeTimer = null;
+    menu.hidden = true;
+    menu.classList.remove('is-closing');
+    document.documentElement.classList.remove('rd-menu-open');
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
+  function open() {
+    if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+    menu.classList.remove('is-closing');
+    menu.hidden = false;
+    burger.setAttribute('aria-expanded', 'true');
+    document.documentElement.classList.add('rd-menu-open');
+    lastFocus = document.activeElement;
+    var closeBtn = menu.querySelector('.rd-menu__close');
+    if (closeBtn) closeBtn.focus();
+  }
+
+  function close() {
+    if (menu.hidden || closeTimer) return;
+    burger.setAttribute('aria-expanded', 'false');
+    if (reducedMotion()) { finishClose(); return; }
+    menu.classList.add('is-closing');
+    closeTimer = setTimeout(finishClose, CLOSE_MS);
+  }
+
+  // Mid-dismissal counts as closed, so tapping the burger again re-opens
+  // rather than toggling back into another close.
+  function isOpen() { return !menu.hidden && !closeTimer; }
+
+  burger.addEventListener('click', function () { isOpen() ? close() : open(); });
+
+  menu.addEventListener('click', function (e) {
+    if (e.target.closest('[data-rd-menu-close]')) close();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && isOpen()) close();
+  });
+
+  // A link inside the panel navigates; the in-page #discovery-set anchor does
+  // not, so close on any link tap or the panel would stay over the target.
+  menu.addEventListener('click', function (e) {
+    if (e.target.closest('a')) close();
+  });
+
+  // Resizing past the burger's breakpoint leaves an open panel unreachable and
+  // the scroll lock stuck, so drop it.
+  if (window.matchMedia) {
+    var mq = window.matchMedia('(min-width: 901px)');
+    var onChange = function (ev) { if (ev.matches && isOpen()) close(); };
+    if (mq.addEventListener) mq.addEventListener('change', onChange);
+    else if (mq.addListener) mq.addListener(onChange);
+  }
+})();
+</script>
+
+{% schema %}
+{
+  "name": "RD Header",
+  "settings": [],
+  "presets": [{ "name": "RD Header" }]
+}
+{% endschema %}
