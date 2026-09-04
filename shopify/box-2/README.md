@@ -333,3 +333,22 @@ contain an out-of-stock fragrance.
    — activating before the publish would put them back in the builder fully
    selectable on a theme with no badge).
 3. Reload `/pages/discovery-box` and confirm.
+
+### SUPERSEDED (2026-09-03, final) — badges not adopted
+
+The merchant chose the simple route: out-of-stock fragrances just disappear.
+Marketing visibility for them is not a priority. **Ignore the "Remaining steps"
+above — `box 3` was not published and must not be.**
+
+Final state: Creed Wind Flowers and Kilian Angels' Share are **DRAFT**, and
+their inventory config is back to the catalogue convention (`tracked: false`,
+Angels' Share 20ml back to `CONTINUE`). The tracked/deny/0 setup existed only to
+make `product.available` false for the badge logic; left in place it would have
+made the products ACTIVE-but-unbuyable on restock, unlike every other product
+here where restocking is a single status flip.
+
+`box 3 — out-of-stock badges (draft)` (`188518138163`) still exists, unpublished
+and inert. The badge work is preserved in this directory if it is ever wanted;
+the theme itself can be deleted at any time.
+
+**To restock either product: set status to Active. That is the whole procedure.**
