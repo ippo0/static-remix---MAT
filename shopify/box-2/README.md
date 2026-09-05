@@ -902,3 +902,74 @@ flag them alongside the three already documented; they are correct.
 
 Product SEO `meta_title` / `meta_description` — 30 strings, ~488 words, affects
 Arabic search results only. Product titles stay Latin by decision.
+
+## Brands page: even card heights + lowercase count (2026-09-05, box 3)
+
+`sections/rd-brands-index.liquid` — the section on `templates/list-collections.json`,
+which is where header nav "Brands" (`routes.collections_url`) lands. 24 house
+blocks, none with an image, so every card renders as `.rd-house--text`.
+
+### Why the cards were uneven
+
+Two causes, both in this file's own `{% style %}` block — not in the shared
+stylesheet:
+
+1. `assets/raqi-redesign.css` gives `.rd-house` a fixed `block-size: 300px`, and
+   this section cancelled it with **`block-size: auto`**.
+2. `.rd-house__name` is `display: block` in normal flow with **no clamp**, so it
+   wraps freely. Card height = padding + however many lines the name takes, and a
+   CSS grid row is as tall as its tallest card — so "Maison Francis Kurkdjian"
+   inflated the whole row that "Creed" sat in.
+
+### The fix
+
+| | Desktop | ≤900px (and 375px) |
+|---|---|---|
+| Card height | `auto` → **116px** | new **96px** |
+| Name | no clamp → **2-line clamp**, `line-height: 1.15` | same, 18px |
+| Count | → pinned to the bottom (`margin-block-start: auto`) | same |
+
+The heights are derived, not picked: 20+20 padding + 2 border + two 22px lines at
+1.15 (50.6) + count (12) + 8px stand-off = 113, +3px so a two-line name clears the
+count. Mobile: 15+15 + 2 + 41.4 + 11 + 8 = 93 → 96. `box-sizing: border-box`
+applies inside `.rd-scope`, so `block-size` includes padding and border.
+
+**Two lines, not one.** One line would render "Maison Francis Kurk…". Two shows
+every one of the 24 houses in full. `.rd-house` already carries `overflow: hidden`,
+so a browser ignoring `line-clamp` crops rather than bursting the card.
+
+`assets/raqi-redesign.css` was **not** touched — same convention the file's own
+header states.
+
+### The count line
+
+`{{ count }} {{ unit }}` where `unit` is the `count_singular` / `count_plural`
+section settings. It is the product counter and is **staying**. Two changes:
+
+- **`text-transform: none`** added — the base `.rd-house__count` is uppercase,
+  which suits a micro-label over a photograph but shouted beside a quiet brand
+  name on a bare panel. Now renders "5 fragrances", not "5 FRAGRANCES".
+- Arabic registered on `templates/list-collections.json`, `outdated: false`:
+  `count_singular` → عطر · `count_plural` → عطراً
+
+⚠ **Do not "fix" the Arabic plural with logic.** Arabic counts take a plural form
+for 3–10 and the singular accusative for 11+, so no single stored string is right
+for every number. عطراً is a deliberate compromise: correct for 11+, acceptable
+for 3–10. Merchant decision, recorded so a later pass does not add a branch.
+
+Note the count excludes DRAFT products, so it is the storefront count, not the
+admin one — Creed shows **5 fragrances** against 7 products in admin.
+
+Verified on write: `de17e3f4032a2998ac964c3791a5a0a8`, 8,423 bytes, matching the
+checksum computed locally before upload.
+
+### Left alone deliberately
+
+`align-items`, `justify-content` and `gap` on `.rd-house--text` are dead — the
+`<a>` has one flex child, so they never applied. Flagged and left at the
+merchant's instruction rather than widening the diff.
+
+### Still untranslated on this page
+
+`heading` ("The houses") and `intro` have no Arabic. They were outside the earlier
+sweep, which covered only the index, collection and product templates. ~18 words.
