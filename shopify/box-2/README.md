@@ -513,3 +513,39 @@ Publishing box 3 as it stands would put the badges back on the storefront —
 the opposite of the "just DRAFT the products, no badges" decision. Reverting
 those six to the live versions would make box 3 exactly *live + the two
 approved fixes*. Byte-exact originals for all six are held locally.
+
+## Raw Liquid leaked onto product pages (2026-09-05) — my bug, fixed
+
+Product pages on `box 3` printed a wall of raw Liquid above the content, starting
+mid-sentence with "so this is # the same code, only readable…".
+
+**Cause — self-inflicted.** When `sections/raqi-product.liquid` was re-indented,
+the explanatory comment added inside the `{%- liquid … -%}` tag contained the
+literal text `{% liquid %}`:
+
+```
+  # Whitespace carries no meaning inside a {% liquid %} block, so this is
+```
+
+Liquid scans for the first `%}` to close a tag. The `%}` inside that sentence
+closed the outer `{%- liquid` tag early, so everything after it — the rest of the
+comment and all fourteen `assign`/`if`/`endif` triples — became literal template
+output. That also left every `lbl_*` variable and `raqi_ship_threshold` unset, so
+the size-selector label, notes labels, trust row and shipping line rendered blank.
+
+Exactly the class of bug this file's own header already warns about: Liquid's
+lexer does not care that a delimiter is inside prose.
+
+**Fix:** the sentence no longer contains tag delimiters —
+"Whitespace carries no meaning inside a liquid tag". One line, no logic touched.
+`sections/raqi-product.liquid` is now `d2c7899a7b48d7b03bff9e8aa4039690`
+(35,950 bytes), MD5-verified on write.
+
+**Swept the other seven files** for the same class of fault and for structural
+soundness (delimiters inside a `liquid` tag body, nested comment tags, unbalanced
+`if`/`for`/`unless`/`case`/`form`/`paginate`/`style`/`schema`/`capture`, comment
+bodies excluded from the count). All clean; nothing else to fix.
+
+Lesson for this repo: never put `{%` or `%}` inside a `#` comment within a
+`{% liquid %}` tag. Inside a `{% comment %}` block it is safe — the header of this
+same file quotes `{% paginate %}` and renders fine.

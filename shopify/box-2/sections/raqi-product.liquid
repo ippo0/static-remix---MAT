@@ -86,8 +86,8 @@
   # 2026-09-03: re-indented. Each of these assign/if/endif triples used to
   # start ten spaces deeper than the one above it, reaching 140 columns by
   # the last one and running the closing tag off the edge of the editor.
-  # Whitespace carries no meaning inside a {% liquid %} block, so this is
-  # the same code, only readable. No logic changed.
+  # Whitespace carries no meaning inside a liquid tag, so this is the same
+  # code, only readable. No logic changed.
   assign lbl_select_size = section.settings.select_size_label
   if lbl_select_size == blank
     assign lbl_select_size = 'raqi.product.select_size' | t
