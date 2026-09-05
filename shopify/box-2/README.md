@@ -700,3 +700,70 @@ work, and they are a factual mismatch, not just staleness:
 The Arabic advertises **120** sprays where the English advertises 170. Left alone
 because it is outside this request, but it should be corrected — an Arabic customer
 is being quoted a different number from an English one.
+
+## Arabic numeric-claim sweep (2026-09-05)
+
+### Fixed: the spray counts
+
+On `box 3` only. English left untouched (it is correct); Arabic re-registered
+against the existing digests and re-read as `outdated: false`.
+
+| Key | English (unchanged) | Arabic was | Arabic now |
+|---|---|---|---|
+| `raqi_story_sizes.ten_sprays` | ≈ 170 sprays | ≈ 120 رشة | ≈ 170 رشة |
+| `raqi_story_sizes.thirty_sprays` | ≈ 360+ sprays | ≈ 360 رشة | ≈ +360 رشة |
+
+`templates/index.json` on `box 3` now has **0** outdated translations of 407.
+
+### ⚠ The same error is still LIVE on `box 2`
+
+`gid://shopify/OnlineStoreThemeJsonTemplate/index?theme_id=188491465011` still
+carries `≈ 120 رشة` against `≈ 170 sprays`, and both spray keys are `outdated:
+true` there. **Not fixed** — the standing rule for this work is box theme only,
+never the live theme. Until `box 3` is published, or the same two
+`translationsRegister` calls are run against the live resource, an Arabic
+customer on raqi.ae is told 120 sprays where an English one is told 170.
+
+### Sweep result: no other numeric disagreement
+
+Compared every Arabic value against its English source, normalising Arabic-Indic
+digits (٠-٩) to Western before comparing:
+
+| Surface | Scope | Numeric mismatches |
+|---|---|---|
+| `templates/index.json` (box 3) | 407 ar keys | 0 |
+| `locales/ar.json` vs `en.default.json` | 481 shared keys | 0 real (3 explained below) |
+| `collection` + `product` templates, both themes | RAQI sections | 0 |
+| Products (47 resources: title, body, type, SEO) | all with Arabic | 0 |
+
+The three flagged in the locale files are Arabic **dual forms**, which are correct
+and must not be "fixed" into digits:
+
+- `collections.toolbar.grid_2cloumns` — "2 columns" → عمودان
+- `raqi.discovery_box.subhead` — "1 Signature + 2 Discovery" → عطراً واحداً … وعطرين
+- `raqi.discovery_box.step_2_heading` — "Choose 2" → اختر عطرين
+
+Note the tooling flags any key whose digits differ, so a future sweep will
+re-flag these three. They are correct; leave them.
+
+### Gap, not a mismatch: numeric claims with no Arabic at all
+
+These render **English on `/ar-ae`** (a clean fallback, not an error), so no
+customer is misinformed — but the numbers are not localised. Present on both
+themes:
+
+`rd_hero.body` (15ml/45ml) · `rd_hero.offer_price` (Dhs. 599) ·
+`rd_collection.tier_line` (Buy 2 save 5% · Buy 3 save 10%) · `rd_collection.card_tier_label` ·
+`rd_ticker.t1` (Free Delivery Over Dhs. 750) · `rd_ticker.t2` (7-Day Return) ·
+`rd_why.w2` (10ml/30ml) · `rd_faq.q4` (AED 1,000–1,500) · `rd_faq.q5` (170 / 360+ sprays) ·
+`rd_faq.q8`, `rd_faq.q9` (15ml) · `rd_discovery.body` (15ml)
+
+Product level: **RAQI Discovery Box has no Arabic description at all** — its
+English says "3 hand-poured 15ml fragrances — 1 Signature and 2 Discovery". Every
+product's `meta_title` / `meta_description` ("10ml & 30ml") is likewise
+English-only across the catalogue.
+
+### Unrelated nit found while sweeping
+
+`Dior Homme Intense` (`10385881301299`) — the Arabic `body_html` is missing its
+closing `</p>`. The English has it. Cosmetic, left alone.
