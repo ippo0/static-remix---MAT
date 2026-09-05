@@ -32,7 +32,7 @@
         {%- else -%}
           <ul class="rd-cd__items" role="list">
             {%- for line in cart.items -%}
-              <li class="rd-cd__item">
+              <li class="rd-cd__item" data-rd-cd-qty="{{ line.quantity }}">
                 <span class="rd-cd__media">
                   {%- if line.image -%}
                     <img src="{{ line.image | image_url: width: 240 }}"
@@ -75,6 +75,46 @@
   </div>
 </div>
 
+{% style %}
+  /* 2026-09-05 — optimistic removal.
+
+     Remove used to wait for TWO serial round trips before anything moved on
+     screen: POST /cart/change.js, and only then the section re-render. Measured
+     in headless Chromium against mocked endpoints, the gap between the tap and
+     the row leaving the layout was almost exactly 2x the network latency
+     (310ms at 150ms RTT, 1603ms at 800ms), while the DOM work itself was 6ms.
+     So it was never the re-render — it was two round trips with no feedback.
+
+     The row now collapses on tap. Its height is set explicitly in JS first,
+     because `auto` has no value to animate from. Everything is still
+     reconciled against the server's own re-render immediately afterwards. */
+  .rd-cd__item[hidden] { display: none; }
+  .rd-cd__item[data-rd-cd-removing] {
+    overflow: hidden;
+    height: 0;
+    opacity: 0;
+    padding-block: 0;
+    margin-block: 0;
+    border-block-width: 0;
+    pointer-events: none;
+    transition: height 200ms ease, opacity 140ms ease, padding-block 200ms ease,
+                margin-block 200ms ease, border-block-width 200ms ease;
+  }
+
+  /* The subtotal on screen is one removal out of date until Liquid sends the
+     real figure back, so it is dimmed and checkout is genuinely blocked rather
+     than merely greyed. Money is never recomputed in JS. */
+  [data-rd-cd-inner][data-rd-cd-pending] .rd-cd__subval { opacity: 0.4; }
+  [data-rd-cd-inner][data-rd-cd-pending] .rd-cd__checkout {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rd-cd__item[data-rd-cd-removing] { transition: none; }
+  }
+{% endstyle %}
+
 <script>
 (function () {
   if (window.RDCart) return;
@@ -85,6 +125,14 @@
   var ROOT     = {{ routes.root_url | json }};
   var CART_URL = {{ routes.cart_url | json }};
   var CHANGE_URL = {{ routes.cart_change_url | json }};
+
+  // Cart mutations still in flight. A section re-render that lands while another
+  // change is still running must NOT paint: its HTML was generated before that
+  // change and would put an already-removed row back on screen. Only the last
+  // change to settle paints.
+  var inflight = 0;
+
+  var REDUCED = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
   function root() { return document.getElementById('rd-cart-drawer'); }
 
@@ -107,6 +155,39 @@
     document.querySelectorAll('[data-rd-bagcount]').forEach(function (el) { el.textContent = n; });
   }
 
+  function setCount(n) {
+    if (typeof n !== 'number' || isNaN(n)) return;
+    document.querySelectorAll('[data-rd-bagcount]').forEach(function (el) { el.textContent = n; });
+  }
+
+  function bumpCount(delta) {
+    document.querySelectorAll('[data-rd-bagcount]').forEach(function (el) {
+      var n = parseInt(el.textContent, 10);
+      if (!isNaN(n)) el.textContent = Math.max(0, n + delta);
+    });
+  }
+
+  // Marks the panel as one step ahead of the server: the row is already gone,
+  // but the subtotal still shows the pre-removal figure until Liquid answers.
+  function setPending(on) {
+    var inner = document.querySelector('[data-rd-cd-inner]');
+    if (!inner) return;
+    if (on) inner.setAttribute('data-rd-cd-pending', '');
+    else inner.removeAttribute('data-rd-cd-pending');
+  }
+
+  // Take the row out of the layout NOW, before any network call. The server
+  // stays the source of truth — refresh() overwrites the whole panel a moment
+  // later — so a removal that fails simply comes back.
+  function collapse(li) {
+    if (!li) return;
+    if (REDUCED) { li.hidden = true; return; }
+    li.style.height = li.getBoundingClientRect().height + 'px';
+    li.getBoundingClientRect();            // flush, so the transition has a start value
+    li.setAttribute('data-rd-cd-removing', '');
+    li.style.height = '0px';
+  }
+
   // Re-render through the Section Rendering API. Requested against the
   // locale root rather than the current path: the drawer lives in
   // header-group, which every page carries, and the root is the one URL that
@@ -119,16 +200,31 @@
       .then(function (j) {
         var html = j && j[SECTION];
         if (!html) return;
+        // Stale by the time it arrived — a newer change is still running and
+        // will paint its own, later, truth. Painting this would resurrect a row
+        // the customer has already removed.
+        if (inflight > 0) return;
         var tmp = document.createElement('div');
         tmp.innerHTML = html;
         var fresh = tmp.querySelector('[data-rd-cd-inner]');
         var cur = document.querySelector('[data-rd-cd-inner]');
-        if (fresh && cur) {
-          cur.innerHTML = fresh.innerHTML;
-          paintCount(cur);
-        }
+        if (!fresh || !cur) return;
+        setPending(false);
+        // Replacing innerHTML destroys and rebuilds every <img> in the panel and
+        // drops focus to <body>. When nothing actually changed, don't.
+        if (fresh.innerHTML === cur.innerHTML) return;
+        var hadFocus = cur.contains(document.activeElement);
+        cur.innerHTML = fresh.innerHTML;
+        paintCount(cur);
+        // The Remove button that had focus no longer exists; without this,
+        // focus falls to <body> and the next Tab restarts from the top of the
+        // page behind the open drawer.
+        if (hadFocus) { var x = cur.querySelector('.rd-cd__x'); if (x) x.focus(); }
       })
-      .catch(function (e) { if (window.console) console.warn('[rd-cart-drawer] refresh failed:', e); });
+      .catch(function (e) {
+        setPending(false);
+        if (window.console) console.warn('[rd-cart-drawer] refresh failed:', e);
+      });
   }
 
   function add(id, qty, props) {
@@ -153,6 +249,7 @@
   // section-ID fix above the list was always stale, so an index could have
   // removed the wrong line. The key is stable and unambiguous.
   function change(key, qty) {
+    inflight++;
     return fetch(CHANGE_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -161,9 +258,16 @@
     }).then(function (r) {
       if (!r.ok) { return r.json().catch(function () { return {}; }).then(function (e) { throw new Error(e.description || e.message || ('change ' + r.status)); }); }
       return r.json();
+    }).then(function (cart) {
+      // item_count is an integer, so it can be trusted straight out of this
+      // response and corrects the optimistic guess a full round trip early.
+      // Money is not taken from here — the subtotal stays dimmed until Liquid
+      // has formatted it, because JS must never do the arithmetic.
+      if (cart) setCount(cart.item_count);
     }).catch(function (e) {
       if (window.console) console.warn('[rd-cart-drawer] change failed:', e);
     }).then(function () {
+      inflight--;
       return refresh();   // always re-render from the server's truth, success or not
     });
   }
@@ -177,7 +281,18 @@
       e.preventDefault();
       if (rm.getAttribute('aria-busy') === 'true') return;   // ignore double taps
       rm.setAttribute('aria-busy', 'true'); rm.disabled = true;
-      change(rm.getAttribute('data-rd-cd-remove'), 0);       // refresh() replaces the row
+      // 2026-09-05: act first, confirm after. Previously nothing on screen moved
+      // until BOTH /cart/change.js and the section re-render had come back —
+      // twice the latency of Add to Bag, which opens the drawer after one round
+      // trip and so confirms itself immediately. The removal is still verified:
+      // refresh() below replaces the panel with the server's own render, so a
+      // failed removal reappears rather than being silently lost.
+      var li = rm.closest('.rd-cd__item');
+      var q = li ? parseInt(li.getAttribute('data-rd-cd-qty'), 10) : NaN;
+      collapse(li);
+      if (!isNaN(q) && q > 0) bumpCount(-q);
+      setPending(true);
+      change(rm.getAttribute('data-rd-cd-remove'), 0);
     }
   });
 

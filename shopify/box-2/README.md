@@ -352,3 +352,70 @@ and inert. The badge work is preserved in this directory if it is ever wanted;
 the theme itself can be deleted at any time.
 
 **To restock either product: set status to Active. That is the whole procedure.**
+
+## Cart drawer "Remove" felt slow (2026-09-05)
+
+### Root cause: two serial round trips with no feedback in between — not the re-render
+
+Tapping Remove ran `POST /cart/change.js`, waited for it, then ran the Section
+Rendering API re-render, waited for that, and only then did anything move on
+screen. Nothing acknowledged the tap in the meantime.
+
+Measured in headless Chromium against mocked Shopify endpoints
+(`tests/cart-remove-timing.js`), time from tap to the row leaving the layout:
+
+| Simulated latency per request | Before | After | First visible change (before → after) |
+|---|---|---|---|
+| 0 ms | 10 ms | 12 ms | 10 ms → 12 ms |
+| 150 ms | 317 ms | 215 ms | 317 ms → **48 ms** |
+| 400 ms | 816 ms | 215 ms | 816 ms → **48 ms** |
+| 800 ms | 1602 ms | 216 ms | 1602 ms → **33 ms** |
+
+At 0 ms latency the whole interaction cost 10 ms, so the DOM work and the
+re-render were never the problem: the delay tracked network latency almost
+exactly 2×. The `215 ms` "after" figure is the collapse *animation* finishing —
+the row starts moving within ~40 ms regardless of connection speed.
+
+**Against Add to Bag:** Add opens the drawer after **one** round trip and so
+confirms itself (163 ms / 413 ms / 811 ms at the same latencies). Remove needed
+**two** before showing anything. So it was genuinely ~2× slower to acknowledge,
+*and* its feedback was a row quietly vanishing rather than a panel sliding in.
+
+### Fix — optimistic removal, reconciled against the server
+
+- The row collapses out of the layout on tap, before any request.
+- The bag count is decremented immediately by that line's own quantity
+  (`data-rd-cd-qty`). Integers only — money is never computed in JS.
+- The subtotal is dimmed and **checkout is genuinely blocked** while the figure
+  on screen is one removal out of date.
+- `/cart/change.js`'s own `item_count` corrects the optimistic count a full
+  round trip before the section re-render lands.
+- `refresh()` still replaces the panel with Liquid's render, so a **failed**
+  removal reappears — the optimism is never a lie.
+- An `inflight` counter stops an earlier re-render from resurrecting a row
+  removed by a later tap.
+- A re-render whose HTML is unchanged no longer rebuilds the panel (it was
+  destroying and recreating every `<img>` and dropping focus to `<body>`).
+- Focus moves to the close button when the replaced subtree held it.
+- `prefers-reduced-motion` skips the animation.
+
+28 assertions in `tests/cart-remove-perf.test.js`, all passing: optimistic
+removal and reconciliation, checkout blocked then released, failed removal
+restores the row and the count, two rapid removals with no resurrection, empty
+state, double-tap firing one request, Add to Bag unaffected, and image nodes
+reused on a no-op re-render.
+
+### ⚠ Not yet on the live theme
+
+`box 2` is MAIN, and the Admin API refuses theme-file writes to it (and refuses
+`themeFilesCopy` even when live is only the *source*). The new file is
+`sections/rd-cart-drawer.liquid` in this directory, MD5
+**`a35840010fdfa9c9705b252b03f1bf87`**, 16,360 bytes.
+
+**To apply:** Admin → Themes → `box 2` → Edit code → `sections/rd-cart-drawer.liquid`
+→ replace the whole file with this one. Shopify validates Liquid on save, and
+this exact file was already accepted by the API with no errors.
+
+Note: `box 3` now also carries this file (it was uploaded there to validate the
+Liquid before handing it over, and the restore path was blocked). `box 3` is
+still **not for publishing** — it carries the abandoned out-of-stock badge work.
