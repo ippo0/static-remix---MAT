@@ -480,3 +480,36 @@ order: main (raqi-product) -> related (raqi-related) -> rd_faq
 Minimog leftover) but no template references it and `layout/theme.liquid` does not
 render it, so it never appears. It was never wired into the product page in this
 project. Adding it would be new work, not a repair.
+
+## box 3 brought up to date (2026-09-05)
+
+`box 4` was deleted; `box 2` is MAIN again. Since the API refuses writes to MAIN,
+the approved fixes were applied to **`box 3` (`188518138163`, unpublished)**,
+each MD5-verified on write:
+
+| File | MD5 | State |
+|---|---|---|
+| `sections/rd-cart-drawer.liquid` | `a35840010fdfa9c9705b252b03f1bf87` | ✅ optimistic-removal fix |
+| `sections/rd-header.liquid` | `db07a9ac57f755865fbca2aff097e967` | ✅ Bag link opens the drawer |
+
+The header change is a pure insertion — one `<script>` block after the existing
+one, before `{% schema %}`. Nothing else in the file moved (verified by diff
+against the byte-exact original, `d5c56672f2efe051018b34b070ba90be`).
+
+### ⚠ box 3 still carries the abandoned out-of-stock badge work
+
+Six files still differ from live for that reason alone:
+
+| File | box 3 | box 2 (live) |
+|---|---|---|
+| `sections/raqi-discovery-box.liquid` | `7cca68d0…` | `9a017735…` |
+| `sections/raqi-product.liquid` | `fea3d231…` | `27855106…` |
+| `sections/raqi-selected.liquid` | `27a6cc6e…` | `c4c17a9d…` |
+| `snippets/rd-product-card.liquid` | `13a59621…` | `02f7d923…` |
+| `snippets/raqi-product-card.liquid` | `23af44cc…` | `a30d3ddb…` |
+| `snippets/custom-code-head.liquid` | `e26a114b…` | `1322b248…` |
+
+Publishing box 3 as it stands would put the badges back on the storefront —
+the opposite of the "just DRAFT the products, no badges" decision. Reverting
+those six to the live versions would make box 3 exactly *live + the two
+approved fixes*. Byte-exact originals for all six are held locally.

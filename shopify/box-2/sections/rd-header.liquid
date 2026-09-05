@@ -459,6 +459,36 @@
 })();
 </script>
 
+<script>
+(function () {
+  // 2026-09-05: the header's Bag link carried a data-rd-bag hook, but nothing
+  // ever listened to it — the script above handles only the burger menu — so
+  // the browser just followed href="/cart" and left the page. The drawer it
+  // should have opened is already mounted on every page via header-group.
+  //
+  // The anchor keeps its real href, so with JS off it still reaches /cart. With
+  // JS on, the click is intercepted and raises the SAME event Add to Bag
+  // raises; sections/rd-cart-drawer.liquid already listens for it and already
+  // falls back to navigating when its own markup is missing, so the fallback
+  // is inherited rather than duplicated here.
+  document.addEventListener('click', function (e) {
+    var bag = (e.target && e.target.closest) ? e.target.closest('[data-rd-bag]') : null;
+    if (!bag) return;
+    // Modified and non-primary clicks keep native behaviour, so open-in-new-tab
+    // and middle-click still work on what is still a real link.
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button) return;
+    // No drawer on this page at all: leave the href alone rather than dead-end.
+    if (!document.getElementById('rd-cart-drawer')) return;
+    try {
+      e.preventDefault();
+      document.dispatchEvent(new CustomEvent('cart:refresh', { detail: { open: true } }));
+    } catch (err) {
+      window.location.href = bag.getAttribute('href');   // never swallow the tap
+    }
+  });
+})();
+</script>
+
 {% schema %}
 {
   "name": "RD Header",
