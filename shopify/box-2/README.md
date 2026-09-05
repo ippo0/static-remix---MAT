@@ -419,3 +419,64 @@ this exact file was already accepted by the API with no errors.
 Note: `box 3` now also carries this file (it was uploaded there to validate the
 Liquid before handing it over, and the restore path was blocked). `box 3` is
 still **not for publishing** — it carries the abandoned out-of-stock badge work.
+
+## Header "Bag" link navigated to /cart instead of opening the drawer (2026-09-05)
+
+### Theme roles moved again
+
+`box 4 — OOS badges (draft)` was MAIN at the previous check and has since been
+**deleted**. `box 2` (`188491465011`) is MAIN again. `box 3` remains an
+unpublished draft carrying the abandoned badge work plus the fixed cart drawer.
+
+### Cause
+
+`sections/rd-header.liquid` renders:
+
+```liquid
+<a class="rd-header__bag" href="{{ routes.cart_url }}" data-rd-bag>…</a>
+```
+
+The `data-rd-bag` hook was already there, but **nothing ever listened to it** —
+this section's only script handles the burger menu. So the browser just followed
+the href. Not a broken handler; a handler that was never written.
+
+### Fix — one script block, no markup change
+
+The anchor keeps its real `href="/cart"`, so it still works with JavaScript off
+(the same progressive-enhancement pattern as the product form). When JS runs, the
+click is intercepted and raises the identical event Add to Bag raises:
+
+```js
+document.dispatchEvent(new CustomEvent('cart:refresh', { detail: { open: true } }));
+```
+
+The drawer's existing listener does the rest — and it already falls back to
+`window.location.href = CART_URL` when the drawer markup is absent, so the
+fallback comes for free rather than needing to be duplicated.
+
+Guards: modified clicks (cmd/ctrl/shift/alt, non-primary button) keep native
+behaviour so open-in-new-tab still works; if `#rd-cart-drawer` is not on the page
+the href is left alone; and `CustomEvent` construction is wrapped so an
+exception navigates rather than swallowing the tap.
+
+Source: `snippets/rd-header-bag-handler.js.txt`. 8 assertions in
+`tests/header-bag-opens-drawer.test.js`, all passing.
+
+**Not yet live** — `box 2` is MAIN and the API refuses writes to it. Insert the
+block in Admin → Themes → box 2 → Edit code → `sections/rd-header.liquid`,
+directly after the existing `</script>` and before `{% schema %}`. It contains no
+Liquid, so there is nothing for Shopify to mis-parse.
+
+### "Recently Viewed Products" is NOT on product pages
+
+Checked rather than assumed. `templates/product.json`
+(`d176827f05b23cfae3bfe402b0eff1fb`, unchanged) renders exactly three sections:
+
+```
+order: main (raqi-product) -> related (raqi-related) -> rd_faq
+```
+
+`sections/recent-viewed-products.liquid` does exist in the theme (12,093 bytes, a
+Minimog leftover) but no template references it and `layout/theme.liquid` does not
+render it, so it never appears. It was never wired into the product page in this
+project. Adding it would be new work, not a repair.

@@ -1,0 +1,23 @@
+(function () {
+  // The bag link stays a real <a href="/cart"> so it still works with no JS at
+  // all. When JS is running, intercept it and raise the same event Add to Bag
+  // raises, so the header opens the redesign drawer instead of leaving the page.
+  //
+  // The drawer's own cart:refresh listener handles the rest, including the case
+  // where its markup is missing: it navigates to /cart rather than swallowing
+  // the tap. So the fallback is never lost.
+  document.addEventListener('click', function (e) {
+    var bag = (e.target && e.target.closest) ? e.target.closest('[data-rd-bag]') : null;
+    if (!bag) return;
+    // Modified clicks keep their native behaviour — open-in-new-tab still works.
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button) return;
+    // No drawer on the page at all: leave the href alone.
+    if (!document.getElementById('rd-cart-drawer')) return;
+    try {
+      e.preventDefault();
+      document.dispatchEvent(new CustomEvent('cart:refresh', { detail: { open: true } }));
+    } catch (err) {
+      window.location.href = bag.getAttribute('href');   // never swallow the tap
+    }
+  });
+})();
