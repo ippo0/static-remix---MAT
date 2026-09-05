@@ -9,12 +9,13 @@ store; it has to be pushed back through the Admin API or the theme editor.
 
 ## Themes
 
-Roles move around on this store — check them before assuming. As of
-2026-09-03 19:36 UTC:
+Roles move around on this store — check them before assuming. Re-verified
+2026-09-05 20:45 UTC:
 
 | Theme | ID | Role | What it is |
 |---|---|---|---|
-| `box 2` | `188491465011` | **Live (MAIN)** | The redesign — everything in this directory |
+| `box 2` | `188491465011` | **Live (MAIN)** | The redesign as published. **No file on it has changed since 2026-09-03T16:51:10Z** — none of the 2026-09-05 work below is on it. |
+| `box 3 — out-of-stock badges (draft)` | `188518138163` | Unpublished | Where every 2026-09-05 fix lives: cart drawer, header Bag link, raw-Liquid leak, struck price. Also still carries the **abandoned** out-of-stock badge work in 4 files. Not publish-ready as-is. |
 | `box` | `188412231987` | Unpublished | Same redesign sections, but an **older `rd-header`** (4,334 bytes): no mobile menu panel, no script, broken language link |
 | `Copy of Raqi box` | `188395618611` | Unpublished | Older Minimog-based theme, no `rd-*` sections. Was MAIN earlier on 2026-09-03. |
 
@@ -77,7 +78,33 @@ Arabic differs (`raqi.catalog.men` is "رجال", the redesign uses "رجالي"
 
 English lives in `locales/en.default.json` (committed here).
 
-### ⚠ Arabic is NOT fully applied — one manual step remains
+### ✅ Arabic IS applied — the manual paste was completed
+
+**2026-09-05 correction. Read this before trusting anything below it.**
+
+Everything from here to the end of this section was written *before* the manual
+paste was carried out, and it was then repeated in later status reports as if it
+were still true. It is not. Re-verified today by reading `locales/ar.json` off
+`box 2` directly (315,173 bytes, MD5 `de04cfda81499d4ea1479ccbf96d03c9`,
+last written 2026-09-03T14:24:08Z — *after* this section was authored):
+
+- **All 16 `raqi.rd.*` keys are present.** Not 2 of 16, and not "14 missing".
+  Spot-checked: `raqi.rd.nav.shop` = "تسوق", `raqi.rd.utils.bag` = "السلة",
+  `raqi.rd.hero.try_it` = "جرّبه".
+- The nav therefore renders **Arabic** on `/ar-ae/`, not English.
+- Sweep of the whole file: 3,357 keys, 0 mojibake, 0 isolated letters,
+  0 empty values, 0 reversed strings.
+- Only 5 English keys have no Arabic sibling: 4 benign Shopify checkout
+  defaults, plus `raqi.product.returns_body`, which was removed deliberately
+  on 2026-08-16 and is documented as such.
+
+The claim that 14 keys were missing was a **reporting error on my part** — the
+state was never re-checked after the paste instructions were handed over. The
+instructions below are retained only as a record of why the paste had to be done
+by hand. Do not act on them; the work is done.
+
+<details>
+<summary>Original (now stale) instructions — historical record only</summary>
 
 `locales/ar.json` could not be written from here, for two independent reasons:
 
@@ -116,6 +143,8 @@ to:
 
 Until that is done the nav renders **English** on `/ar-ae/` (a clean fallback
 to `en.default.json`, not a "translation missing" error).
+
+</details>
 
 ## Re-applying a file to the theme
 
@@ -549,3 +578,81 @@ bodies excluded from the count). All clean; nothing else to fix.
 Lesson for this repo: never put `{%` or `%}` inside a `#` comment within a
 `{% liquid %}` tag. Inside a `{% comment %}` block it is safe — the header of this
 same file quotes `{% paginate %}` and renders fine.
+
+## Discovery Set: struck-through price + re-cropped hero image (2026-09-05)
+
+All on `box 3 — out-of-stock badges (draft)` (`188518138163`), which is still
+**UNPUBLISHED**. `box 2` (MAIN) was not written to.
+
+### ⚠ §8.7 override — a decision, not a violation
+
+§8.7 forbids struck-through pricing, and `sections/rd-hero.liquid` carries a
+signed-off `LOCKED` header saying the struck price was "removed deliberately …
+Do not reinstate."
+
+The merchant reversed that on 2026-09-05 and asked for the override to be
+recorded in the file header so a future session sees a decision rather than a
+regression. It is recorded there verbatim. **Do not silently revert it**, and do
+not extend it to other sections — the override covers the hero price card and
+the builder total only.
+
+### The struck price is data, not copy
+
+`compareAtPrice` was set to **850.00** on the RAQI Discovery Box variant
+(`gid://shopify/ProductVariant/53858623586611`); `price` stays **599.00**.
+
+Both surfaces read that variant, so they cannot drift apart:
+
+| Surface | File | Reads |
+|---|---|---|
+| Homepage price card | `sections/rd-hero.liquid` | `all_products['raqi-discovery-box'].variants.first` |
+| Builder step-3 total | `sections/raqi-discovery-box.liquid` | the same variant, via `box_product` |
+
+Clear compare-at on the product and **both** fall back to a single price with no
+code change — the hero to its `offer_price` setting, the builder to
+`box_price_display`. Change the discount by editing the product, never the theme.
+
+Neither file hardcodes 850 or 599 in markup. The `offer_price` setting was
+relabelled "Price (fallback only)" so nobody edits it expecting an effect.
+
+### The lock was respected
+
+`.rd-hero__frame` and `.rd-hero__panel` were **not** touched. The white margin
+around the box photograph was baked into the source asset, not produced by CSS
+(the frame is already `--rd-bone #F3F4EE` with `object-fit: cover`). It was
+fixed by swapping in a re-cropped square asset, not by restyling:
+
+`templates/index.json` → `rd_hero.settings.image` is now
+`shopify://shop_images/raqi_discovery_box_square_edge.jpg`.
+
+⚠ **`rd_discovery` on the same template still points at the old
+`raqi_box_A_full_1200.jpg`.** Only `rd_hero` was in scope. If that section shows
+the same white margin, it needs the same one-line swap.
+
+The only style added to the locked hero is `.rd-hero__offer-was`, which styles
+the struck figure alone and introduces no new component. It uses `--rd-ink`
+(#22261F) on the card's `--rd-panel` ground (#E8EBE2), about 12:1 — deliberately
+not the faint grey these cards usually get, so the old price reads as a real
+number being crossed out. Same reasoning for `.raqi-db__total-was` in the builder.
+
+### Verified MD5s (uploaded and read back)
+
+| File | MD5 | Bytes |
+|---|---|---|
+| `sections/rd-hero.liquid` | `6ba69f2445f88fbeb0cef3947c2eb805` | 8,244 |
+| `sections/raqi-discovery-box.liquid` | `96097943facb3a4b4cae0979f3793401` | 39,262 |
+
+Both copies in this directory are byte-identical to what is deployed on `box 3`.
+
+`templates/index.json` is not tracked here — it is theme-editor-generated and
+warns against hand-editing. Its only differences from `box 2` are the `rd_hero`
+image above and a pre-existing `rd_collection.truncated_text` key (+99 bytes
+total, fully accounted for).
+
+### Still open
+
+**The headline was not changed.** The request was to replace "No one should buy a
+signature in two minutes." but the replacement text arrived twice as an unfilled
+placeholder (`[HEADLINE]`, then `[ضع النص المختار هنا]`). It is a one-line edit
+to `rd_hero.settings.heading` once the copy exists — and note it is a **setting**,
+so it must be changed in the customizer, and its Arabic re-attached afterwards.

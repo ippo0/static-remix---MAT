@@ -12,6 +12,21 @@
   Price card carries NO struck-through price, NO percentage, NO "save" language —
   removed deliberately for conflicting with §8.7. Do not reinstate.
 
+  2026-09-05 — §8.7 OVERRIDE, deliberate, merchant-authorised. The line above is
+  reversed for the price card ONLY: it now shows the Discovery Box's compare-at
+  price struck through beside the live price. This is a decision, not a
+  violation — do not silently revert it, and do not extend it to other sections.
+
+  It is NOT hardcoded copy. The card reads price and compare_at_price straight
+  off the RAQI Discovery Box variant, the same source the builder total on
+  /pages/discovery-box reads, so the two can never disagree. Change the discount
+  by editing compare-at on the product; clear compare-at and this card falls
+  back to the offer_price setting and the single-price form, untouched.
+
+  The rest of the section remains LOCKED. .rd-hero__frame and .rd-hero__panel
+  were NOT altered — the box photograph's white margin was baked into the source
+  asset and was fixed by re-cropping the image, not by restyling the frame.
+
   Everything is an editable setting so copy, price and image can be changed from
   the theme customizer without a developer.
 {% endcomment %}
@@ -24,8 +39,26 @@
       <p class="rd-hero__body">{{ section.settings.body }}</p>
 
       {%- if section.settings.show_offer -%}
+        {%- liquid
+          # One handle lookup, no catalogue loop, so no 50-item cap exposure --
+          # the same pattern sections/raqi-discovery-box.liquid uses. If the
+          # product is missing or carries no compare-at, every branch below
+          # falls back to the offer_price setting and the card looks exactly as
+          # it did before this change.
+          assign hero_box = all_products['raqi-discovery-box']
+          assign hero_v = hero_box.variants.first
+          assign hero_was = false
+          if hero_v and hero_v.compare_at_price > hero_v.price
+            assign hero_was = true
+          endif
+        -%}
         <div class="rd-hero__offer">
-          <span class="rd-hero__offer-price">{{ section.settings.offer_price }}</span>
+          {%- if hero_was -%}
+            <s class="rd-hero__offer-was">{{ hero_v.compare_at_price | money_without_trailing_zeros }}</s>
+            <span class="rd-hero__offer-price">{{ hero_v.price | money_without_trailing_zeros }}</span>
+          {%- else -%}
+            <span class="rd-hero__offer-price">{{ section.settings.offer_price }}</span>
+          {%- endif -%}
           {%- if section.settings.offer_breakdown != blank -%}
             <p class="rd-hero__offer-break">{{ section.settings.offer_breakdown }}</p>
           {%- endif -%}
@@ -75,6 +108,27 @@
   </a>
 </div>
 
+{% style %}
+  /* 2026-09-05 — §8.7 override, see the header. The ONLY style added to this
+     locked section, and it introduces no new component: it styles the struck
+     figure alone. --rd-ink (#22261F) on the card's --rd-panel ground (#E8EBE2)
+     is about 12:1, so the old price reads as a real number being crossed out
+     rather than the faint grey-on-grey these cards usually get. */
+  .rd-hero__offer-was {
+    display: block;
+    font-family: var(--rd-body);
+    font-size: 15px;
+    letter-spacing: .04em;
+    color: var(--rd-ink);
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+    margin-block-end: 6px;
+  }
+  @media (max-width: 900px) {
+    .rd-hero__offer-was { font-size: 13px; }
+  }
+{% endstyle %}
+
 {% schema %}
 {
   "name": "RD Hero",
@@ -88,7 +142,7 @@
     { "type": "text", "id": "step_line", "label": "Show step line", "default": "yes", "info": "Clear this field to hide the Try it → Live with it → Decide line." },
     { "type": "header", "content": "Price card" },
     { "type": "checkbox", "id": "show_offer", "label": "Show price card", "default": true },
-    { "type": "text", "id": "offer_price", "label": "Price", "default": "Dhs. 599" },
+    { "type": "text", "id": "offer_price", "label": "Price (fallback only)", "default": "Dhs. 599", "info": "Shown only if the RAQI Discovery Box product is missing. Normally the card reads the live price and compare-at price from that product's variant." },
     { "type": "text", "id": "offer_breakdown", "label": "Detail line", "default": "Three fragrances · 45ml · Individually Dhs. 850" },
     { "type": "header", "content": "Image" },
     { "type": "image_picker", "id": "image", "label": "Discovery Set box photograph", "info": "Pending from the manufacturer. Until set, the placeholder frame renders — never stock photography." },

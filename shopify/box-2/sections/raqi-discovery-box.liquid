@@ -98,9 +98,18 @@
 
   assign box_variant_id = ''
   assign box_price_display = section.settings.box_price | default: 'Dhs. 599.00'
+  assign box_was_display = ''
   if box_product
-    assign box_variant_id = box_product.variants.first.id
-    assign box_price_display = box_product.variants.first.price | money
+    assign box_variant = box_product.variants.first
+    assign box_variant_id = box_variant.id
+    assign box_price_display = box_variant.price | money
+    # 2026-09-05: the struck price is read from the variant's compare_at_price,
+    # never typed as copy, so this total and the homepage price card share one
+    # source and cannot drift apart. Clear compare-at on the product and both
+    # quietly return to a single price with no code change.
+    if box_variant.compare_at_price > box_variant.price
+      assign box_was_display = box_variant.compare_at_price | money
+    endif
   endif
 
   assign ob = '{'
@@ -325,7 +334,12 @@
       <div class="raqi-db__review-list" id="RaqiDbReviewList"></div>
       <div class="raqi-db__total-row">
         <span>{{ 'raqi.discovery_box.total_label' | t }}</span>
-        <span id="RaqiDbTotal">{{ box_price_display }}</span>
+        <span class="raqi-db__total-vals">
+          {%- if box_was_display != blank -%}
+            <s class="raqi-db__total-was">{{ box_was_display }}</s>
+          {%- endif -%}
+          <span id="RaqiDbTotal">{{ box_price_display }}</span>
+        </span>
       </div>
       <div class="raqi-db__actions">
         <button type="button" class="raqi-btn raqi-btn-secondary" id="RaqiDbBack3">{{ 'raqi.discovery_box.back_label' | t }}</button>
@@ -415,6 +429,10 @@
   .raqi-db__review-item-name{ font-size:13px;font-weight:500;color:var(--raqi-ink);margin:0; }
   .raqi-db__review-item-volume{ font-size:11.5px;color:var(--raqi-accent);white-space:nowrap; }
   .raqi-db__total-row{ max-width:520px;margin:0 auto 28px;display:flex;justify-content:space-between;font:500 15px var(--raqi-font-body);color:var(--raqi-ink);padding-top:6px;border-top:1px solid var(--raqi-rule); }
+  /* 2026-09-05: was/now. --raqi-ink on the page ground rather than a muted grey,
+     so the struck figure stays readable instead of dissolving into the rule. */
+  .raqi-db__total-vals{ display:inline-flex;align-items:baseline;gap:10px; }
+  .raqi-db__total-was{ font-weight:400;font-size:13px;color:var(--raqi-ink);opacity:.75;text-decoration:line-through;text-decoration-thickness:1px; }
   .raqi-db__message{ max-width:520px;margin:14px auto 0;text-align:center;font-size:13px; }
   .raqi-db__message:empty{ display:none; }
   .raqi-db__message--error{ color:#b3261e; }
