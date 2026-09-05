@@ -949,6 +949,11 @@ section settings. It is the product counter and is **staying**. Two changes:
 - **`text-transform: none`** added — the base `.rd-house__count` is uppercase,
   which suits a micro-label over a photograph but shouted beside a quiet brand
   name on a bare panel. Now renders "5 fragrances", not "5 FRAGRANCES".
+- **`letter-spacing: 0.04em`** — the base 0.18em was set for uppercase, where
+  wide tracking is what makes a micro-label legible. On lowercase it read loose.
+  Set once in the desktop rule: the 900px block only changes `font-size`, so the
+  value carries down to 375px. File is now `f8dbb90ebf47effc36f13470fba24a2e`,
+  8,840 bytes.
 - Arabic registered on `templates/list-collections.json`, `outdated: false`:
   `count_singular` → عطر · `count_plural` → عطراً
 

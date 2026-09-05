@@ -135,10 +135,16 @@
      elsewhere; only this pairing was short. */
   /* 2026-09-05: the base .rd-house__count is uppercase, which is right for a
      micro-label sitting over a photograph but shouts beside a quiet brand name
-     on a bare panel. Rendered as authored instead: "5 fragrances". */
+     on a bare panel. Rendered as authored instead: "5 fragrances".
+
+     The base 0.18em tracking goes with it. That figure was set for uppercase,
+     where wide letter-spacing is what makes a micro-label legible; on lowercase
+     it just reads loose. 0.04em keeps a trace of the label character without
+     spacing the word out. Set once here rather than per breakpoint — the 900px
+     block only changes font-size, so this value carries down to 375px. */
   .rd-bidx__grid .rd-house--text .rd-house__count {
     color: #565A51; font-size: 10px; line-height: 1.2; white-space: nowrap;
-    text-transform: none;
+    text-transform: none; letter-spacing: 0.04em;
     margin-block-start: auto; padding-block-start: 8px;
   }
 
