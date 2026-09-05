@@ -767,3 +767,37 @@ English-only across the catalogue.
 
 `Dior Homme Intense` (`10385881301299`) — the Arabic `body_html` is missing its
 closing `</p>`. The English has it. Cosmetic, left alone.
+
+## Arabic backlog + Dior tag fix (2026-09-05, box 3)
+
+### Fixed
+
+`Dior Homme Intense` (`gid://shopify/Product/10385881301299`) — the Arabic
+`body_html` was missing its closing `</p>`. Added that one tag; the sentence text
+is byte-identical otherwise. Re-read `outdated: false`.
+
+### The untranslated backlog
+
+`ARABIC-TO-WRITE.txt` in this directory is the fill-in sheet: every RAQI string on
+box 3 with no Arabic, **deduplicated by English** so each line is written once,
+with the full key list showing everywhere it lands.
+
+| Group | Unique strings | ~Words |
+|---|---|---|
+| Theme sections (rd_hero/trust/steps/collection/profiles/discovery/ticker/why/faq) | 83 | ~739 |
+| Product descriptions (RAQI Discovery Box, Scent Boulevard Tonka Oud) | 2 | ~102 |
+| **Real copy subtotal** | **85** | **~841** |
+| Product SEO meta (optional) | 30 | ~488 |
+| `product_type` stragglers | 16 keys, 4 unique values | ~4 |
+| Product titles | 46 | ~183 — **do not translate** |
+
+Two things distort the raw key count, so read it carefully:
+
+- **140 theme keys collapse to 83 unique strings.** `rd_faq` is present on the
+  index, collection *and* product templates with identical content — 19 strings
+  become 57 keys. `rd_ticker` and `rd_collection` are doubled the same way. Write
+  once, register against every key.
+- **Product titles are brand names** ("Creed Aventus", "Tom Ford Fabulous").
+  Leave them Latin: customers search for them that way and Arabic layout renders
+  them correctly inline. They are listed in the table only so the number is not
+  mistaken for missing work.
