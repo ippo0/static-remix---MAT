@@ -1,5 +1,30 @@
 # Shopify theme snapshots — RAQI
 
+> ## ⛔ STANDING RULE — PRICES ARE OFF LIMITS
+>
+> **Never change any price on any product or variant.** Not `price`, not
+> `compareAtPrice`, not currency, not rounding, and not a price shown in copy.
+> This applies to **every theme, every product, and every locale**.
+>
+> If a task appears to require a price change, **stop and ask the merchant first.**
+>
+> **The one authorised exception, already made and standing:**
+> `compareAtPrice = 850.00` on the RAQI Discovery Box
+> (`gid://shopify/ProductVariant/53858623586611`, price `599.00`), authorised
+> explicitly on 2026-09-05. That stands. **Nothing further.**
+>
+> Notes for whoever picks this up:
+> - The §8.7 override in `sections/rd-hero.liquid` reads compare-at *from the
+>   variant*. Both the hero card and the builder total are display-only — they
+>   render whatever the product says. Changing the discount is a **merchant**
+>   action on the product, never a theme edit.
+> - `tom-ford-vanille-fatale` carries a **`pending-price`** tag. That tag is not
+>   an instruction to set a price. Leave it.
+> - Several strings in `ARABIC-TO-WRITE.txt` contain figures (AED 1,000–1,500;
+>   Dhs. 750; Buy 2 save 5% / Buy 3 save 10%; Dhs. 599). Arabic copy must carry
+>   the **same figures** as its English source. If returned Arabic differs on a
+>   number, stop and ask — do not register it.
+
 These files are **not** part of the `static-remix` skill. They are snapshots of
 files edited on the RAQI Shopify store (`waaxj1-6r.myshopify.com` / raqi.ae),
 kept here only so the work survives outside an ephemeral session container.
