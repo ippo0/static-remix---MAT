@@ -859,3 +859,46 @@ so its 325/699 prices are not final.
 Regenerated in the merchant's requested order (rd_faq, rd_discovery, rd_steps,
 rd_why, then the rest), with product titles and SEO meta removed. 85 strings,
 ~841 words, one blank `AR:` line each. SEO meta (~488 words) is a second batch.
+
+## Arabic batch 1 registered (2026-09-05, box 3)
+
+The merchant returned Arabic for all 85 strings in `ARABIC-TO-WRITE.txt`
+(`[058]` `Dhs. 599` deliberately left blank — it is the fallback-only price
+setting). Copy is archived here as `arabic-batch-1.json`, keyed by the sheet's
+numbering.
+
+**141 keys registered across 5 resources, all `outdated: false`:**
+
+| Resource | Keys |
+|---|---|
+| `templates/index.json` | 86 |
+| `templates/collection.json` | 31 |
+| `templates/product.json` | 22 |
+| RAQI Discovery Box `body_html` | 1 |
+| Scent Boulevard Tonka Oud `body_html` | 1 |
+
+85 written strings → 141 keys because `rd_faq` is duplicated verbatim across
+three templates (19 strings, 57 keys) and `rd_ticker` / `rd_collection` across
+two. The routing is by **exact English source value**, so a string lands on every
+key that carries it.
+
+Verified by reading all five resources back and comparing every registered value
+character-for-character against what was sent: **141 OK, 0 mismatches, 0 missing,
+0 outdated.**
+
+### Price rule check (per the standing rule at the top of this file)
+
+Every figure in the returned Arabic matches its English source — 1,000–1,500 /
+170 / +360 / 15 / 45 / 100 / 750 / 5% / 10% / 7. Two strings differ in *digit
+count* only because Arabic renders the small numerals as words:
+
+- `rd_hero.body` — "1 Signature + 2 Discovery" → "عطراً واحداً … وعطرين"
+- RAQI Discovery Box description — "1 Signature and 2 Discovery" → "واحد وعطران"
+
+These are singular/dual forms, not changed numbers. A future numeric sweep will
+flag them alongside the three already documented; they are correct.
+
+### Still untranslated (second batch)
+
+Product SEO `meta_title` / `meta_description` — 30 strings, ~488 words, affects
+Arabic search results only. Product titles stay Latin by decision.
