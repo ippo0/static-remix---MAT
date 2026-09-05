@@ -625,9 +625,8 @@ fixed by swapping in a re-cropped square asset, not by restyling:
 `templates/index.json` → `rd_hero.settings.image` is now
 `shopify://shop_images/raqi_discovery_box_square_edge.jpg`.
 
-⚠ **`rd_discovery` on the same template still points at the old
-`raqi_box_A_full_1200.jpg`.** Only `rd_hero` was in scope. If that section shows
-the same white margin, it needs the same one-line swap.
+**2026-09-05, later:** `rd_discovery` was swapped to the same asset. Both
+sections on the homepage now use `raqi_discovery_box_square_edge.jpg`.
 
 The only style added to the locked hero is `.rd-hero__offer-was`, which styles
 the struck figure alone and introduces no new component. It uses `--rd-ink`
@@ -649,10 +648,55 @@ warns against hand-editing. Its only differences from `box 2` are the `rd_hero`
 image above and a pre-existing `rd_collection.truncated_text` key (+99 bytes
 total, fully accounted for).
 
-### Still open
+## Homepage copy + image, second pass (2026-09-05, later)
 
-**The headline was not changed.** The request was to replace "No one should buy a
-signature in two minutes." but the replacement text arrived twice as an unfilled
-placeholder (`[HEADLINE]`, then `[ضع النص المختار هنا]`). It is a one-line edit
-to `rd_hero.settings.heading` once the copy exists — and note it is a **setting**,
-so it must be changed in the customizer, and its Arabic re-attached afterwards.
+Three changes to `templates/index.json` on `box 3`, English then Arabic.
+
+| Setting | Was | Now |
+|---|---|---|
+| `rd_hero.heading` | No one should buy a signature in two minutes. | Two thousand dirhams is a long time to be wrong. |
+| `rd_hero.offer_breakdown` | Three fragrances · 45ml · Individually Dhs. 850 | Three fragrances · 45ml |
+| `rd_discovery.image` | `raqi_box_A_full_1200.jpg` | `raqi_discovery_box_square_edge.jpg` |
+
+`offer_breakdown` dropped its "Individually Dhs. 850" tail because 850 now renders
+directly above it as the struck compare-at price — the line was repeating the number.
+
+Arabic attached and re-read as `outdated: false`:
+
+- `section.index.json.rd_hero.heading:357v1qvo17im9` → ألفا درهم مدّة طويلة على خطأ.
+- `section.index.json.rd_hero.offer_breakdown:35qu6jcjg7shv` → ثلاثة عطور · 45 مل
+
+Western numerals in the Arabic, matching the rest of the store. `rd_discovery.image`
+carried no Arabic, so the swap detached nothing.
+
+### How to verify a JSON template write
+
+`templates/index.json` cannot be MD5-checked the way a `.liquid` file can: the
+Admin API **pretty-prints it on read and prepends an auto-generated header
+comment**, so the returned text never matches the stored `checksumMd5`. What
+Shopify stores is the raw bytes you upload.
+
+The original was `11515` bytes / `b183a4f2f6d122a57064b8a122598cf6`, which is
+reproducible as **compact JSON (`,`/`:` separators, no spaces, UTF-8 unescaped)
+with every `/` escaped as `\/` and no trailing newline** — that is simply how the
+theme editor happened to save it, not a normalisation Shopify applies.
+
+Use that to prove a transcription *before* writing: rebuild the deployed file
+locally, confirm it hashes to the reported checksum, and only then edit. After the
+write, Shopify returned `11481` / `f3fab9a4f7e59597e9d8d99543d51ab9`, which equals
+the local compact form **without** slash-escaping — i.e. the bytes sent, verbatim.
+Both directions verified, so the write is exact.
+
+### ⚠ Pre-existing stale Arabic, not caused by this change
+
+Two keys on this template were already `outdated: true` before any of today's
+work, and they are a factual mismatch, not just staleness:
+
+| Key | English | Arabic |
+|---|---|---|
+| `raqi_story_sizes.ten_sprays` | ≈ 170 sprays | ≈ 120 رشة |
+| `raqi_story_sizes.thirty_sprays` | ≈ 360+ sprays | ≈ 360 رشة |
+
+The Arabic advertises **120** sprays where the English advertises 170. Left alone
+because it is outside this request, but it should be corrected — an Arabic customer
+is being quoted a different number from an English one.
