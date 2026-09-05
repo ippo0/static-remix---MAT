@@ -801,3 +801,36 @@ Two things distort the raw key count, so read it carefully:
   Leave them Latin: customers search for them that way and Arabic layout renders
   them correctly inline. They are listed in the table only so the number is not
   mistaken for missing work.
+
+## raqi_selected p7 swap (2026-09-05, box 3)
+
+The carousel was rendering **9 cards, not 10**. Block `p7` pointed at
+`kilian-angels-share`, which is DRAFT; a draft product resolves blank in
+`block.settings.product`, the loop hits `continue`, and the card silently
+disappears. Still true on `box 2`.
+
+`p7` is now **`amouage-reflection-woman`** (ACTIVE, Dhs. 245 / 10ml, real image).
+
+Chosen over Tom Ford Rose Prick on the merchant's call: the row prices 169–260
+and Rose Prick's 325 read as an outlier. The countervailing risk — Amouage
+Reflection **Man** already sits at `p3`, and near-identical names in an
+auto-advancing carousel can look like a bug — was judged smaller because the two
+bottles are visibly different.
+
+It also fixes a real gap: before this the row had **no women's fragrance and no
+floral** in ten slots.
+
+`templates/index.json` on box 3: `1b79079dae14c33d8d759d0edd40f9d5`, 11,486 bytes
+— matching the checksum predicted from the local edit before upload. One line
+changed. Translations unaffected: 407 Arabic keys, **0 outdated** (a block's
+product handle is not translatable text).
+
+⚠ Do not pick `tom-ford-vanille-fatale` for a merchandised slot, despite it being
+the closest scent match to Angels' Share — it carries a **`pending-price`** tag,
+so its 325/699 prices are not final.
+
+### `ARABIC-TO-WRITE.txt`
+
+Regenerated in the merchant's requested order (rd_faq, rd_discovery, rd_steps,
+rd_why, then the rest), with product titles and SEO meta removed. 85 strings,
+~841 words, one blank `AR:` line each. SEO meta (~488 words) is a second batch.

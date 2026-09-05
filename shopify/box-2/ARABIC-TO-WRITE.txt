@@ -1,652 +1,564 @@
-# RAQI — Arabic to write (box 3, theme 188518138163)
-
-Write Arabic in the ARABIC column. Each English string appears ONCE here even
-where it is reused across templates — the key list shows every place it lands.
-
-
-
-## rd_hero
-
---- [1] (3 words, 1 key)
-EN     : RAQI Discovery Set
-ARABIC : 
-  key  : section.index.json.rd_hero.eyebrow:357uv5a6qv5tk
-
---- [2] (22 words, 1 key)
-EN     : Choose 1 Signature + 2 Discovery fragrances — 15ml each, 45ml total. Experience three original fragrances before committing to a full bottle.
-ARABIC : 
-  key  : section.index.json.rd_hero.body:3mm8iae0tjnyx
-
---- [3] (2 words, 1 key)
-EN     : Dhs. 599
-ARABIC : 
-  key  : section.index.json.rd_hero.offer_price:3pnpwy8lh7otf
-
---- [4] (3 words, 2 keys)
-EN     : Build Your Set
-ARABIC : 
-  key  : section.index.json.rd_hero.cta1.label:25kdm8h3y7qmr
-  key  : section.index.json.rd_discovery.cta_label:24ufxrwnqr5y4
-
---- [5] (2 words, 1 key)
-EN     : Learn More
-ARABIC : 
-  key  : section.index.json.rd_hero.cta2.label:r4ecloki4rjk
-
-
-
-## rd_trust
-
---- [6] (2 words, 1 key)
-EN     : 100% Original
-ARABIC : 
-  key  : section.index.json.rd_trust.t1.text:2gabb7p6ofhri
-
---- [7] (5 words, 1 key)
-EN     : Sourced from authorised UAE agents
-ARABIC : 
-  key  : section.index.json.rd_trust.t2.text:28tfvr2l78gdp
-
---- [8] (4 words, 1 key)
-EN     : Hand-poured in the UAE
-ARABIC : 
-  key  : section.index.json.rd_trust.t3.text:4mgyo7m5n7ak
-
---- [9] (4 words, 1 key)
-EN     : Filled from full bottles
-ARABIC : 
-  key  : section.index.json.rd_trust.t4.text:38z55qu9g1ujv
-
---- [10] (3 words, 1 key)
-EN     : Sealed glass atomisers
-ARABIC : 
-  key  : section.index.json.rd_trust.t5.text:14s68nzaeglgq
-
---- [11] (5 words, 1 key)
-EN     : Batch recorded on every label
-ARABIC : 
-  key  : section.index.json.rd_trust.t6.text:xbat7cox9k2x
-
---- [12] (6 words, 1 key)
-EN     : Ask to see the source bottle
-ARABIC : 
-  key  : section.index.json.rd_trust.t7.text:2p9px5jw0grs8
-
-
-
-## rd_steps
-
---- [13] (5 words, 1 key)
-EN     : How a decant is made
-ARABIC : 
-  key  : section.index.json.rd_steps.heading:250212kkwld1s
-
---- [14] (13 words, 1 key)
-EN     : Three steps, unchanged since our first pour. Nothing is diluted, nothing is substituted.
-ARABIC : 
-  key  : section.index.json.rd_steps.support:25022g8hk5313
-
---- [15] (1 words, 1 key)
-EN     : Sourced
-ARABIC : 
-  key  : section.index.json.rd_steps.s1.title:s1b5r45lk1r5
-
---- [16] (16 words, 1 key)
-EN     : Sealed full bottles bought from authorised channels. Batch codes recorded before a single drop is moved.
-ARABIC : 
-  key  : section.index.json.rd_steps.s1.body:1wsu1rj0tfc35
-
---- [17] (8 words, 1 key)
-EN     : Sealed bottles from authorised channels, batch codes recorded.
-ARABIC : 
-  key  : section.index.json.rd_steps.s1.body_mobile:2k1zyc5o4l1e6
-
---- [18] (1 words, 1 key)
-EN     : Poured
-ARABIC : 
-  key  : section.index.json.rd_steps.s2.title:39qpx5dscmlc2
-
---- [19] (15 words, 1 key)
-EN     : Transferred by hand into pharmaceutical-grade glass, one order at a time, in a controlled space.
-ARABIC : 
-  key  : section.index.json.rd_steps.s2.body:2gi9actbvy75e
-
---- [20] (10 words, 1 key)
-EN     : By hand into pharmaceutical-grade glass, one order at a time.
-ARABIC : 
-  key  : section.index.json.rd_steps.s2.body_mobile:fuf4bwqrsab1
-
---- [21] (1 words, 1 key)
-EN     : Sealed
-ARABIC : 
-  key  : section.index.json.rd_steps.s3.title:3i1q422qadpcz
-
---- [22] (15 words, 1 key)
-EN     : Capped, labelled with house and batch, and sealed the same day it ships to you.
-ARABIC : 
-  key  : section.index.json.rd_steps.s3.body:cbad9yhv9wfn
-
---- [23] (11 words, 1 key)
-EN     : Capped, labelled with house and batch, sealed the day it ships.
-ARABIC : 
-  key  : section.index.json.rd_steps.s3.body_mobile:3atc35p76o7bg
-
-
-
-## rd_collection
-
---- [24] (2 words, 2 keys)
-EN     : The collection
-ARABIC : 
-  key  : section.collection.json.rd_collection.heading:ve9iqlrg1j2n
-  key  : section.index.json.rd_collection.heading:31l95aa29en53
-
---- [25] (4 words, 2 keys)
-EN     : fragrances, poured to order
-ARABIC : 
-  key  : section.collection.json.rd_collection.count_suffix:ui65k167wzvw
-  key  : section.index.json.rd_collection.count_suffix:2qn1th9iwwmf8
-
---- [26] (1 words, 2 keys)
-EN     : fragrances
-ARABIC : 
-  key  : section.collection.json.rd_collection.count_suffix_short:3j08bw3rptyzl
-  key  : section.index.json.rd_collection.count_suffix_short:1ay6tzbf3pgy1
-
---- [27] (11 words, 2 keys)
-EN     : Buy 2, save 5% · Buy 3 or more, save 10%
-ARABIC : 
-  key  : section.collection.json.rd_collection.tier_line:3q2h20pf93j24
-  key  : section.index.json.rd_collection.tier_line:24aqpysajo9ck
-
---- [28] (4 words, 2 keys)
-EN     : Buy 2, save 5%
-ARABIC : 
-  key  : section.collection.json.rd_collection.card_tier_label:3uqibopcx9twf
-  key  : section.index.json.rd_collection.card_tier_label:3q88lrp7g55dj
-
---- [29] (2 words, 2 keys)
-EN     : View all
-ARABIC : 
-  key  : section.collection.json.rd_collection.more_label:2ah0kwo8ea8a3
-  key  : section.index.json.rd_collection.more_label:3rpx2325eawz
-
---- [30] (5 words, 2 keys)
-EN     : Nothing matches that combination yet.
-ARABIC : 
-  key  : section.collection.json.rd_collection.empty_text:2ddo7sc826lyo
-  key  : section.index.json.rd_collection.empty_text:tg4g6zm6yl4
-
---- [31] (13 words, 1 key)
-EN     : This view is paginated — the filters above apply to this page only.
-ARABIC : 
-  key  : section.index.json.rd_collection.truncated_text:171ac4robfimf
-
-
-
-## rd_profiles
-
---- [32] (4 words, 1 key)
-EN     : Shop by scent profile
-ARABIC : 
-  key  : section.index.json.rd_profiles.label:wonrzt22rlvr
-
---- [33] (1 words, 2 keys)
-EN     : Woody
-ARABIC : 
-  key  : section.index.json.rd_profiles.p1.label:dludnz76jqv1
-  key  : section.index.json.rd_discovery.d1.label:m9s5xnfuqzaz
-
---- [34] (1 words, 2 keys)
-EN     : Fresh
-ARABIC : 
-  key  : section.index.json.rd_profiles.p2.label:4w2smnf67e3i
-  key  : section.index.json.rd_discovery.d2.label:2s7lg5r9zoavs
-
---- [35] (1 words, 2 keys)
-EN     : Sweet
-ARABIC : 
-  key  : section.index.json.rd_profiles.p3.label:5wqugj7vsjcv
-  key  : section.index.json.rd_discovery.d3.label:2zg3kmf962prt
-
---- [36] (1 words, 2 keys)
-EN     : Floral
-ARABIC : 
-  key  : section.index.json.rd_profiles.p4.label:1s316kcnzaz4o
-  key  : section.index.json.rd_discovery.d4.label:3ahuxpdv758ta
-
---- [37] (1 words, 2 keys)
-EN     : Citrus
-ARABIC : 
-  key  : section.index.json.rd_profiles.p5.label:3jrvdxyst427t
-  key  : section.index.json.rd_discovery.d5.label:1c956oq0cz4qn
-
---- [38] (1 words, 2 keys)
-EN     : Spicy
-ARABIC : 
-  key  : section.index.json.rd_profiles.p6.label:3b23swn0srpga
-  key  : section.index.json.rd_discovery.d6.label:3i6ygwtuhwgbg
-
-
-
-## rd_discovery
-
---- [39] (5 words, 1 key)
-EN     : Not sure where to start?
-ARABIC : 
-  key  : section.index.json.rd_discovery.eyebrow:2gzz4t23ld3r6
-
---- [40] (9 words, 1 key)
-EN     : Three scents. Fifteen millilitres each. One decision made easier.
-ARABIC : 
-  key  : section.index.json.rd_discovery.heading:2gzz36o5gvfej
-
---- [41] (46 words, 1 key)
-EN     : You choose all three. Pick any three fragrances from the collection and we pour them at 15ml each into the RAQI box — a set you build, not a sampler we assemble. Live with all three for a fortnight, then commit to the one that stayed.
-ARABIC : 
-  key  : section.index.json.rd_discovery.body:3li76ed1eewtf
-
---- [42] (13 words, 1 key)
-EN     : Or answer two questions and we will name a fragrance for you →
-ARABIC : 
-  key  : section.index.json.rd_discovery.aside:1x6w0a6bzdisp
-
---- [43] (2 words, 1 key)
-EN     : Fragrance finder
-ARABIC : 
-  key  : section.index.json.rd_discovery.finder_label:1gepq9c20s0d4
-
---- [44] (5 words, 1 key)
-EN     : Where will you wear it?
-ARABIC : 
-  key  : section.index.json.rd_discovery.q1:1t3yxwkk0eln7
-
---- [45] (4 words, 1 key)
-EN     : Which profile draws you?
-ARABIC : 
-  key  : section.index.json.rd_discovery.q2:1t3yxwkk0emfk
-
---- [46] (7 words, 1 key)
-EN     : Discovery Set imagery pending from the manufacturer
-ARABIC : 
-  key  : section.index.json.rd_discovery.placeholder_text:2uv9upqkr0g36
-
-
-
-## rd_ticker
-
---- [47] (3 words, 2 keys)
-EN     : Delivery and returns
-ARABIC : 
-  key  : section.collection.json.rd_ticker.label:1citixypejgd1
-  key  : section.index.json.rd_ticker.label:181sozbxilta5
-
---- [48] (5 words, 2 keys)
-EN     : Free Delivery Over Dhs. 750
-ARABIC : 
-  key  : section.collection.json.rd_ticker.t1.text:bocp9mflk9zk
-  key  : section.index.json.rd_ticker.t1.text:1hs8ittp9i7qw
-
---- [49] (4 words, 2 keys)
-EN     : 7-Day Return (Damaged/Defective Items)
-ARABIC : 
-  key  : section.collection.json.rd_ticker.t2.text:29zmkmds7r4gj
-  key  : section.index.json.rd_ticker.t2.text:21hnrf42p3aij
-
---- [50] (5 words, 2 keys)
-EN     : UAE Delivery — Next Day
-ARABIC : 
-  key  : section.collection.json.rd_ticker.t3.text:a0dpoiuhb5aq
-  key  : section.index.json.rd_ticker.t3.text:3tg2vdb9sai7u
-
---- [51] (3 words, 2 keys)
-EN     : 100% Authentic Fragrances
-ARABIC : 
-  key  : section.collection.json.rd_ticker.t4.text:n33tfzdbo2mt
-  key  : section.index.json.rd_ticker.t4.text:11byhfceg9wcd
-
-
-
-## rd_why
-
---- [52] (2 words, 1 key)
-EN     : Why RAQI
-ARABIC : 
-  key  : section.index.json.rd_why.heading:39cf0n0c3mpmf
-
---- [53] (2 words, 1 key)
-EN     : Authentic, always
-ARABIC : 
-  key  : section.index.json.rd_why.w1.title:3eve5xxg7qltu
-
---- [54] (12 words, 1 key)
-EN     : Poured from sealed bottles we bought ourselves. No replicas, no reformulated substitutes.
-ARABIC : 
-  key  : section.index.json.rd_why.w1.body:1a6y4ut9nsysy
-
---- [55] (7 words, 1 key)
-EN     : Poured from sealed bottles we bought ourselves.
-ARABIC : 
-  key  : section.index.json.rd_why.w1.body_mobile:31ixx9kzrqd9p
-
---- [56] (4 words, 1 key)
-EN     : A size that decides
-ARABIC : 
-  key  : section.index.json.rd_why.w2.title:x5zejntgo28x
-
---- [57] (17 words, 1 key)
-EN     : 10ml to meet a fragrance, 30ml to live with it through a season before the full bottle.
-ARABIC : 
-  key  : section.index.json.rd_why.w2.body:qhiw9iyla3qp
-
---- [58] (10 words, 1 key)
-EN     : 10ml to meet a fragrance, 30ml to live with it.
-ARABIC : 
-  key  : section.index.json.rd_why.w2.body_mobile:19l4q8rqzqnke
-
---- [59] (3 words, 1 key)
-EN     : Quiet by design
-ARABIC : 
-  key  : section.index.json.rd_why.w3.title:ouz7myviwy80
-
---- [60] (16 words, 1 key)
-EN     : No countdowns, no slashed prices. The fragrance is the argument; we stay out of its way.
-ARABIC : 
-  key  : section.index.json.rd_why.w3.body:2uohtcdslyegg
-
---- [61] (5 words, 1 key)
-EN     : No countdowns, no slashed prices.
-ARABIC : 
-  key  : section.index.json.rd_why.w3.body_mobile:2arlsg1gpn7cf
-
-
-
-## rd_faq
-
---- [62] (2 words, 3 keys)
-EN     : Questions, answered
-ARABIC : 
-  key  : section.collection.json.rd_faq.heading:2ycwq0qhpdjn3
-  key  : section.index.json.rd_faq.heading:1c05ikv1p3suf
-  key  : section.product.json.rd_faq.heading:25eg1hxg0n2ky
-
---- [63] (5 words, 3 keys)
-EN     : What exactly is a decant?
-ARABIC : 
-  key  : section.collection.json.rd_faq.q1.question:y9ikffpbqi6q
-  key  : section.index.json.rd_faq.q1.question:1b6n9zlvmmkxm
-  key  : section.product.json.rd_faq.q1.question:3sd5a9jw0dgen
-
---- [64] (24 words, 3 keys)
-EN     : Fragrance transferred by hand from a sealed, authenticated full bottle into a smaller glass atomiser. Same fragrance, same batch, a size you can finish.
-ARABIC : 
-  key  : section.collection.json.rd_faq.q1.answer:14p6buq0erkcg
-  key  : section.index.json.rd_faq.q1.answer:dxxfszhhtz8o
-  key  : section.product.json.rd_faq.q1.answer:3ne7ttz3ybgnx
-
---- [65] (4 words, 3 keys)
-EN     : Is the fragrance authentic?
-ARABIC : 
-  key  : section.collection.json.rd_faq.q2.question:3lnjbq9iihz0x
-  key  : section.index.json.rd_faq.q2.question:tpri2rhw0rg9
-  key  : section.product.json.rd_faq.q2.question:v2dcd5j2tzrg
-
---- [66] (31 words, 3 keys)
-EN     : Yes. Every bottle is bought through authorised UAE agents and its batch code is recorded before we pour. The code is printed on your label so you can verify it yourself.
-ARABIC : 
-  key  : section.collection.json.rd_faq.q2.answer:336lu7uqlomdf
-  key  : section.index.json.rd_faq.q2.answer:l9fnxqchgp0r
-  key  : section.product.json.rd_faq.q2.answer:8e6b6ft0a2e6
-
---- [67] (6 words, 3 keys)
-EN     : Where do you source your fragrances?
-ARABIC : 
-  key  : section.collection.json.rd_faq.q3.question:230rb6882qm1c
-  key  : section.index.json.rd_faq.q3.question:3ka0237dtpj3s
-  key  : section.product.json.rd_faq.q3.question:3qed560roqthp
-
---- [68] (19 words, 3 keys)
-EN     : Authorised agents and distributors in the UAE. We never buy unsealed stock and we never buy from unverified resellers.
-ARABIC : 
-  key  : section.collection.json.rd_faq.q3.answer:b9jzdalrx6iq
-  key  : section.index.json.rd_faq.q3.answer:lqlbx7kuyxpm
-  key  : section.product.json.rd_faq.q3.answer:26kl6aafrtlr
-
---- [69] (9 words, 3 keys)
-EN     : Why buy a decant instead of a full bottle?
-ARABIC : 
-  key  : section.collection.json.rd_faq.q4.question:3sbfaimovg8wn
-  key  : section.index.json.rd_faq.q4.question:3bfse29aromf3
-  key  : section.product.json.rd_faq.q4.question:3hresyl4fapqi
-
---- [70] (36 words, 3 keys)
-EN     : A full bottle costs AED 1,000–1,500. A decant lets you wear the fragrance for weeks first. If it is yours, buy the bottle. If it is not, you have spent a fraction of that finding out.
-ARABIC : 
-  key  : section.collection.json.rd_faq.q4.answer:gzfoffmskptx
-  key  : section.index.json.rd_faq.q4.answer:1s2kmx85k1e0d
-  key  : section.product.json.rd_faq.q4.answer:3d3812wytzj14
-
---- [71] (4 words, 3 keys)
-EN     : Why 10ml and 30ml?
-ARABIC : 
-  key  : section.collection.json.rd_faq.q5.question:29on9ylefovx2
-  key  : section.index.json.rd_faq.q5.question:2mlrzirkqkyny
-  key  : section.product.json.rd_faq.q5.question:2gy0kqe6wf2ob
-
---- [72] (31 words, 3 keys)
-EN     : 10ml is about 170 sprays, enough to know. 30ml is about 360+ sprays, enough to wear a fragrance through a season before committing. We do not sell 3ml or 5ml sizes.
-ARABIC : 
-  key  : section.collection.json.rd_faq.q5.answer:1l7rulxo3lqro
-  key  : section.index.json.rd_faq.q5.answer:ugiyk756o5nw
-  key  : section.product.json.rd_faq.q5.answer:36vmb2rg9ha8p
-
---- [73] (5 words, 3 keys)
-EN     : How is the fragrance transferred?
-ARABIC : 
-  key  : section.collection.json.rd_faq.q6.question:10xa08d1hnvyt
-  key  : section.index.json.rd_faq.q6.question:254w7lx6zz56l
-  key  : section.product.json.rd_faq.q6.question:3fsmnv203o2tk
-
---- [74] (30 words, 3 keys)
-EN     : By hand, in a controlled space, using sterilised equipment and pharmaceutical-grade glass atomisers. Nothing is diluted, heated, or mixed. Each order is poured and sealed the same day it ships.
-ARABIC : 
-  key  : section.collection.json.rd_faq.q6.answer:3jp7cz2eaissn
-  key  : section.index.json.rd_faq.q6.answer:11s16oy06avfz
-  key  : section.product.json.rd_faq.q6.answer:3o0ytgabg8cre
-
---- [75] (12 words, 3 keys)
-EN     : Can I see a photo of the source bottle or batch date?
-ARABIC : 
-  key  : section.collection.json.rd_faq.q7.question:3efw0pdx6ozro
-  key  : section.index.json.rd_faq.q7.question:zjqqlawsvg1o
-  key  : section.product.json.rd_faq.q7.question:2ez8fmv2ksfrd
-
---- [76] (28 words, 3 keys)
-EN     : Yes. Ask us before or after you order and we will send a photo of the bottle your decant was filled from, including its batch code and date.
-ARABIC : 
-  key  : section.collection.json.rd_faq.q7.answer:rs5i4i9grcxy
-  key  : section.index.json.rd_faq.q7.answer:1296uof8jt44u
-  key  : section.product.json.rd_faq.q7.answer:3htd3g4svq3yz
-
---- [77] (5 words, 3 keys)
-EN     : What is the Discovery Set?
-ARABIC : 
-  key  : section.collection.json.rd_faq.q8.question:mfmbe577oaaj
-  key  : section.index.json.rd_faq.q8.question:3uhby4fe7jtkj
-  key  : section.product.json.rd_faq.q8.question:2rhtr20fya7k6
-
---- [78] (24 words, 3 keys)
-EN     : Three fragrances you choose yourself, poured at 15ml each into the RAQI box. It is built by you, not a fixed sampler. Arriving soon.
-ARABIC : 
-  key  : section.collection.json.rd_faq.q8.answer:2qce1y2fn6j7t
-  key  : section.index.json.rd_faq.q8.answer:2htt8x87gjokh
-  key  : section.product.json.rd_faq.q8.answer:13q9nka5zdpn8
-
---- [79] (10 words, 3 keys)
-EN     : How is the Discovery Set different from a normal decant?
-ARABIC : 
-  key  : section.collection.json.rd_faq.q9.question:2zy8bv62wpe3e
-  key  : section.index.json.rd_faq.q9.question:35nbjkxo6g5te
-  key  : section.product.json.rd_faq.q9.question:1qofittifekhz
-
---- [80] (32 words, 3 keys)
-EN     : A decant is one fragrance at 10ml or 30ml. The Discovery Set is three fragrances at 15ml each in a presentation box, made for deciding between houses rather than living with one.
-ARABIC : 
-  key  : section.collection.json.rd_faq.q9.answer:3ukq84kgy7k5k
-  key  : section.index.json.rd_faq.q9.answer:1k7rkk7736g80
-  key  : section.product.json.rd_faq.q9.answer:xinxk4nevgut
-
-
-
-## main
-
---- [81] (2 words, 1 key)
-EN     : Try it
-ARABIC : 
-  key  : section.product.json.main.ten_ml_caption:2u4n34a4h2jz2
-
---- [82] (3 words, 1 key)
-EN     : Live with it
-ARABIC : 
-  key  : section.product.json.main.thirty_ml_caption:3tudchyqdxrsb
-
---- [83] (19 words, 1 key)
-EN     : Want proof? Ask and we'll send a photo of the bottle yours was poured from, plus the batch date.
-ARABIC : 
-  key  : section.product.json.main.photo_proof_text:g7h8ikefagaj
-
-
-
-## product descriptions (body_html — keep the <p> tags)
-
---- [84] (38 words)
-EN     : <p>A guided box of 3 hand-poured 15ml fragrances — 1 Signature and 2 Discovery — chosen by you. The specific fragrances poured for each order are recorded as order notes at checkout, not sold as separate line items.</p>
-ARABIC : 
-
---- [85] (64 words)
-EN     : <p>Scent Boulevard Tonka Oud brings together two of the warmest materials in perfumery: creamy, almond-sweet tonka bean and deep, resinous oud. The result is a soft-edged oriental — gourmand warmth on top, smoky woods underneath — that leans cosy rather than sharp.</p><p>Best suited to cooler evenings and comfortably unisex.</p><p>Decanted by RAQI from a 100ml Eau de Parfum into 10ml and 30ml sizes.</p>
-ARABIC : 
-
-
-
-## product SEO meta (optional — affects Arabic Google results only)
-
---- [86] meta_title (11 words)
-EN     : Louis Vuitton Ombre Nomade Decant – 10ml & 30ml | Raqi
-ARABIC : 
-
---- [87] meta_description (21 words)
-EN     : Deep oud lifted by raspberry and settled with vanilla. Authentic Louis Vuitton Ombre Nomade, in 10ml and 30ml. Next-day UAE delivery.
-ARABIC : 
-
---- [88] meta_title (12 words)
-EN     : Louis Vuitton Spell on You Decant – 10ml & 30ml | Raqi
-ARABIC : 
-
---- [89] meta_description (22 words)
-EN     : Violet and Tuscan iris into rose and Chinese jasmine over acacia and white musk. Authentic Louis Vuitton, in 10ml and 30ml decants.
-ARABIC : 
-
---- [90] meta_title (9 words)
-EN     : Creed Centaurus Decant – 10ml & 30ml | Raqi
-ARABIC : 
-
---- [91] meta_description (19 words)
-EN     : Cinnamon, cardamom and pink pepper over sandalwood, tobacco and vanilla. Authentic Creed Centaurus, hand-poured into 10ml and 30ml decants.
-ARABIC : 
-
---- [92] meta_title (11 words)
-EN     : Creed Aventus for Her Decant – 10ml & 30ml | Raqi
-ARABIC : 
-
---- [93] meta_description (22 words)
-EN     : Green apple and bergamot into rose, sandalwood and musk. Authentic Creed Aventus for Her, hand-poured into 10ml and 30ml. Next-day UAE delivery.
-ARABIC : 
-
---- [94] meta_title (10 words)
-EN     : Creed Absolu Aventus Decant – 10ml & 30ml | Raqi
-ARABIC : 
-
---- [95] meta_description (21 words)
-EN     : Grapefruit and pineapple over smoky Haitian vetiver — the limited edition. Authentic Creed, hand-poured into 10ml and 30ml. Next-day UAE delivery.
-ARABIC : 
-
---- [96] meta_title (10 words)
-EN     : Dior Sauvage Elixir Decant – 10ml & 30ml | Raqi
-ARABIC : 
-
---- [97] meta_description (20 words)
-EN     : Grapefruit, cinnamon and cardamom over patchouli, vetiver and licorice. Authentic Dior Sauvage Elixir, in 10ml and 30ml. Next-day UAE delivery.
-ARABIC : 
-
---- [98] meta_title (11 words)
-EN     : Bleu de Chanel EDT Decant – 10ml & 30ml | Raqi
-ARABIC : 
-
---- [99] meta_description (22 words)
-EN     : Lemon, mint and grapefruit over sandalwood, cedar and vetiver. Authentic Bleu de Chanel Eau de Toilette, hand-poured into 10ml and 30ml decants.
-ARABIC : 
-
---- [100] meta_title (11 words)
-EN     : Tom Ford Ombré Leather Decant – 10ml & 30ml | Raqi
-ARABIC : 
-
---- [101] meta_description (25 words)
-EN     : Cardamom and jasmine sambac over rich black leather, patchouli and amber. Authentic Tom Ford Ombré Leather, hand-poured into 10ml and 30ml decants. Next-day UAE delivery.
-ARABIC : 
-
---- [102] meta_title (11 words)
-EN     : Parfums de Marly Herod Decant – 10ml & 30ml | Raqi
-ARABIC : 
-
---- [103] meta_description (22 words)
-EN     : Cinnamon and pepper wood into tobacco leaf, incense and vanilla. Authentic Parfums de Marly Herod, in 10ml and 30ml. Next-day UAE delivery.
-ARABIC : 
-
---- [104] meta_title (10 words)
-EN     : Mancera Roses Vanille Decant – 10ml & 30ml | Raqi
-ARABIC : 
-
---- [105] meta_description (21 words)
-EN     : Turkish rose wrapped in vanilla, white musk and cedar. Authentic Mancera Roses Vanille, hand-poured into 10ml and 30ml. Next-day UAE delivery.
-ARABIC : 
-
---- [106] meta_title (10 words)
-EN     : Creed Wind Flowers Decant – 10ml & 30ml | Raqi
-ARABIC : 
-
---- [107] meta_description (23 words)
-EN     : White florals and praline — jasmine sambac, tuberose and rose over iris and sandalwood. Authentic Creed, hand-poured in the UAE. 10ml and 30ml.
-ARABIC : 
-
---- [108] meta_title (11 words)
-EN     : Creed Silver Mountain Water Decant – 10ml & 30ml | Raqi
-ARABIC : 
-
---- [109] meta_description (23 words)
-EN     : Fresh green tea and ozonic notes over musk and sandalwood. Authentic Creed Silver Mountain Water, hand-poured into 10ml and 30ml. Next-day UAE delivery.
-ARABIC : 
-
---- [110] meta_title (11 words)
-EN     : Creed Queen of Silk Decant – 10ml & 30ml | Raqi
-ARABIC : 
-
---- [111] meta_description (23 words)
-EN     : Chinese osmanthus and white flowers over Javanese patchouli and Madagascan vanilla. Authentic Creed Queen of Silk, in 10ml and 30ml. Next-day UAE delivery.
-ARABIC : 
-
---- [112] meta_title (10 words)
-EN     : Givenchy Garçon Manqué Decant – 10ml & 30ml | Raqi
-ARABIC : 
-
---- [113] meta_description (20 words)
-EN     : Somali incense with osmanthus and leather over styrax and birch. Authentic Givenchy La Collection Particulière, in 10ml and 30ml decants.
-ARABIC : 
-
---- [114] meta_title (11 words)
-EN     : Parfums de Marly Haltane Decant – 10ml & 30ml | Raqi
-ARABIC : 
-
---- [115] meta_description (25 words)
-EN     : Bergamot and clary sage into saffron, praline and oudwood, over leather and musk. Authentic Parfums de Marly Haltane, in 10ml and 30ml. Next-day UAE delivery.
-ARABIC : 
+RAQI — ARABIC TO WRITE
+theme: box 3 (188518138163)   generated 2026-09-05
+========================================================================
+
+HOW TO USE
+  Put the Arabic after "AR:" on the line under each English string.
+  Leave everything else exactly as it is and send the file back.
+
+  Each English string appears ONCE even where it is reused across
+  templates. The "keys:" lines show every place it will be applied —
+  you write it once, it gets registered to all of them.
+
+  Product titles are NOT here: brand names stay Latin.
+  Product SEO meta is NOT here: that is the second batch.
+
+CONTENTS
+  rd_faq            19 strings   ~ 317 words
+  rd_discovery      15 strings   ~ 100 words
+  rd_steps          11 strings   ~  96 words
+  rd_why            10 strings   ~  78 words
+  rd_hero            4 strings   ~  29 words
+  rd_trust           7 strings   ~  29 words
+  rd_collection      8 strings   ~  42 words
+  rd_ticker          5 strings   ~  20 words
+  rd_profiles        1 strings   ~   4 words
+  main               3 strings   ~  24 words
+  descriptions       2 strings   ~ 102 words
+  ----------------------------------------------
+  TOTAL             85 strings   ~ 841 words
+
+
+========================================================================
+RD_FAQ  —  FAQ — 19 Q&A. Written once; lands on the home, collection AND product pages.
+========================================================================
+
+[001]  2 words  (3 keys)
+EN: Questions, answered
+AR: 
+    keys: section.collection.json.rd_faq.heading:2ycwq0qhpdjn3
+    keys: section.index.json.rd_faq.heading:1c05ikv1p3suf
+    keys: section.product.json.rd_faq.heading:25eg1hxg0n2ky
+
+[002]  5 words  (3 keys)
+EN: What exactly is a decant?
+AR: 
+    keys: section.collection.json.rd_faq.q1.question:y9ikffpbqi6q
+    keys: section.index.json.rd_faq.q1.question:1b6n9zlvmmkxm
+    keys: section.product.json.rd_faq.q1.question:3sd5a9jw0dgen
+
+[003]  24 words  (3 keys)
+EN: Fragrance transferred by hand from a sealed, authenticated full bottle into a smaller glass atomiser. Same fragrance, same batch, a size you can finish.
+AR: 
+    keys: section.collection.json.rd_faq.q1.answer:14p6buq0erkcg
+    keys: section.index.json.rd_faq.q1.answer:dxxfszhhtz8o
+    keys: section.product.json.rd_faq.q1.answer:3ne7ttz3ybgnx
+
+[004]  4 words  (3 keys)
+EN: Is the fragrance authentic?
+AR: 
+    keys: section.collection.json.rd_faq.q2.question:3lnjbq9iihz0x
+    keys: section.index.json.rd_faq.q2.question:tpri2rhw0rg9
+    keys: section.product.json.rd_faq.q2.question:v2dcd5j2tzrg
+
+[005]  31 words  (3 keys)
+EN: Yes. Every bottle is bought through authorised UAE agents and its batch code is recorded before we pour. The code is printed on your label so you can verify it yourself.
+AR: 
+    keys: section.collection.json.rd_faq.q2.answer:336lu7uqlomdf
+    keys: section.index.json.rd_faq.q2.answer:l9fnxqchgp0r
+    keys: section.product.json.rd_faq.q2.answer:8e6b6ft0a2e6
+
+[006]  6 words  (3 keys)
+EN: Where do you source your fragrances?
+AR: 
+    keys: section.collection.json.rd_faq.q3.question:230rb6882qm1c
+    keys: section.index.json.rd_faq.q3.question:3ka0237dtpj3s
+    keys: section.product.json.rd_faq.q3.question:3qed560roqthp
+
+[007]  19 words  (3 keys)
+EN: Authorised agents and distributors in the UAE. We never buy unsealed stock and we never buy from unverified resellers.
+AR: 
+    keys: section.collection.json.rd_faq.q3.answer:b9jzdalrx6iq
+    keys: section.index.json.rd_faq.q3.answer:lqlbx7kuyxpm
+    keys: section.product.json.rd_faq.q3.answer:26kl6aafrtlr
+
+[008]  9 words  (3 keys)
+EN: Why buy a decant instead of a full bottle?
+AR: 
+    keys: section.collection.json.rd_faq.q4.question:3sbfaimovg8wn
+    keys: section.index.json.rd_faq.q4.question:3bfse29aromf3
+    keys: section.product.json.rd_faq.q4.question:3hresyl4fapqi
+
+[009]  36 words  (3 keys)
+EN: A full bottle costs AED 1,000–1,500. A decant lets you wear the fragrance for weeks first. If it is yours, buy the bottle. If it is not, you have spent a fraction of that finding out.
+AR: 
+    keys: section.collection.json.rd_faq.q4.answer:gzfoffmskptx
+    keys: section.index.json.rd_faq.q4.answer:1s2kmx85k1e0d
+    keys: section.product.json.rd_faq.q4.answer:3d3812wytzj14
+
+[010]  4 words  (3 keys)
+EN: Why 10ml and 30ml?
+AR: 
+    keys: section.collection.json.rd_faq.q5.question:29on9ylefovx2
+    keys: section.index.json.rd_faq.q5.question:2mlrzirkqkyny
+    keys: section.product.json.rd_faq.q5.question:2gy0kqe6wf2ob
+
+[011]  31 words  (3 keys)
+EN: 10ml is about 170 sprays, enough to know. 30ml is about 360+ sprays, enough to wear a fragrance through a season before committing. We do not sell 3ml or 5ml sizes.
+AR: 
+    keys: section.collection.json.rd_faq.q5.answer:1l7rulxo3lqro
+    keys: section.index.json.rd_faq.q5.answer:ugiyk756o5nw
+    keys: section.product.json.rd_faq.q5.answer:36vmb2rg9ha8p
+
+[012]  5 words  (3 keys)
+EN: How is the fragrance transferred?
+AR: 
+    keys: section.collection.json.rd_faq.q6.question:10xa08d1hnvyt
+    keys: section.index.json.rd_faq.q6.question:254w7lx6zz56l
+    keys: section.product.json.rd_faq.q6.question:3fsmnv203o2tk
+
+[013]  30 words  (3 keys)
+EN: By hand, in a controlled space, using sterilised equipment and pharmaceutical-grade glass atomisers. Nothing is diluted, heated, or mixed. Each order is poured and sealed the same day it ships.
+AR: 
+    keys: section.collection.json.rd_faq.q6.answer:3jp7cz2eaissn
+    keys: section.index.json.rd_faq.q6.answer:11s16oy06avfz
+    keys: section.product.json.rd_faq.q6.answer:3o0ytgabg8cre
+
+[014]  12 words  (3 keys)
+EN: Can I see a photo of the source bottle or batch date?
+AR: 
+    keys: section.collection.json.rd_faq.q7.question:3efw0pdx6ozro
+    keys: section.index.json.rd_faq.q7.question:zjqqlawsvg1o
+    keys: section.product.json.rd_faq.q7.question:2ez8fmv2ksfrd
+
+[015]  28 words  (3 keys)
+EN: Yes. Ask us before or after you order and we will send a photo of the bottle your decant was filled from, including its batch code and date.
+AR: 
+    keys: section.collection.json.rd_faq.q7.answer:rs5i4i9grcxy
+    keys: section.index.json.rd_faq.q7.answer:1296uof8jt44u
+    keys: section.product.json.rd_faq.q7.answer:3htd3g4svq3yz
+
+[016]  5 words  (3 keys)
+EN: What is the Discovery Set?
+AR: 
+    keys: section.collection.json.rd_faq.q8.question:mfmbe577oaaj
+    keys: section.index.json.rd_faq.q8.question:3uhby4fe7jtkj
+    keys: section.product.json.rd_faq.q8.question:2rhtr20fya7k6
+
+[017]  24 words  (3 keys)
+EN: Three fragrances you choose yourself, poured at 15ml each into the RAQI box. It is built by you, not a fixed sampler. Arriving soon.
+AR: 
+    keys: section.collection.json.rd_faq.q8.answer:2qce1y2fn6j7t
+    keys: section.index.json.rd_faq.q8.answer:2htt8x87gjokh
+    keys: section.product.json.rd_faq.q8.answer:13q9nka5zdpn8
+
+[018]  10 words  (3 keys)
+EN: How is the Discovery Set different from a normal decant?
+AR: 
+    keys: section.collection.json.rd_faq.q9.question:2zy8bv62wpe3e
+    keys: section.index.json.rd_faq.q9.question:35nbjkxo6g5te
+    keys: section.product.json.rd_faq.q9.question:1qofittifekhz
+
+[019]  32 words  (3 keys)
+EN: A decant is one fragrance at 10ml or 30ml. The Discovery Set is three fragrances at 15ml each in a presentation box, made for deciding between houses rather than living with one.
+AR: 
+    keys: section.collection.json.rd_faq.q9.answer:3ukq84kgy7k5k
+    keys: section.index.json.rd_faq.q9.answer:1k7rkk7736g80
+    keys: section.product.json.rd_faq.q9.answer:xinxk4nevgut
+
+
+========================================================================
+RD_DISCOVERY  —  Discovery Set block (homepage)
+========================================================================
+
+[020]  5 words
+EN: Not sure where to start?
+AR: 
+    keys: section.index.json.rd_discovery.eyebrow:2gzz4t23ld3r6
+
+[021]  9 words
+EN: Three scents. Fifteen millilitres each. One decision made easier.
+AR: 
+    keys: section.index.json.rd_discovery.heading:2gzz36o5gvfej
+
+[022]  46 words
+EN: You choose all three. Pick any three fragrances from the collection and we pour them at 15ml each into the RAQI box — a set you build, not a sampler we assemble. Live with all three for a fortnight, then commit to the one that stayed.
+AR: 
+    keys: section.index.json.rd_discovery.body:3li76ed1eewtf
+
+[023]  3 words  (2 keys)
+EN: Build Your Set
+AR: 
+    keys: section.index.json.rd_discovery.cta_label:24ufxrwnqr5y4
+    keys: section.index.json.rd_hero.cta1.label:25kdm8h3y7qmr
+
+[024]  13 words
+EN: Or answer two questions and we will name a fragrance for you →
+AR: 
+    keys: section.index.json.rd_discovery.aside:1x6w0a6bzdisp
+
+[025]  2 words
+EN: Fragrance finder
+AR: 
+    keys: section.index.json.rd_discovery.finder_label:1gepq9c20s0d4
+
+[026]  5 words
+EN: Where will you wear it?
+AR: 
+    keys: section.index.json.rd_discovery.q1:1t3yxwkk0eln7
+
+[027]  4 words
+EN: Which profile draws you?
+AR: 
+    keys: section.index.json.rd_discovery.q2:1t3yxwkk0emfk
+
+[028]  7 words
+EN: Discovery Set imagery pending from the manufacturer
+AR: 
+    keys: section.index.json.rd_discovery.placeholder_text:2uv9upqkr0g36
+
+[029]  1 words  (2 keys)
+EN: Woody
+AR: 
+    keys: section.index.json.rd_discovery.d1.label:m9s5xnfuqzaz
+    keys: section.index.json.rd_profiles.p1.label:dludnz76jqv1
+
+[030]  1 words  (2 keys)
+EN: Fresh
+AR: 
+    keys: section.index.json.rd_discovery.d2.label:2s7lg5r9zoavs
+    keys: section.index.json.rd_profiles.p2.label:4w2smnf67e3i
+
+[031]  1 words  (2 keys)
+EN: Sweet
+AR: 
+    keys: section.index.json.rd_discovery.d3.label:2zg3kmf962prt
+    keys: section.index.json.rd_profiles.p3.label:5wqugj7vsjcv
+
+[032]  1 words  (2 keys)
+EN: Floral
+AR: 
+    keys: section.index.json.rd_discovery.d4.label:3ahuxpdv758ta
+    keys: section.index.json.rd_profiles.p4.label:1s316kcnzaz4o
+
+[033]  1 words  (2 keys)
+EN: Citrus
+AR: 
+    keys: section.index.json.rd_discovery.d5.label:1c956oq0cz4qn
+    keys: section.index.json.rd_profiles.p5.label:3jrvdxyst427t
+
+[034]  1 words  (2 keys)
+EN: Spicy
+AR: 
+    keys: section.index.json.rd_discovery.d6.label:3i6ygwtuhwgbg
+    keys: section.index.json.rd_profiles.p6.label:3b23swn0srpga
+
+
+========================================================================
+RD_STEPS  —  How a decant is made — 3 steps
+========================================================================
+
+[035]  5 words
+EN: How a decant is made
+AR: 
+    keys: section.index.json.rd_steps.heading:250212kkwld1s
+
+[036]  13 words
+EN: Three steps, unchanged since our first pour. Nothing is diluted, nothing is substituted.
+AR: 
+    keys: section.index.json.rd_steps.support:25022g8hk5313
+
+[037]  1 words
+EN: Sourced
+AR: 
+    keys: section.index.json.rd_steps.s1.title:s1b5r45lk1r5
+
+[038]  16 words
+EN: Sealed full bottles bought from authorised channels. Batch codes recorded before a single drop is moved.
+AR: 
+    keys: section.index.json.rd_steps.s1.body:1wsu1rj0tfc35
+
+[039]  8 words
+EN: Sealed bottles from authorised channels, batch codes recorded.
+AR: 
+    keys: section.index.json.rd_steps.s1.body_mobile:2k1zyc5o4l1e6
+
+[040]  1 words
+EN: Poured
+AR: 
+    keys: section.index.json.rd_steps.s2.title:39qpx5dscmlc2
+
+[041]  15 words
+EN: Transferred by hand into pharmaceutical-grade glass, one order at a time, in a controlled space.
+AR: 
+    keys: section.index.json.rd_steps.s2.body:2gi9actbvy75e
+
+[042]  10 words
+EN: By hand into pharmaceutical-grade glass, one order at a time.
+AR: 
+    keys: section.index.json.rd_steps.s2.body_mobile:fuf4bwqrsab1
+
+[043]  1 words
+EN: Sealed
+AR: 
+    keys: section.index.json.rd_steps.s3.title:3i1q422qadpcz
+
+[044]  15 words
+EN: Capped, labelled with house and batch, and sealed the same day it ships to you.
+AR: 
+    keys: section.index.json.rd_steps.s3.body:cbad9yhv9wfn
+
+[045]  11 words
+EN: Capped, labelled with house and batch, sealed the day it ships.
+AR: 
+    keys: section.index.json.rd_steps.s3.body_mobile:3atc35p76o7bg
+
+
+========================================================================
+RD_WHY  —  Why RAQI — 3 pillars
+========================================================================
+
+[046]  2 words
+EN: Why RAQI
+AR: 
+    keys: section.index.json.rd_why.heading:39cf0n0c3mpmf
+
+[047]  2 words
+EN: Authentic, always
+AR: 
+    keys: section.index.json.rd_why.w1.title:3eve5xxg7qltu
+
+[048]  12 words
+EN: Poured from sealed bottles we bought ourselves. No replicas, no reformulated substitutes.
+AR: 
+    keys: section.index.json.rd_why.w1.body:1a6y4ut9nsysy
+
+[049]  7 words
+EN: Poured from sealed bottles we bought ourselves.
+AR: 
+    keys: section.index.json.rd_why.w1.body_mobile:31ixx9kzrqd9p
+
+[050]  4 words
+EN: A size that decides
+AR: 
+    keys: section.index.json.rd_why.w2.title:x5zejntgo28x
+
+[051]  17 words
+EN: 10ml to meet a fragrance, 30ml to live with it through a season before the full bottle.
+AR: 
+    keys: section.index.json.rd_why.w2.body:qhiw9iyla3qp
+
+[052]  10 words
+EN: 10ml to meet a fragrance, 30ml to live with it.
+AR: 
+    keys: section.index.json.rd_why.w2.body_mobile:19l4q8rqzqnke
+
+[053]  3 words
+EN: Quiet by design
+AR: 
+    keys: section.index.json.rd_why.w3.title:ouz7myviwy80
+
+[054]  16 words
+EN: No countdowns, no slashed prices. The fragrance is the argument; we stay out of its way.
+AR: 
+    keys: section.index.json.rd_why.w3.body:2uohtcdslyegg
+
+[055]  5 words
+EN: No countdowns, no slashed prices.
+AR: 
+    keys: section.index.json.rd_why.w3.body_mobile:2arlsg1gpn7cf
+
+
+========================================================================
+RD_HERO  —  Homepage hero
+========================================================================
+
+[056]  3 words
+EN: RAQI Discovery Set
+AR: 
+    keys: section.index.json.rd_hero.eyebrow:357uv5a6qv5tk
+
+[057]  22 words
+EN: Choose 1 Signature + 2 Discovery fragrances — 15ml each, 45ml total. Experience three original fragrances before committing to a full bottle.
+AR: 
+    keys: section.index.json.rd_hero.body:3mm8iae0tjnyx
+
+[058]  2 words
+EN: Dhs. 599
+AR: 
+    keys: section.index.json.rd_hero.offer_price:3pnpwy8lh7otf
+
+[059]  2 words
+EN: Learn More
+AR: 
+    keys: section.index.json.rd_hero.cta2.label:r4ecloki4rjk
+
+
+========================================================================
+RD_TRUST  —  Trust claims row
+========================================================================
+
+[060]  2 words
+EN: 100% Original
+AR: 
+    keys: section.index.json.rd_trust.t1.text:2gabb7p6ofhri
+
+[061]  5 words
+EN: Sourced from authorised UAE agents
+AR: 
+    keys: section.index.json.rd_trust.t2.text:28tfvr2l78gdp
+
+[062]  4 words
+EN: Hand-poured in the UAE
+AR: 
+    keys: section.index.json.rd_trust.t3.text:4mgyo7m5n7ak
+
+[063]  4 words
+EN: Filled from full bottles
+AR: 
+    keys: section.index.json.rd_trust.t4.text:38z55qu9g1ujv
+
+[064]  3 words
+EN: Sealed glass atomisers
+AR: 
+    keys: section.index.json.rd_trust.t5.text:14s68nzaeglgq
+
+[065]  5 words
+EN: Batch recorded on every label
+AR: 
+    keys: section.index.json.rd_trust.t6.text:xbat7cox9k2x
+
+[066]  6 words
+EN: Ask to see the source bottle
+AR: 
+    keys: section.index.json.rd_trust.t7.text:2p9px5jw0grs8
+
+
+========================================================================
+RD_COLLECTION  —  Collection header + filters
+========================================================================
+
+[067]  2 words  (2 keys)
+EN: The collection
+AR: 
+    keys: section.collection.json.rd_collection.heading:ve9iqlrg1j2n
+    keys: section.index.json.rd_collection.heading:31l95aa29en53
+
+[068]  4 words  (2 keys)
+EN: fragrances, poured to order
+AR: 
+    keys: section.collection.json.rd_collection.count_suffix:ui65k167wzvw
+    keys: section.index.json.rd_collection.count_suffix:2qn1th9iwwmf8
+
+[069]  1 words  (2 keys)
+EN: fragrances
+AR: 
+    keys: section.collection.json.rd_collection.count_suffix_short:3j08bw3rptyzl
+    keys: section.index.json.rd_collection.count_suffix_short:1ay6tzbf3pgy1
+
+[070]  11 words  (2 keys)
+EN: Buy 2, save 5% · Buy 3 or more, save 10%
+AR: 
+    keys: section.collection.json.rd_collection.tier_line:3q2h20pf93j24
+    keys: section.index.json.rd_collection.tier_line:24aqpysajo9ck
+
+[071]  4 words  (2 keys)
+EN: Buy 2, save 5%
+AR: 
+    keys: section.collection.json.rd_collection.card_tier_label:3uqibopcx9twf
+    keys: section.index.json.rd_collection.card_tier_label:3q88lrp7g55dj
+
+[072]  2 words  (2 keys)
+EN: View all
+AR: 
+    keys: section.collection.json.rd_collection.more_label:2ah0kwo8ea8a3
+    keys: section.index.json.rd_collection.more_label:3rpx2325eawz
+
+[073]  5 words  (2 keys)
+EN: Nothing matches that combination yet.
+AR: 
+    keys: section.collection.json.rd_collection.empty_text:2ddo7sc826lyo
+    keys: section.index.json.rd_collection.empty_text:tg4g6zm6yl4
+
+[074]  13 words
+EN: This view is paginated — the filters above apply to this page only.
+AR: 
+    keys: section.index.json.rd_collection.truncated_text:171ac4robfimf
+
+
+========================================================================
+RD_TICKER  —  Delivery/returns ticker
+========================================================================
+
+[075]  3 words  (2 keys)
+EN: Delivery and returns
+AR: 
+    keys: section.collection.json.rd_ticker.label:1citixypejgd1
+    keys: section.index.json.rd_ticker.label:181sozbxilta5
+
+[076]  5 words  (2 keys)
+EN: Free Delivery Over Dhs. 750
+AR: 
+    keys: section.collection.json.rd_ticker.t1.text:bocp9mflk9zk
+    keys: section.index.json.rd_ticker.t1.text:1hs8ittp9i7qw
+
+[077]  4 words  (2 keys)
+EN: 7-Day Return (Damaged/Defective Items)
+AR: 
+    keys: section.collection.json.rd_ticker.t2.text:29zmkmds7r4gj
+    keys: section.index.json.rd_ticker.t2.text:21hnrf42p3aij
+
+[078]  5 words  (2 keys)
+EN: UAE Delivery — Next Day
+AR: 
+    keys: section.collection.json.rd_ticker.t3.text:a0dpoiuhb5aq
+    keys: section.index.json.rd_ticker.t3.text:3tg2vdb9sai7u
+
+[079]  3 words  (2 keys)
+EN: 100% Authentic Fragrances
+AR: 
+    keys: section.collection.json.rd_ticker.t4.text:n33tfzdbo2mt
+    keys: section.index.json.rd_ticker.t4.text:11byhfceg9wcd
+
+
+========================================================================
+RD_PROFILES  —  Scent profile labels
+========================================================================
+
+[080]  4 words
+EN: Shop by scent profile
+AR: 
+    keys: section.index.json.rd_profiles.label:wonrzt22rlvr
+
+
+========================================================================
+MAIN  —  Product page
+========================================================================
+
+[081]  2 words
+EN: Try it
+AR: 
+    keys: section.product.json.main.ten_ml_caption:2u4n34a4h2jz2
+
+[082]  3 words
+EN: Live with it
+AR: 
+    keys: section.product.json.main.thirty_ml_caption:3tudchyqdxrsb
+
+[083]  19 words
+EN: Want proof? Ask and we'll send a photo of the bottle yours was poured from, plus the batch date.
+AR: 
+    keys: section.product.json.main.photo_proof_text:g7h8ikefagaj
+
+
+========================================================================
+PRODUCT DESCRIPTIONS  —  keep the <p> </p> tags in your Arabic
+========================================================================
+
+[084]  38 words  —  RAQI Discovery Box
+EN: <p>A guided box of 3 hand-poured 15ml fragrances — 1 Signature and 2 Discovery — chosen by you. The specific fragrances poured for each order are recorded as order notes at checkout, not sold as separate line items.</p>
+AR: 
+
+[085]  64 words  —  Scent Boulevard Tonka Oud
+EN: <p>Scent Boulevard Tonka Oud brings together two of the warmest materials in perfumery: creamy, almond-sweet tonka bean and deep, resinous oud. The result is a soft-edged oriental — gourmand warmth on top, smoky woods underneath — that leans cosy rather than sharp.</p><p>Best suited to cooler evenings and comfortably unisex.</p><p>Decanted by RAQI from a 100ml Eau de Parfum into 10ml and 30ml sizes.</p>
+AR: 
