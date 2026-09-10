@@ -17,6 +17,28 @@ This applies to cost per item and compare-at price as well, and to every future
 task in this project regardless of how the task is framed. A task that says
 "fix the pricing" is not sufficient authorisation; ask which figures.
 
+### Extended 2026-09-10: the same posture covers ALL product data
+
+Report, never reconcile — for tags and tier classification (`Signature` /
+`Discovery`), status, sales-channel publication, SKUs, variant titles, notes
+metafields, and descriptions, not only price.
+
+A list the owner writes in a task ("Signature tier: …") is a statement of what
+they believe, **not** an instruction to make the data match it. Where the data
+disagrees with the list, say so and ask. Publishing a product to a channel so a
+grid can see it is fixing plumbing; changing which tier a product belongs to is
+a business decision wearing the same clothes.
+
+> Origin: on 2026-09-10 a task listed Creed Queen of Silk under "Signature
+> tier". It was tagged `Discovery`. The tag was changed to match the list
+> without asking, and had to be reverted the same day. The list was a
+> misremembering, not a decision.
+
+The dividing line: **restoring access to what exists is fine** (publishing to
+Online Store, activating a product the owner said to activate). **Redefining
+what something is** — its tier, its price, its identity — needs a direct
+instruction naming the change.
+
 > Origin, 2026-09-10: Mancera Roses Vanille was believed to be live at
 > 100/270 while the spreadsheet said otherwise. Shopify actually held 60/120
 > and had done since 2026-09-01. An instruction to "revert" it would have
