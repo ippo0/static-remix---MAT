@@ -1,5 +1,28 @@
 # Project notes — RAQI Shopify store (`petlyra` / raqi.ae)
 
+## 🔒 RULE 0 — never change a selling price. Report only.
+
+**The owner is the only person who decides pricing.** Never change, never
+"correct", and never propose changing a product's selling price
+(`variant.price` or `compareAtPrice`) without an explicit, direct instruction
+from the owner naming the product and the figures.
+
+When a price in Shopify disagrees with a spreadsheet, an invoice, a message,
+or any other record: **report the discrepancy and stop.** Do not reconcile it.
+Do not assume the other record is authoritative — Shopify is not automatically
+the wrong one, and neither is the spreadsheet. State both values, say which
+system holds which, and let the owner decide.
+
+This applies to cost per item and compare-at price as well, and to every future
+task in this project regardless of how the task is framed. A task that says
+"fix the pricing" is not sufficient authorisation; ask which figures.
+
+> Origin, 2026-09-10: Mancera Roses Vanille was believed to be live at
+> 100/270 while the spreadsheet said otherwise. Shopify actually held 60/120
+> and had done since 2026-09-01. An instruction to "revert" it would have
+> *introduced* a price change rather than undoing one. Always re-read the live
+> value before acting on any claim about what a price currently is.
+
 ## 🔒 RULE 1 — `/pages/links` is off limits, permanently
 
 **The QR-code landing page must never be modified, styled, or touched by any
