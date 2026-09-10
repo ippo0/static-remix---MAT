@@ -151,18 +151,33 @@
   # rather than as an absent figure. This matches what the metafield
   # definition itself promises: "Leave empty to hide both reference lines."
   #
-  # The figure is rounded to whole dirhams and then formatted through
-  # money_without_currency, so the thousands separator follows the shop's own
-  # currency format instead of being hand-built here. That filter takes cents,
-  # hence times: 100; it returns "1,873.00" and the split drops the decimal
-  # part, which is always .00 after the round.
+  # 2026-09-10b: the thousands separator is grouped by hand below rather than
+  # by money_without_currency. That filter formats to the SHOP's currency
+  # format setting, so switching the store to a European format (1.873,00)
+  # would have made the previous `split: '.' | first` return "1" and print
+  # Dhs. 1 in place of Dhs. 1,873 — silently, on every product page at once.
+  # The grouping now depends on nothing outside these seven lines: no shop
+  # setting, no locale, and no browser (this is Liquid, so the finished
+  # string is rendered server-side and the device never sees a raw number).
+  #
+  # Liquid has no zero-pad filter, so the modulo remainder is padded by adding
+  # 1000 and slicing the leading digit off: 1873 -> 873 -> "1873" -> "873",
+  # and 2075 -> 75 -> "1075" -> "075". Correct to 999,999, which is some 475x
+  # the priciest bottle in the catalogue.
   assign fb_price_raw = product.metafields.custom.full_bottle_price.value
   assign fb_size_raw = product.metafields.custom.full_bottle_size.value
   assign show_market_ref = false
   if fb_price_raw != blank and fb_price_raw > 0 and fb_size_raw != blank and fb_size_raw > 0
     assign show_market_ref = true
-    assign fb_price_cents = fb_price_raw | round | times: 100
-    assign fb_price_display = fb_price_cents | money_without_currency | split: '.' | first
+    assign fb_int = fb_price_raw | round
+    if fb_int < 1000
+      assign fb_price_display = fb_int | append: ''
+    else
+      assign fb_thousands = fb_int | divided_by: 1000
+      assign fb_rem = fb_int | modulo: 1000 | plus: 1000 | append: ''
+      assign fb_rem = fb_rem | slice: 1, 3
+      assign fb_price_display = fb_thousands | append: ',' | append: fb_rem
+    endif
   endif
 -%}
 <div class="raqi-section" id="RaqiProductSection-{{ section.id }}" style="padding:36px 0 72px;">
