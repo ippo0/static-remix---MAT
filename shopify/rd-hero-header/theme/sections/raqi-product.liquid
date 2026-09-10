@@ -192,7 +192,14 @@
       <div class="raqi-product-gallery">
         <div class="raqi-product-gallery__main" id="RaqiMainImage-{{ section.id }}">
           {%- if product.featured_media != blank -%}
-            {{ product.featured_media.preview_image | image_url: width: 1000 | image_tag: loading: 'eager', id: main_img_id, alt: main_img_alt }}
+            {%- comment -%}
+              2026-09-10: widths/sizes added. Without them image_tag emits no
+              srcset at all, so a 375px phone downloaded the same 1000px file as
+              a 1920px desktop. sizes matches the grid: the column is 50vw above
+              900px and the full width below it, which is where raqi-product-grid
+              collapses to one column.
+            {%- endcomment -%}
+            {{ product.featured_media.preview_image | image_url: width: 1000 | image_tag: loading: 'eager', id: main_img_id, alt: main_img_alt, widths: '400, 600, 800, 1000', sizes: '(max-width: 900px) 100vw, 50vw' }}
           {%- else -%}
             <div class="raqi-photo-placeholder" style="width:100%;height:100%;"><span class="raqi-photo-placeholder__label">{{ section.settings.photo_placeholder | default: 'Product photo' }}</span></div>
           {%- endif -%}
