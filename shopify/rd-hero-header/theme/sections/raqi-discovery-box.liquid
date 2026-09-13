@@ -1,0 +1,743 @@
+{% comment %}
+  Raqi — Discovery Box builder (Raqi box design system).
+
+  2026-09-13 UNIFIED GRID (this revision). The Signature/Discovery tier split
+  is GONE. The flow was: step 1 pick exactly 1 Signature-tagged fragrance,
+  step 2 pick exactly 2 Discovery-tagged ones, step 3 review. It is now:
+  step 1 pick ANY 3 fragrances from one grid, step 2 review.
+
+  What that changed, and why each piece is the way it is:
+
+  1. TAG FILTER REMOVED. The two grids each looped the catalogue and kept
+     only `product.tags contains 'Signature'` / 'Discovery'. One grid now
+     renders every product, so the tier tags are no longer read at all here.
+     They still exist on the products and are still used elsewhere; nothing
+     about this section writes or depends on them any more.
+
+  2. THE BUNDLE MUST BE EXCLUDED BY HAND NOW. This is the sharp edge of
+     removing the tag filter. The RAQI Discovery Box product carries neither
+     tier tag, so the old code excluded it for free — it simply never matched.
+     With no tag filter, the box would render as a selectable card INSIDE its
+     own builder, and a customer could put the box in the box. It is excluded
+     on the 'bundle' tag it already carries, exactly as
+     sections/rd-collection.liquid does for every other grid.
+
+  3. DUPLICATES ARE IMPOSSIBLE BY CONSTRUCTION, not by validation. togglePick
+     looks the variant id up in state.picks first: a second tap on a card that
+     is already chosen REMOVES it. There is no code path that appends an id
+     already present, so "the same fragrance three times" cannot be built and
+     then rejected — it can never be entered. Variant ids are unique per
+     variant across the shop, so the id is a safe identity key.
+
+  4. EXCLUSIONS ARE A SECTION SETTING, not product data and not a hardcoded
+     list. `excluded_handles` is comma-separated and editable in the theme
+     editor. Matching is guarded on both sides with commas —
+     ',creed,' vs ',creed-aventus,' — because a bare `contains` would treat
+     any handle as excluded the moment it happened to be a prefix of an
+     excluded one. The seven defaults remain normal, sellable products
+     everywhere else on the site; this hides them from the builder only.
+
+  5. FILTER TABS reuse .rd-tabs / .rd-tab from assets/raqi-redesign.css, which
+     loads in <head> on every page from snippets/custom-code-head.liquid. That
+     is why there is no new CSS for them and why they are wrapped in
+     .rd-scope: the shared rules are scoped to it. Category comes from
+     product.type (Men/Women/Unisex) plus the Niche tag as a cross-cutting
+     fifth tab — the same derivation sections/rd-collection.liquid uses, so
+     the two surfaces cannot disagree about what "Men" means.
+
+     Deliberately NOT copied from the collection page: brand chips, URL query
+     sync, pagination links. This is a picker, not a browsing surface.
+
+  6. FILTERING IS A VIEW, NOT A RESET. Hiding a card does not deselect it.
+     state.picks is independent of display, so switching tabs mid-selection
+     keeps the count honest and lets someone pick one fragrance per tab.
+
+  7. CART LINE PROPERTIES RENAMED. They were 'Signature Fragrance',
+     'Discovery Fragrance 1', 'Discovery Fragrance 2'. Still three
+     properties, now 'Fragrance 1/2/3', because the tier words no longer
+     describe anything. Orders placed before this revision keep their old
+     property names — this only affects new orders.
+
+  ---- Carried forward unchanged, all load-bearing ----
+
+  2026-09-02 CATALOGUE CAP: iterating collections['all'].products outside a
+  {% paginate %} block hard-caps the loop at 50 items and drops the remainder
+  SILENTLY — no error, no warning, nothing in the admin. The grid is wrapped
+  in {% paginate ... by 250 %}, raising the ceiling 50 -> 250. `limit:` does
+  NOT work for this; paginate is the only supported mechanism. A guard reads
+  paginate.pages (paginate's own metadata, always accurate) and, past 250,
+  renders a red banner in the theme editor and logs a console error live.
+  Failure is loud.
+
+  The box product is resolved with Shopify's global all_products[handle] — a
+  direct lookup with no catalogue-size dependency. It used to be found by
+  looping the same capped 50-product array, so if the box ever fell outside
+  the first 50, box_variant_id rendered empty and Add to Bag failed for every
+  customer. Do not reintroduce a local variable named `all_products`; it
+  shadows the global, which is what forced the loop originally.
+
+  2026-08-16 i18n: every string is a real translation key under
+  raqi.discovery_box.* in locales/en.default.json and locales/ar.json.
+  Section settings are NOT locale-aware — they render the same value in every
+  language — which is why copy must never live in a setting here. The notes
+  modal reuses the sitewide raqi.product.note_top/heart/base keys.
+
+  locales/ar.json sits near Shopify's 3,400-entry ceiling, so this revision
+  REPURPOSES existing keys rather than adding any: step_1_name, step_1_heading
+  and step_2_hint carry the new copy. step_2_name, step_2_heading and
+  change_label are no longer rendered and are left in place, inert.
+
+  NOTE on {n}/{count} placeholders: Shopify's Liquid lexer rejects a literal
+  '{' or '}' inside a {{ }} output tag, even inside a quoted argument, so the
+  placeholder token is assembled from an assigned '{' / '}' pair inside a
+  {% liquid %} block.
+
+  2026-09-03 out of stock: an unavailable fragrance STAYS in the grid, badged
+  and dimmed, rather than being drafted out of existence — a vanished card
+  reads as "we never carried it" instead of "not right now". Selection is
+  refused in isPickable(), not at render time, so the card keeps its data-*
+  attributes and its notes button works.
+
+  2026-08-16 RTL: the notes-modal label uses margin-inline-end, not
+  margin-right, which would collapse to a zero visual gap in Arabic.
+{% endcomment %}
+{{ 'component-product-bundles.css' | asset_url | stylesheet_tag }}
+{%- liquid
+  comment
+    Box product resolved by direct handle lookup against Shopify's global
+    all_products object. No catalogue loop, so no 50-item cap exposure.
+  endcomment
+  assign box_handle = section.settings.box_product_handle | default: 'raqi-discovery-box'
+  assign box_product = all_products[box_handle]
+
+  assign box_variant_id = ''
+  assign box_price_display = section.settings.box_price | default: 'Dhs. 599.00'
+  assign box_was_display = ''
+  if box_product
+    assign box_variant = box_product.variants.first
+    assign box_variant_id = box_variant.id
+    assign box_price_display = box_variant.price | money
+    # 2026-09-05: the struck price is read from the variant's compare_at_price,
+    # never typed as copy, so this total and the homepage price card share one
+    # source and cannot drift apart. Clear compare-at on the product and both
+    # quietly return to a single price with no code change.
+    if box_variant.compare_at_price > box_variant.price
+      assign box_was_display = box_variant.compare_at_price | money
+    endif
+  endif
+
+  # Exclusion list, comma-delimited on BOTH sides so a handle can never be
+  # excluded merely for being a prefix of an excluded one.
+  assign excl_guard = ','
+  assign excl_items = section.settings.excluded_handles | split: ','
+  for excl_h in excl_items
+    assign excl_clean = excl_h | strip
+    if excl_clean != blank
+      assign excl_guard = excl_guard | append: excl_clean | append: ','
+    endif
+  endfor
+
+  assign ob = '{'
+  assign cb = '}'
+  assign n_token = ob | append: 'n' | append: cb
+  assign count_token = ob | append: 'count' | append: cb
+  assign step_label_template = 'raqi.discovery_box.step_label' | t
+  assign step_label_1 = step_label_template | replace: n_token, '1'
+  assign pick_hint_template = 'raqi.discovery_box.step_2_hint' | t
+  assign pick_hint_0 = pick_hint_template | replace: count_token, '0'
+-%}
+<section class="raqi-db raqi-section" id="raqi-discovery-box" data-raqi-db data-box-variant-id="{{ box_variant_id }}">
+  <div class="raqi-container raqi-db__container">
+    <div class="raqi-db__intro">
+      <p class="raqi-micro-label raqi-micro-label--accent">{{ 'raqi.discovery_box.eyebrow' | t }}</p>
+      <h1 class="raqi-db__heading">{{ 'raqi.discovery_box.heading' | t }}</h1>
+      <p class="raqi-db__subhead">{{ 'raqi.discovery_box.subhead' | t }}</p>
+    </div>
+
+    {%- comment -%}
+      Two steps now, not three: choose, then review. The bar fills 50/100.
+    {%- endcomment -%}
+    <div class="raqi-db__progress">
+      <p class="raqi-db__step-label" id="RaqiDbStepLabel">{{ step_label_1 }}</p>
+      <div class="raqi-db__bar"><div class="raqi-db__bar-fill" id="RaqiDbBarFill" style="width:50%"></div></div>
+      <div class="raqi-db__dots raqi-db__dots--two">
+        <button type="button" class="raqi-db__dot is-active" data-db-dot="1">
+          <span class="raqi-db__dot-num">1</span><span class="raqi-db__dot-label">{{ 'raqi.discovery_box.step_1_name' | t }}</span>
+        </button>
+        <button type="button" class="raqi-db__dot" data-db-dot="2" disabled>
+          <span class="raqi-db__dot-num">2</span><span class="raqi-db__dot-label">{{ 'raqi.discovery_box.step_3_name' | t }}</span>
+        </button>
+      </div>
+    </div>
+
+    {%- comment -%}
+      ONE paginate block around the single grid. Raises the per-loop product
+      ceiling from 50 to 250. Never split into two paginate blocks — they
+      contend over the same ?page= parameter.
+    {%- endcomment -%}
+    {%- paginate collections['all'].products by 250 -%}
+
+      {%- if paginate.pages > 1 -%}
+        {%- comment -%}
+          Catalogue has outgrown 250. Fail loudly rather than silently
+          dropping fragrances from the picker.
+        {%- endcomment -%}
+        {%- if request.design_mode -%}
+          <p style="background:#b3261e;color:#fff;padding:12px 16px;margin:0 0 24px;font-size:13px;line-height:1.6">
+            &#9888; RAQI Discovery Box: the catalogue now holds {{ paginate.items }} products, which exceeds the 250-product
+            render ceiling. Fragrances beyond the first 250 are NOT appearing in the picker below. Increase the
+            <code>by 250</code> value in sections/raqi-discovery-box.liquid, or move the picker to dedicated
+            tag-filtered collections.
+          </p>
+        {%- endif -%}
+        <script>
+          console.error('RAQI Discovery Box: catalogue truncated — rendering 250 of {{ paginate.items }} products. Fragrances are missing from the picker.');
+        </script>
+      {%- endif -%}
+
+      <div class="raqi-db__panel" data-db-panel="1">
+        <h2 class="raqi-db__panel-heading">{{ 'raqi.discovery_box.step_1_heading' | t }}</h2>
+        <p class="raqi-db__panel-hint" id="RaqiDbPickHint">{{ pick_hint_0 }}</p>
+
+        {%- comment -%}
+          Filter tabs. .rd-tabs/.rd-tab come from the shared redesign
+          stylesheet and are scoped to .rd-scope, hence the wrapper. Labels
+          reuse the raqi.rd.filters.* keys the collection page already uses,
+          so no new translation entries are needed for them.
+        {%- endcomment -%}
+        <div class="rd-scope raqi-db__filters">
+          <div class="rd-tabs" role="group" aria-label="{{ 'raqi.discovery_box.step_1_name' | t }}">
+            <button class="rd-tab" type="button" data-db-tab="all" aria-pressed="true">{{ 'raqi.rd.filters.all' | t }}</button>
+            <button class="rd-tab" type="button" data-db-tab="men" aria-pressed="false">{{ 'raqi.rd.filters.men' | t }}</button>
+            <button class="rd-tab" type="button" data-db-tab="women" aria-pressed="false">{{ 'raqi.rd.filters.women' | t }}</button>
+            <button class="rd-tab" type="button" data-db-tab="unisex" aria-pressed="false">{{ 'raqi.rd.filters.unisex' | t }}</button>
+            <button class="rd-tab" type="button" data-db-tab="niche" aria-pressed="false">{{ 'raqi.rd.filters.niche' | t }}</button>
+          </div>
+        </div>
+
+        <div class="raqi-db__grid" data-db-picker="unified">
+          {%- for product in collections['all'].products -%}
+            {%- liquid
+              # The bundle itself must never be selectable inside its own
+              # builder. See note 2 in the header comment.
+              assign db_skip = false
+              if product.tags contains 'bundle'
+                assign db_skip = true
+              endif
+              assign db_needle = ',' | append: product.handle | append: ','
+              if excl_guard contains db_needle
+                assign db_skip = true
+              endif
+
+              assign v10 = null
+              for variant in product.variants
+                if variant.title contains '10' and v10 == null
+                  assign v10 = variant
+                endif
+              endfor
+
+              assign oos = false
+              unless product.available
+                assign oos = true
+              endunless
+
+              assign db_type = product.type | handle
+              assign db_niche = false
+              if product.tags contains 'Niche'
+                assign db_niche = true
+              endif
+            -%}
+            {%- if db_skip == false and v10 -%}
+              <div
+                class="raqi-db__pick-card{% if oos %} is-oos{% endif %}"
+                data-db-pick
+                data-oos="{% if oos %}true{% else %}false{% endif %}"
+                {% if oos %}aria-disabled="true"{% endif %}
+                role="button"
+                tabindex="0"
+                data-variant-id="{{ v10.id }}"
+                data-type="{{ db_type }}"
+                data-niche="{% if db_niche %}true{% else %}false{% endif %}"
+                data-name="{{ product.title | escape }}"
+                data-vendor="{{ product.vendor | escape }}"
+                data-scent-family="{{ product.metafields.raqi.scent_family | escape }}"
+                data-notes-top="{{ product.metafields.raqi.notes_top | escape }}"
+                data-notes-heart="{{ product.metafields.raqi.notes_heart | escape }}"
+                data-notes-base="{{ product.metafields.raqi.notes_base | escape }}"
+              >
+                <span class="raqi-db__pick-media">
+                  {%- if product.featured_image != blank -%}
+                    {{ product.featured_image | image_url: width: 300 | image_tag: loading: 'lazy', alt: product.title, widths: '150, 300, 450', sizes: '(max-width: 560px) 45vw, (max-width: 900px) 30vw, 18vw' }}
+                  {%- endif -%}
+                </span>
+                {%- if oos -%}
+                  <span class="raqi-db__pick-oos">{{ 'products.product.out_of_stock' | t }}</span>
+                {%- endif -%}
+                <span class="raqi-db__pick-check" aria-hidden="true">&#10003;</span>
+                <button type="button" class="raqi-db__pick-notes-trigger" data-view-notes aria-label="{{ 'raqi.discovery_box.notes_trigger_label' | t }}">
+                  <svg viewBox="0 0 16 16" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.2"/>
+                    <path d="M8 7.2v4.1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                    <circle cx="8" cy="4.9" r="0.8" fill="currentColor"/>
+                  </svg>
+                  {{ 'raqi.discovery_box.notes_trigger_label' | t }}
+                </button>
+                <span class="raqi-db__pick-vendor">{{ product.vendor }}</span>
+                <span class="raqi-db__pick-name">{{ product.title | remove_first: product.vendor | strip }}</span>
+                <span class="raqi-db__pick-volume">{{ 'raqi.discovery_box.volume_label' | t }}</span>
+              </div>
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+
+        <p class="raqi-db__empty" data-db-empty hidden>{{ 'collections.general.no_matches' | t }}</p>
+
+        <div class="raqi-db__actions">
+          <button type="button" class="raqi-btn raqi-btn-primary" id="RaqiDbNext1" disabled>{{ 'raqi.discovery_box.continue_label' | t }}</button>
+        </div>
+      </div>
+
+    {%- endpaginate -%}
+
+    <div class="raqi-db__panel" data-db-panel="2" hidden>
+      <h2 class="raqi-db__panel-heading">{{ 'raqi.discovery_box.step_3_heading' | t }}</h2>
+      <div class="raqi-db__review-list" id="RaqiDbReviewList"></div>
+      <div class="raqi-db__total-row">
+        <span>{{ 'raqi.discovery_box.total_label' | t }}</span>
+        <span class="raqi-db__total-vals">
+          {%- if box_was_display != blank -%}
+            <s class="raqi-db__total-was">{{ box_was_display }}</s>
+          {%- endif -%}
+          <span id="RaqiDbTotal">{{ box_price_display }}</span>
+        </span>
+      </div>
+      <div class="raqi-db__actions">
+        <button type="button" class="raqi-btn raqi-btn-secondary" id="RaqiDbBack2">{{ 'raqi.discovery_box.back_label' | t }}</button>
+        <button type="button" class="raqi-btn raqi-btn-accent" id="RaqiDbAddToCart">{{ 'raqi.discovery_box.add_to_cart_label' | t }}</button>
+      </div>
+      <div class="raqi-db__message" id="RaqiDbMessage" role="alert" aria-live="assertive"></div>
+    </div>
+  </div>
+
+  <div class="raqi-db__notes-modal" id="RaqiDbNotesModal" hidden>
+    <div class="raqi-db__notes-modal-backdrop" data-close-notes></div>
+    <div class="raqi-db__notes-modal-panel" role="dialog" aria-modal="true" aria-labelledby="RaqiDbNotesModalTitle">
+      <button type="button" class="raqi-db__notes-modal-close" data-close-notes aria-label="{{ 'raqi.discovery_box.notes_close_label' | t }}">&times;</button>
+      <p class="raqi-db__notes-modal-vendor" id="RaqiDbNotesModalVendor"></p>
+      <h3 class="raqi-db__notes-modal-title" id="RaqiDbNotesModalTitle"></h3>
+      <p class="raqi-db__notes-modal-family" id="RaqiDbNotesModalFamily"></p>
+      <div class="raqi-db__notes-modal-rows" id="RaqiDbNotesModalRows"></div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .raqi-db{ padding:64px 0 96px; }
+  .raqi-db__intro{ text-align:center;max-width:560px;margin:0 auto 40px; }
+  .raqi-db__heading{ font-family:var(--raqi-font-display);font-weight:400;font-size:40px;color:var(--raqi-ink);margin:16px 0 16px; }
+  .raqi-db__subhead{ font-size:14px;line-height:1.8;color:var(--raqi-text-muted);margin:0; }
+
+  .raqi-db__progress{ max-width:520px;margin:0 auto 8px; }
+  .raqi-db__step-label{ text-align:center;font:500 11px/1 var(--raqi-font-body);letter-spacing:.2em;text-transform:uppercase;color:var(--raqi-accent);margin:0 0 14px; }
+  .raqi-db__bar{ height:2px;background:var(--raqi-rule);margin-bottom:22px; }
+  .raqi-db__bar-fill{ height:100%;background:var(--raqi-accent);transition:width .3s ease; }
+  .raqi-db__dots{ display:flex;justify-content:space-between;margin-bottom:40px; }
+  /* Two dots read as marooned at the far edges of a 520px rail, so the
+     two-step variant centres them with a gap instead of spreading them. */
+  .raqi-db__dots--two{ justify-content:center;gap:clamp(48px, 18vw, 140px); }
+  .raqi-db__dots--two .raqi-db__dot{ flex:0 0 auto; }
+  .raqi-db__dot{ display:flex;flex-direction:column;align-items:center;gap:8px;background:none;border:none;cursor:not-allowed;opacity:.4;flex:1; }
+  .raqi-db__dot:not(:disabled){ cursor:pointer;opacity:1; }
+  .raqi-db__dot-num{ width:26px;height:26px;border-radius:50%;border:1px solid var(--raqi-rule);display:flex;align-items:center;justify-content:center;font:500 11px var(--raqi-font-body);color:var(--raqi-text-muted); }
+  .raqi-db__dot.is-active .raqi-db__dot-num{ background:var(--raqi-ink);border-color:var(--raqi-ink);color:var(--raqi-bg-page); }
+  .raqi-db__dot:not(:disabled):not(.is-active) .raqi-db__dot-num{ border-color:var(--raqi-accent);color:var(--raqi-accent); }
+  .raqi-db__dot-label{ font:400 9.5px var(--raqi-font-body);letter-spacing:.14em;text-transform:uppercase;color:var(--raqi-text-muted); }
+
+  .raqi-db__panel-heading{ text-align:center;font-family:var(--raqi-font-display);font-weight:400;font-size:24px;color:var(--raqi-ink);margin:0 0 8px; }
+  .raqi-db__panel-hint{ text-align:center;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--raqi-text-muted);margin:0 0 22px; }
+
+  /* The tabs come fully styled from the shared stylesheet; all this does is
+     centre the row and space it off the grid. Logical margins only, so the
+     row needs no separate RTL rule. */
+  .raqi-db__filters{ display:flex;justify-content:center;margin-block:0 28px; }
+  .raqi-db__filters .rd-tabs{ flex-wrap:wrap;justify-content:center; }
+
+  .raqi-db__grid{ display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:36px; }
+  .raqi-db__pick-card{ position:relative;display:flex;flex-direction:column;align-items:flex-start;text-align:left;background:var(--raqi-bg-page);border:1px solid var(--raqi-rule);padding:12px;cursor:pointer;font-family:var(--raqi-font-body); }
+  .raqi-db__pick-card:focus-visible{ outline:2px solid var(--raqi-accent);outline-offset:2px; }
+  .raqi-db__pick-card.is-selected{ border-color:var(--raqi-ink);background:var(--raqi-bg-panel); }
+  .raqi-db__pick-media{ width:100%;aspect-ratio:1/1;background:var(--raqi-bg-panel);display:block;margin-bottom:10px;overflow:hidden; }
+  .raqi-db__pick-media img{ width:100%;height:100%;object-fit:cover; }
+  .raqi-db__pick-check{ position:absolute;top:8px;inset-inline-end:8px;width:20px;height:20px;border-radius:50%;background:var(--raqi-ink);color:var(--raqi-bg-page);display:none;align-items:center;justify-content:center;font-size:11px; }
+  .raqi-db__pick-card.is-selected .raqi-db__pick-check{ display:flex; }
+  .raqi-db__pick-notes-trigger{ display:inline-flex;align-items:center;gap:4px;background:none;border:none;padding:0;margin-bottom:8px;color:var(--raqi-accent);font:400 9.5px var(--raqi-font-body);letter-spacing:.1em;text-transform:uppercase;cursor:pointer; }
+  .raqi-db__pick-notes-trigger:hover{ text-decoration:underline; }
+  .raqi-db__pick-vendor{ font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--raqi-text-muted);margin-bottom:3px; }
+  .raqi-db__pick-name{ font-size:12.5px;font-weight:500;color:var(--raqi-ink);margin-bottom:4px;line-height:1.3; }
+  .raqi-db__pick-volume{ font-size:11px;color:var(--raqi-accent); }
+
+  /* 2026-09-13: once three are chosen, the unchosen cards say so rather than
+     silently ignoring taps. Pointer events stay on so the notes button keeps
+     working — reading about a fourth fragrance is still useful. */
+  .raqi-db__grid.is-full .raqi-db__pick-card:not(.is-selected){ opacity:.55;cursor:not-allowed; }
+
+  /* 2026-09-03 out of stock. The badge is a SIBLING of .raqi-db__pick-media,
+     not a child: the dimming below is an opacity, and opacity on a parent
+     fades its children with it, so a badge nested inside the media would be
+     the one element guaranteed to go unreadable. It sits as a band across the
+     top of the square image — .raqi-db__pick-card is already position:relative
+     and the card's 12px padding is what the inset values track.
+     The selected-state tick is suppressed outright rather than merely dimmed,
+     so a stale .is-selected class can never imply an out-of-stock fragrance
+     was picked. */
+  .raqi-db__pick-card.is-oos{ cursor:not-allowed; }
+  .raqi-db__pick-card.is-oos .raqi-db__pick-media img{ opacity:.34;filter:grayscale(1); }
+  .raqi-db__pick-card.is-oos .raqi-db__pick-vendor,
+  .raqi-db__pick-card.is-oos .raqi-db__pick-name,
+  .raqi-db__pick-card.is-oos .raqi-db__pick-volume{ opacity:.45; }
+  .raqi-db__pick-card.is-oos .raqi-db__pick-check{ display:none; }
+  .raqi-db__pick-oos{ position:absolute;top:12px;inset-inline:12px;z-index:1;
+    background:var(--raqi-ink);color:var(--raqi-bg-page);
+    font:500 9px/1 var(--raqi-font-body);letter-spacing:.16em;text-transform:uppercase;
+    text-align:center;padding:6px 4px;pointer-events:none; }
+
+  .raqi-db__empty{ text-align:center;font-size:13px;line-height:1.7;color:var(--raqi-text-muted);margin:0 0 28px; }
+  .raqi-db__empty[hidden]{ display:none; }
+
+  .raqi-db__actions{ display:flex;justify-content:center;gap:14px; }
+
+  .raqi-db__review-list{ max-width:520px;margin:0 auto 20px;display:flex;flex-direction:column;gap:14px; }
+  .raqi-db__review-item{ display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--raqi-rule);padding-bottom:14px; }
+  .raqi-db__review-item img{ width:56px;height:56px;object-fit:cover;background:var(--raqi-bg-panel);flex:none; }
+  .raqi-db__review-item-info{ flex:1; }
+  .raqi-db__review-item-vendor{ font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--raqi-text-muted);margin:0 0 2px; }
+  .raqi-db__review-item-name{ font-size:13px;font-weight:500;color:var(--raqi-ink);margin:0; }
+  .raqi-db__review-item-volume{ font-size:11.5px;color:var(--raqi-accent);white-space:nowrap; }
+  .raqi-db__total-row{ max-width:520px;margin:0 auto 28px;display:flex;justify-content:space-between;font:500 15px var(--raqi-font-body);color:var(--raqi-ink);padding-top:6px;border-top:1px solid var(--raqi-rule); }
+  /* 2026-09-05: was/now. --raqi-ink on the page ground rather than a muted grey,
+     so the struck figure stays readable instead of dissolving into the rule. */
+  .raqi-db__total-vals{ display:inline-flex;align-items:baseline;gap:10px; }
+  .raqi-db__total-was{ font-weight:400;font-size:13px;color:var(--raqi-ink);opacity:.75;text-decoration:line-through;text-decoration-thickness:1px; }
+  .raqi-db__message{ max-width:520px;margin:14px auto 0;text-align:center;font-size:13px; }
+  .raqi-db__message:empty{ display:none; }
+  .raqi-db__message--error{ color:#b3261e; }
+
+  .raqi-db__notes-modal[hidden]{ display:none; }
+  .raqi-db__notes-modal{ position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center; }
+  .raqi-db__notes-modal-backdrop{ position:absolute;inset:0;background:rgba(34,38,31,.55); }
+  .raqi-db__notes-modal-panel{ position:relative;background:var(--raqi-bg-page);max-width:340px;width:calc(100% - 40px);padding:28px 24px;text-align:start; }
+  .raqi-db__notes-modal-close{ position:absolute;top:10px;inset-inline-end:14px;background:none;border:none;font-size:20px;line-height:1;color:var(--raqi-text-muted);cursor:pointer; }
+  .raqi-db__notes-modal-vendor{ font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--raqi-text-muted);margin:0 0 4px; }
+  .raqi-db__notes-modal-title{ font-family:var(--raqi-font-display);font-weight:400;font-size:20px;color:var(--raqi-ink);margin:0 0 10px; }
+  .raqi-db__notes-modal-family{ font-size:12px;color:var(--raqi-accent);margin:0 0 16px; }
+  .raqi-db__notes-modal-row{ font-size:12px;color:var(--raqi-ink);line-height:1.7;margin:0 0 4px; }
+  .raqi-db__notes-modal-row strong{ text-transform:uppercase;font-size:9.5px;letter-spacing:.1em;color:var(--raqi-text-muted);margin-inline-end:6px; }
+  .raqi-db__notes-modal-empty{ font-size:12px;color:var(--raqi-text-muted); }
+
+  @media (max-width:900px){
+    .raqi-db__grid{ grid-template-columns:repeat(3,1fr); }
+    .raqi-db__dot-label{ display:none; }
+  }
+  @media (max-width:560px){
+    .raqi-db__grid{ grid-template-columns:repeat(2,1fr); }
+    .raqi-db__heading{ font-size:30px; }
+  }
+</style>
+
+<script>
+(function(){
+  try {
+    var root = document.querySelector('[data-raqi-db]');
+    if (!root) return;
+
+    var MAX_PICKS = 3;
+    // One flat list. There is no tier, so there is no second bucket and no
+    // ordering rule beyond the order the customer tapped them in.
+    var state = { step: 1, picks: [], cat: 'all' };
+    var maxStepReached = 1;
+
+    var stepLabelEl = document.getElementById('RaqiDbStepLabel');
+    var stepLabelTemplate = {{ 'raqi.discovery_box.step_label' | t | json }};
+    var barFill = document.getElementById('RaqiDbBarFill');
+    var dots = root.querySelectorAll('[data-db-dot]');
+    var panels = root.querySelectorAll('[data-db-panel]');
+    var volumeLabel = {{ 'raqi.discovery_box.volume_label' | t | json }};
+
+    var grid = root.querySelector('[data-db-picker="unified"]');
+    var tabs = root.querySelectorAll('[data-db-tab]');
+    var emptyEl = root.querySelector('[data-db-empty]');
+    var next1 = document.getElementById('RaqiDbNext1');
+    var back2 = document.getElementById('RaqiDbBack2');
+    var addBtn = document.getElementById('RaqiDbAddToCart');
+    var pickHint = document.getElementById('RaqiDbPickHint');
+    var pickHintTemplate = {{ 'raqi.discovery_box.step_2_hint' | t | json }};
+    var reviewList = document.getElementById('RaqiDbReviewList');
+    var msgEl = document.getElementById('RaqiDbMessage');
+    var errorMessage = {{ 'raqi.discovery_box.error_message' | t | json }};
+
+    var notesModal = document.getElementById('RaqiDbNotesModal');
+    var notesVendorEl = document.getElementById('RaqiDbNotesModalVendor');
+    var notesTitleEl = document.getElementById('RaqiDbNotesModalTitle');
+    var notesFamilyEl = document.getElementById('RaqiDbNotesModalFamily');
+    var notesRowsEl = document.getElementById('RaqiDbNotesModalRows');
+    var notesTopLabel = {{ 'raqi.product.note_top' | t | json }};
+    var notesHeartLabel = {{ 'raqi.product.note_heart' | t | json }};
+    var notesBaseLabel = {{ 'raqi.product.note_base' | t | json }};
+
+    function cardData(card){
+      return {
+        id: card.getAttribute('data-variant-id'),
+        name: card.getAttribute('data-name'),
+        vendor: card.getAttribute('data-vendor'),
+        img: card.querySelector('img') ? card.querySelector('img').src : ''
+      };
+    }
+
+    function displayName(item){
+      return item.name.replace(item.vendor, '').trim();
+    }
+
+    function indexOfPick(id){
+      for (var i = 0; i < state.picks.length; i++) {
+        if (state.picks[i].id === id) return i;
+      }
+      return -1;
+    }
+
+    function openNotes(card){
+      if (!card) return;
+      var vendor = card.getAttribute('data-vendor') || '';
+      var name = (card.getAttribute('data-name') || '').replace(vendor, '').trim();
+      var family = card.getAttribute('data-scent-family') || '';
+      var top = card.getAttribute('data-notes-top') || '';
+      var heart = card.getAttribute('data-notes-heart') || '';
+      var base = card.getAttribute('data-notes-base') || '';
+
+      notesVendorEl.textContent = vendor;
+      notesTitleEl.textContent = name;
+      notesFamilyEl.textContent = family;
+      notesFamilyEl.hidden = !family;
+
+      notesRowsEl.innerHTML = '';
+      var rows = [
+        [notesTopLabel, top],
+        [notesHeartLabel, heart],
+        [notesBaseLabel, base]
+      ].filter(function(r){ return r[1]; });
+
+      rows.forEach(function(r){
+        var p = document.createElement('p');
+        p.className = 'raqi-db__notes-modal-row';
+        var strong = document.createElement('strong');
+        strong.textContent = r[0];
+        p.appendChild(strong);
+        p.appendChild(document.createTextNode(r[1]));
+        notesRowsEl.appendChild(p);
+      });
+
+      notesModal.hidden = false;
+    }
+
+    function closeNotes(){ notesModal.hidden = true; }
+
+    notesModal.querySelectorAll('[data-close-notes]').forEach(function(el){
+      el.addEventListener('click', closeNotes);
+    });
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape' && !notesModal.hidden) closeNotes();
+    });
+
+    function goToStep(n){
+      state.step = n;
+      if (n > maxStepReached) maxStepReached = n;
+      stepLabelEl.textContent = stepLabelTemplate.replace('{n}', n);
+      barFill.style.width = (n === 1 ? 50 : 100) + '%';
+      panels.forEach(function(p){ p.hidden = p.getAttribute('data-db-panel') != n; });
+      dots.forEach(function(d){
+        var dn = parseInt(d.getAttribute('data-db-dot'), 10);
+        d.classList.toggle('is-active', dn === n);
+        d.disabled = dn > maxStepReached;
+      });
+      if (n === 2) renderReview();
+      root.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    dots.forEach(function(d){
+      d.addEventListener('click', function(){
+        var dn = parseInt(d.getAttribute('data-db-dot'), 10);
+        if (dn <= maxStepReached) goToStep(dn);
+      });
+    });
+
+    // 2026-09-03: one place decides whether a card can be picked, so click and
+    // keyboard cannot drift apart. The notes button is checked BEFORE this, so
+    // reading the notes on an out-of-stock fragrance still works.
+    function isPickable(card){
+      return !!card && card.getAttribute('data-oos') !== 'true';
+    }
+
+    function syncUi(){
+      var n = state.picks.length;
+      pickHint.textContent = pickHintTemplate.replace('{count}', n);
+      next1.disabled = n !== MAX_PICKS;
+      grid.classList.toggle('is-full', n >= MAX_PICKS);
+    }
+
+    // The only mutation path for state.picks. A card already chosen is
+    // REMOVED on a second tap, so an id can never be appended twice and a
+    // duplicate selection cannot be constructed in the first place.
+    function togglePick(card){
+      var id = card.getAttribute('data-variant-id');
+      var at = indexOfPick(id);
+      if (at > -1) {
+        state.picks.splice(at, 1);
+        card.classList.remove('is-selected');
+      } else {
+        if (state.picks.length >= MAX_PICKS) return;
+        state.picks.push(cardData(card));
+        card.classList.add('is-selected');
+      }
+      syncUi();
+    }
+
+    if (grid) {
+      grid.addEventListener('click', function(e){
+        var notesBtn = e.target.closest('[data-view-notes]');
+        if (notesBtn) {
+          e.stopPropagation();
+          openNotes(notesBtn.closest('[data-db-pick]'));
+          return;
+        }
+        var card = e.target.closest('[data-db-pick]');
+        if (!isPickable(card)) return;
+        togglePick(card);
+      });
+      grid.addEventListener('keydown', function(e){
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        var card = e.target.closest('[data-db-pick]');
+        if (!isPickable(card)) return;
+        e.preventDefault();
+        togglePick(card);
+      });
+    }
+
+    // Filtering hides cards; it never changes state.picks. Switching tabs
+    // mid-selection therefore keeps the count honest, and a chosen card that
+    // scrolls out of the active tab stays chosen.
+    function applyFilter(){
+      if (!grid) return;
+      var cards = grid.querySelectorAll('[data-db-pick]');
+      var shown = 0;
+      for (var i = 0; i < cards.length; i++) {
+        var c = cards[i];
+        var on = state.cat === 'all'
+          || (state.cat === 'niche'
+                ? c.getAttribute('data-niche') === 'true'
+                : c.getAttribute('data-type') === state.cat);
+        c.style.display = on ? '' : 'none';
+        if (on) shown++;
+      }
+      for (var t = 0; t < tabs.length; t++) {
+        tabs[t].setAttribute('aria-pressed', tabs[t].getAttribute('data-db-tab') === state.cat ? 'true' : 'false');
+      }
+      if (emptyEl) {
+        if (shown === 0) { emptyEl.removeAttribute('hidden'); }
+        else { emptyEl.setAttribute('hidden', ''); }
+      }
+    }
+
+    for (var t = 0; t < tabs.length; t++) {
+      (function(el){
+        el.addEventListener('click', function(){
+          state.cat = el.getAttribute('data-db-tab');
+          applyFilter();
+        });
+      })(tabs[t]);
+    }
+
+    if (next1) next1.addEventListener('click', function(){
+      if (state.picks.length === MAX_PICKS) goToStep(2);
+    });
+    if (back2) back2.addEventListener('click', function(){ goToStep(1); });
+
+    function renderReview(){
+      reviewList.innerHTML = '';
+      state.picks.forEach(function(item){
+        var row = document.createElement('div');
+        row.className = 'raqi-db__review-item';
+        var img = document.createElement('img');
+        img.src = item.img; img.alt = '';
+        var info = document.createElement('div');
+        info.className = 'raqi-db__review-item-info';
+        var v = document.createElement('p');
+        v.className = 'raqi-db__review-item-vendor';
+        v.textContent = item.vendor;
+        var nm = document.createElement('p');
+        nm.className = 'raqi-db__review-item-name';
+        nm.textContent = displayName(item);
+        info.appendChild(v); info.appendChild(nm);
+        var vol = document.createElement('span');
+        vol.className = 'raqi-db__review-item-volume';
+        vol.textContent = volumeLabel;
+        row.appendChild(img); row.appendChild(info); row.appendChild(vol);
+        reviewList.appendChild(row);
+      });
+    }
+
+    if (addBtn) {
+      addBtn.addEventListener('click', function(){
+        var boxVariantId = root.getAttribute('data-box-variant-id');
+        if (state.picks.length !== MAX_PICKS || !boxVariantId) {
+          msgEl.textContent = errorMessage;
+          msgEl.classList.add('raqi-db__message--error');
+          return;
+        }
+        // Still exactly three line-item properties, renamed off the retired
+        // tier vocabulary.
+        var properties = {};
+        for (var i = 0; i < MAX_PICKS; i++) {
+          properties['Fragrance ' + (i + 1)] = state.picks[i].vendor + ' ' + displayName(state.picks[i]);
+        }
+
+        addBtn.setAttribute('aria-busy', 'true');
+        msgEl.textContent = '';
+        fetch('/cart/add.js', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({ items: [{ id: boxVariantId, quantity: 1, properties: properties }] })
+        })
+          .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(d){ return { ok: r.ok, data: d }; }); })
+          .then(function(result){
+            if (result.ok) {
+              try { document.dispatchEvent(new CustomEvent('cart:refresh', { detail: { open: true } })); }
+              catch (e) { window.location.href = '/cart'; }
+            } else {
+              msgEl.textContent = errorMessage;
+              msgEl.classList.add('raqi-db__message--error');
+            }
+          })
+          .catch(function(){
+            msgEl.textContent = errorMessage;
+            msgEl.classList.add('raqi-db__message--error');
+          })
+          .finally(function(){ addBtn.removeAttribute('aria-busy'); });
+      });
+    }
+
+    syncUi();
+    applyFilter();
+    goToStep(1);
+  } catch (e) { /* never let this break the page */ }
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Raqi: Discovery Box",
+  "settings": [
+    { "type": "text", "id": "box_price", "label": "Fixed box price fallback", "info": "Only used if the box product below can't be found. Normally the price is read live from that product's variant.", "default": "Dhs. 599.00" },
+    { "type": "text", "id": "box_product_handle", "label": "Box bundle product handle", "default": "raqi-discovery-box", "info": "Must match a real product's handle. Its first variant is added to cart at quantity 1." },
+    { "type": "textarea", "id": "excluded_handles", "label": "Fragrances hidden from the builder", "info": "Comma-separated product handles. These stay on sale everywhere else on the site — this hides them from this picker only. The RAQI Discovery Box itself is always excluded via its 'bundle' tag and does not need listing here.", "default": "maison-crivelli-oud-maracuja, maison-crivelli-hibiscus-mahajad, louis-vuitton-imagination, maison-francis-kurkdjian-baccarat-rouge-540, tom-ford-fabulous, tom-ford-oud-voyager, tom-ford-rose-prick" }
+  ]
+}
+{% endschema %}
