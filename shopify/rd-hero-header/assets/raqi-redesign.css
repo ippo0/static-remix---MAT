@@ -166,9 +166,9 @@ html[lang="ar"], html[dir="rtl"] {
 .rd-hero__steps { font-family: var(--rd-display); font-size: 19px; color: var(--rd-wine); margin-block-start: 28px; }
 .rd-hero__steps span { color: var(--rd-rule); padding-inline: 8px; }
 
-.rd-hero__panel { background: var(--rd-panel); padding: 64px; display: flex;
+.rd-hero__panel { background: var(--rd-panel); padding: 40px; display: flex;
   align-items: center; justify-content: center; }
-.rd-hero__frame { inline-size: 100%; max-inline-size: 340px; aspect-ratio: 1 / 1; background: var(--rd-bone);
+.rd-hero__frame { inline-size: 100%; max-inline-size: 560px; max-block-size: 100%; aspect-ratio: 1 / 1; background: var(--rd-bone);
   border: 1px solid var(--rd-rule); display: flex; flex-direction: column; align-items: center;
   justify-content: center; gap: 26px; overflow: hidden; position: relative; }
 .rd-hero__frame img { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; object-fit: cover; }
@@ -190,8 +190,8 @@ html[lang="ar"], html[dir="rtl"] {
   .rd-hero__cta { inline-size: 100%; }
   .rd-hero__cta .rd-btn { flex: 1 1 100%; text-align: center; }
   .rd-hero__steps { font-size: 16px; }
-  .rd-hero__panel { block-size: 340px; padding: 32px; }
-  .rd-hero__frame { max-inline-size: 240px; gap: 18px; }
+  .rd-hero__panel { block-size: auto; padding: 24px; }
+  .rd-hero__frame { max-inline-size: 560px; gap: 18px; }
   .rd-hero__oval { inline-size: 104px; block-size: 62px; }
   .rd-hero__oval-en { font-size: 18px; }
   .rd-hero__bottle { inline-size: 20px; block-size: 20px; }
