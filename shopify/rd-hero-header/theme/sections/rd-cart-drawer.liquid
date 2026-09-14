@@ -1,0 +1,932 @@
+{% comment %}
+  RAQI Redesign — cart drawer.
+
+  Self-contained: it does not touch the base theme's cart.js / cart.css, which
+  belong to the old design. Mounted once in header-group.json so it is present
+  on every page.
+
+  Contents are re-rendered server-side through the Section Rendering API
+  (?sections=<section.id>) after every change, so money formatting, discounts
+  and line properties always come from Liquid — never from JS arithmetic.
+
+  Progressive enhancement: the product form still posts to /cart normally when
+  JS is unavailable, and /cart remains a working page.
+{% endcomment %}
+{% render 'rd-fonts' %}
+{%- liquid
+  # 2026-09-14 -- tiered-discount bar, free-shipping meter, payment marks.
+  #
+  # The bar REFLECTS the store's two live automatic discounts. It does not
+  # compute pricing, and it must never be changed to. Every figure rendered
+  # below comes from Shopify itself -- line.original_line_price and
+  # line.final_line_price already carry the discount -- so the drawer cannot
+  # disagree with what checkout charges.
+  #
+  #   "Buy 2 Save 5%"   qty >= 2  ->  5% on collection quantity-discount-eligible
+  #   "Buy 3 Save 10%"  qty >= 3  -> 10% on the same collection
+  #
+  # Both are DiscountAutomaticBasic with combinesWith.productDiscounts = false,
+  # so exactly one ever applies and Shopify picks the better one. They are
+  # THRESHOLD discounts: at qty 3 the 10% comes off every eligible item, not
+  # only the third. Do not relabel these cards "1st / 2nd / 3rd item" -- that
+  # describes a per-unit model this store does not run, and the cards would
+  # then contradict the prices beside them.
+  #
+  # RAQI Discovery Box sits outside the eligible collection on purpose (48 of
+  # 49 products are in it), so it is not counted here either. Counting it would
+  # promise a discount checkout does not apply.
+  assign qd_handle = section.settings.eligible_collection | default: 'quantity-discount-eligible'
+  assign qd_count = 0
+  for line in cart.items
+    assign qd_in = false
+    for c in line.product.collections
+      if c.handle == qd_handle
+        assign qd_in = true
+        break
+      endif
+    endfor
+    if qd_in
+      assign qd_count = qd_count | plus: line.quantity
+    endif
+  endfor
+  assign qd_tier = 1
+  if qd_count >= 3
+    assign qd_tier = 3
+  elsif qd_count == 2
+    assign qd_tier = 2
+  endif
+
+  # Free shipping measures cart.total_price, i.e. AFTER discounts, because the
+  # UAE delivery profile's condition is TOTAL_PRICE >= 750 AED and Shopify
+  # evaluates that post-discount. Measuring the pre-discount total would tell a
+  # customer they had unlocked free shipping when they had not.
+  assign ship_goal = settings.raqi_free_shipping_threshold | default: 750 | times: 100
+  assign ship_now = cart.total_price
+  assign ship_left = ship_goal | minus: ship_now
+  assign ship_left_money = ship_left | money
+  assign ship_pct = 0
+  if ship_goal > 0
+    assign ship_pct = ship_now | times: 100 | divided_by: ship_goal
+  endif
+  if ship_pct > 100
+    assign ship_pct = 100
+  endif
+
+  # Suggestion pool. Built in Liquid so the exclusions are exact, then sampled
+  # in JS so the three shown are genuinely re-rolled on every open without a
+  # round trip. collections['all'] is storefront-scoped, so it already contains
+  # only Active products published to Online Store -- draft and unpublished
+  # products cannot leak in.
+  #
+  # NOTE ON THE 50 CAP: a for loop over collections['all'].products stops at 50
+  # and a paginate tag is the only way past it -- but paginate reads ?page from
+  # the URL, and this drawer renders on EVERY page including paginated
+  # collection pages, where it would silently serve page 2 of the pool. So the
+  # loop is left uncapped-by-paginate on purpose. The catalogue is 49 products;
+  #
+  # NEVER put a Liquid tag delimiter inside these hash comments -- not even
+  # quoted, and not even as an example. The parser ends the enclosing liquid tag
+  # at the first closing delimiter it meets, wherever that character pair sits,
+  # comment or not. One of them inside a comment here closed this block 66 lines
+  # early on 2026-09-14 and dumped the remainder on screen as raw text in the
+  # open cart drawer. Name tags in prose -- "a paginate tag" -- never in braces.
+  # past 50 the pool simply stops growing, which for a random sample degrades
+  # gracefully rather than breaking. Revisit if the catalogue passes 50.
+  assign sug_block = ','
+  for line in cart.items
+    assign sug_block = sug_block | append: line.product.handle | append: ','
+  endfor
+  assign sug_block = sug_block | append: 'raqi-discovery-box,'
+-%}
+<div class="rd-scope">
+  <div class="rd-cd" id="rd-cart-drawer" data-rd-cd hidden>
+    <button class="rd-cd__scrim" type="button" data-rd-cd-close tabindex="-1" aria-label="{{ section.settings.close_label }}"></button>
+    <aside class="rd-cd__panel" role="dialog" aria-modal="true" aria-labelledby="rd-cd-h">
+      <div data-rd-cd-inner>
+        <span hidden data-rd-cd-count>{{ cart.item_count }}</span>
+        <header class="rd-cd__head">
+          <h2 class="rd-cd__h2" id="rd-cd-h">{{ section.settings.heading }}</h2>
+          <button class="rd-cd__x" type="button" data-rd-cd-close aria-label="{{ section.settings.close_label }}">&times;</button>
+        </header>
+
+        {%- if cart.item_count == 0 -%}
+          <div class="rd-cd__empty">
+            <p class="rd-cd__emptyline">{{ section.settings.empty_text }}</p>
+            <a class="rd-cd__cont" href="{{ routes.all_products_collection_url }}">{{ section.settings.continue_label }}</a>
+          </div>
+        {%- else -%}
+          <div class="rd-cd__tiers" data-rd-cd-tier="{{ qd_tier }}">
+            <p class="rd-cd__tiers-h">{{ 'raqi.rd.cart.tiers_heading' | t }}</p>
+            <ul class="rd-cd__tierlist" role="list">
+              <li class="rd-cd__tier rd-cd__tier--a{% if qd_tier == 1 %} is-on{% endif %}">
+                <span class="rd-cd__tier-q">{{ 'raqi.rd.cart.tier_1_qty' | t }}</span>
+                <span class="rd-cd__tier-v">{{ 'raqi.rd.cart.tier_1_value' | t }}</span>
+              </li>
+              <li class="rd-cd__tier rd-cd__tier--b{% if qd_tier == 2 %} is-on{% endif %}">
+                <span class="rd-cd__tier-q">{{ 'raqi.rd.cart.tier_2_qty' | t }}</span>
+                <span class="rd-cd__tier-v">{{ 'raqi.rd.cart.tier_2_value' | t }}</span>
+              </li>
+              <li class="rd-cd__tier rd-cd__tier--c{% if qd_tier == 3 %} is-on{% endif %}">
+                <span class="rd-cd__tier-q">{{ 'raqi.rd.cart.tier_3_qty' | t }}</span>
+                <span class="rd-cd__tier-v">{{ 'raqi.rd.cart.tier_3_value' | t }}</span>
+              </li>
+            </ul>
+          </div>
+
+          <ul class="rd-cd__items" role="list">
+            {%- for line in cart.items -%}
+              <li class="rd-cd__item" data-rd-cd-qty="{{ line.quantity }}">
+                <span class="rd-cd__media">
+                  {%- if line.image -%}
+                    <img src="{{ line.image | image_url: width: 240 }}"
+                         alt="{{ line.title | escape }}" width="120" height="120" loading="lazy">
+                  {%- else -%}
+                    <span class="rd-card__ph">Image pending</span>
+                  {%- endif -%}
+                </span>
+                <span class="rd-cd__meta">
+                  <span class="rd-cd__brand">{{ line.product.vendor }}</span>
+                  <span class="rd-cd__name">{{ line.product.title | remove_first: line.product.vendor | strip }}</span>
+                  <span class="rd-cd__var">{{ line.variant.title }} &middot; {{ section.settings.qty_label }} {{ line.quantity }}</span>
+                  {%- for p in line.properties -%}
+                    {%- unless p.last == blank or p.first == blank -%}
+                      <span class="rd-cd__prop">{{ p.first }}: {{ p.last }}</span>
+                    {%- endunless -%}
+                  {%- endfor -%}
+                  {%- if line.original_line_price > line.final_line_price -%}
+                    <span class="rd-cd__price rd-cd__price--cut">
+                      <s class="rd-cd__was">{{ line.original_line_price | money }}</s>
+                      <span class="rd-cd__now">{{ line.final_line_price | money }}</span>
+                    </span>
+                  {%- else -%}
+                    <span class="rd-cd__price">{{ line.final_line_price | money }}</span>
+                  {%- endif -%}
+                  <button class="rd-cd__rm" type="button" data-rd-cd-remove="{{ line.key }}" aria-label="{{ section.settings.remove_label }} {{ line.product.title | escape }}">{{ section.settings.remove_label }}</button>
+                </span>
+              </li>
+            {%- endfor -%}
+          </ul>
+
+          {%- if section.settings.show_suggestions -%}
+            {%- capture sug_json -%}
+              {"pool":[
+              {%- assign sug_first = true -%}
+              {%- for p in collections['all'].products -%}
+                {%- assign sug_needle = ',' | append: p.handle | append: ',' -%}
+                {%- unless sug_block contains sug_needle -%}
+                  {%- unless sug_first -%},{%- endunless -%}
+                  {%- assign sug_first = false -%}
+                  {%- if p.featured_image -%}
+                    {%- assign sug_img = p.featured_image | image_url: width: 160 -%}
+                  {%- else -%}
+                    {%- assign sug_img = '' -%}
+                  {%- endif -%}
+                  {"h":{{ p.handle | json }},"t":{{ p.title | json }},"u":{{ p.url | json }},"i":{{ sug_img | json }},"p":{{ p.price_min | money | json }},"m":{% if p.price_min < p.price_max %}true{% else %}false{% endif %},"v":[
+                  {%- for v in p.variants -%}
+                    {%- unless forloop.first -%},{%- endunless -%}
+                    {"id":{{ v.id }},"t":{{ v.title | json }},"p":{{ v.price | money | json }},"a":{% if v.available %}true{% else %}false{% endif %}}
+                  {%- endfor -%}
+                  ]}
+                {%- endunless -%}
+              {%- endfor -%}
+              ],"cart":{
+              {%- assign sug_cfirst = true -%}
+              {%- for line in cart.items -%}
+                {%- unless sug_cfirst -%},{%- endunless -%}
+                {%- assign sug_cfirst = false -%}
+                "{{ line.variant.id }}":{"k":{{ line.key | json }},"q":{{ line.quantity }},"h":{{ line.product.handle | json }}}
+              {%- endfor -%}
+              }}
+            {%- endcapture -%}
+            <section class="rd-cd__sugs" aria-labelledby="rd-cd-sugs-h" hidden data-rd-cd-sugswrap>
+              <h3 class="rd-cd__sugs-h" id="rd-cd-sugs-h">{{ 'raqi.rd.cart.sugs_heading' | t }}</h3>
+              <ul class="rd-cd__suglist" role="list" data-rd-cd-sugs></ul>
+            </section>
+            <script type="application/json" data-rd-cd-pool>{{ sug_json }}</script>
+          {%- endif -%}
+
+          <div class="rd-cd__foot">
+            <div class="rd-cd__ship{% if ship_left <= 0 %} is-unlocked{% endif %}">
+              <p class="rd-cd__ship-msg">
+                {%- if ship_left <= 0 -%}
+                  {{ 'raqi.rd.cart.ship_unlocked' | t }}
+                {%- else -%}
+                  {{ 'raqi.rd.cart.ship_remaining' | t: amount: ship_left_money }}
+                {%- endif -%}
+              </p>
+              <div class="rd-cd__ship-track"
+                   role="progressbar"
+                   aria-valuemin="0"
+                   aria-valuemax="100"
+                   aria-valuenow="{{ ship_pct }}"
+                   aria-label="{{ 'raqi.rd.cart.ship_progress_label' | t }}">
+                <span class="rd-cd__ship-fill" style="inline-size: {{ ship_pct }}%;"></span>
+              </div>
+            </div>
+            <div class="rd-cd__sub">
+              <span class="rd-cd__sublabel">{{ section.settings.subtotal_label }}</span>
+              <span class="rd-cd__subval">{{ cart.total_price | money }}</span>
+            </div>
+            {%- if section.settings.note != blank -%}
+              <p class="rd-cd__note">{{ section.settings.note }}</p>
+            {%- endif -%}
+            <form action="{{ routes.cart_url }}" method="post">
+              <button class="rd-cd__checkout" type="submit" name="checkout">{{ section.settings.checkout_label }}</button>
+            </form>
+            {%- comment -%}
+              Inline SVG rather than Shopify's payment_type_img_url or a sprite:
+              four marks, no extra request, no layout shift, and they stay put
+              when the Section Rendering API replaces this markup. Wordmarks are
+              plain text so nothing here misrepresents a brand's actual logo.
+            {%- endcomment -%}
+            <ul class="rd-cd__pay" role="list" aria-label="{{ 'raqi.rd.cart.payments_label' | t }}">
+              <li class="rd-cd__paybadge">
+                <svg viewBox="0 0 40 24" role="img" aria-label="Visa" focusable="false">
+                  <text x="20" y="16.5" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10" font-weight="700" font-style="italic" fill="#1A1F71" letter-spacing="0.4">VISA</text>
+                </svg>
+              </li>
+              <li class="rd-cd__paybadge">
+                <svg viewBox="0 0 40 24" role="img" aria-label="Mastercard" focusable="false">
+                  <circle cx="16.5" cy="12" r="6.5" fill="#EB001B"></circle>
+                  <circle cx="23.5" cy="12" r="6.5" fill="#F79E1B" fill-opacity="0.85"></circle>
+                </svg>
+              </li>
+              <li class="rd-cd__paybadge">
+                <svg viewBox="0 0 40 24" role="img" aria-label="Apple Pay" focusable="false">
+                  <text x="20" y="16.5" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="9.5" font-weight="600" fill="#000">&#63743;Pay</text>
+                </svg>
+              </li>
+              <li class="rd-cd__paybadge">
+                <svg viewBox="0 0 40 24" role="img" aria-label="PayPal" focusable="false">
+                  <text x="20" y="16.5" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="9" font-weight="700" font-style="italic" fill="#003087">Pay<tspan fill="#009CDE">Pal</tspan></text>
+                </svg>
+              </li>
+            </ul>
+          </div>
+        {%- endif -%}
+      </div>
+    </aside>
+  </div>
+</div>
+
+{% style %}
+  /* 2026-09-05 — optimistic removal.
+
+     Remove used to wait for TWO serial round trips before anything moved on
+     screen: POST /cart/change.js, and only then the section re-render. Measured
+     in headless Chromium against mocked endpoints, the gap between the tap and
+     the row leaving the layout was almost exactly 2x the network latency
+     (310ms at 150ms RTT, 1603ms at 800ms), while the DOM work itself was 6ms.
+     So it was never the re-render — it was two round trips with no feedback.
+
+     The row now collapses on tap. Its height is set explicitly in JS first,
+     because `auto` has no value to animate from. Everything is still
+     reconciled against the server's own re-render immediately afterwards. */
+  .rd-cd__item[hidden] { display: none; }
+  .rd-cd__item[data-rd-cd-removing] {
+    overflow: hidden;
+    height: 0;
+    opacity: 0;
+    padding-block: 0;
+    margin-block: 0;
+    border-block-width: 0;
+    pointer-events: none;
+    transition: height 200ms ease, opacity 140ms ease, padding-block 200ms ease,
+                margin-block 200ms ease, border-block-width 200ms ease;
+  }
+
+  /* The subtotal on screen is one removal out of date until Liquid sends the
+     real figure back, so it is dimmed and checkout is genuinely blocked rather
+     than merely greyed. Money is never recomputed in JS. */
+  [data-rd-cd-inner][data-rd-cd-pending] .rd-cd__subval { opacity: 0.4; }
+  [data-rd-cd-inner][data-rd-cd-pending] .rd-cd__checkout {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rd-cd__item[data-rd-cd-removing] { transition: none; }
+  }
+
+  /* 2026-09-14 -- tier bar / free-shipping meter / payment marks.
+     Logical properties throughout so the whole block mirrors under [dir=rtl]
+     with no separate RTL rules. */
+  .rd-cd__tiers { padding: 18px 28px 4px; }
+  .rd-cd__tiers-h { font-family: var(--rd-body); font-size: 10.5px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--rd-grey); margin: 0 0 10px; text-align: start; }
+  .rd-cd__tierlist { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+    list-style: none; margin: 0; padding: 0; }
+  .rd-cd__tier { border: 1px solid var(--rd-rule); border-radius: 6px; padding: 10px 8px;
+    display: flex; flex-direction: column; gap: 3px; text-align: center;
+    transition: box-shadow 160ms ease, transform 160ms ease; }
+  .rd-cd__tier-q { font-family: var(--rd-body); font-size: 10px; letter-spacing: .1em;
+    text-transform: uppercase; opacity: .8; }
+  .rd-cd__tier-v { font-family: var(--rd-display); font-size: 15px; line-height: 1.2; }
+  .rd-cd__tier--a { background: #FFFFFF; color: var(--rd-ink); }
+  .rd-cd__tier--b { background: var(--rd-wine); color: #FFFFFF; border-color: var(--rd-wine); }
+  .rd-cd__tier--c { background: var(--rd-ink); color: #FFFFFF; border-color: var(--rd-ink); }
+  .rd-cd__tier.is-on { box-shadow: 0 0 0 2px var(--rd-ink); transform: translateY(-1px); }
+  .rd-cd__tier--c.is-on { box-shadow: 0 0 0 2px var(--rd-wine); }
+
+  .rd-cd__price--cut { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .rd-cd__was { color: var(--rd-grey); text-decoration: line-through;
+    text-decoration-thickness: 1px; font-size: 12px; }
+  .rd-cd__now { color: var(--rd-wine); font-weight: 500; }
+
+  .rd-cd__ship { margin-block-end: 16px; }
+  .rd-cd__ship-msg { font-family: var(--rd-body); font-size: 12px; color: var(--rd-grey);
+    margin: 0 0 8px; text-align: start; }
+  .rd-cd__ship.is-unlocked .rd-cd__ship-msg { color: var(--rd-wine); font-weight: 500; }
+  .rd-cd__ship-track { block-size: 5px; border-radius: 3px; background: var(--rd-rule);
+    overflow: hidden; }
+  .rd-cd__ship-fill { display: block; block-size: 100%; background: var(--rd-wine);
+    border-radius: 3px; transition: inline-size 320ms ease; }
+  .rd-cd__ship.is-unlocked .rd-cd__ship-fill { background: var(--rd-ink); }
+
+  .rd-cd__pay { display: flex; justify-content: center; gap: 8px; list-style: none;
+    margin: 14px 0 0; padding: 0; }
+  .rd-cd__paybadge { inline-size: 40px; block-size: 26px; background: #FFFFFF;
+    border: 1px solid var(--rd-rule); border-radius: 5px; display: flex;
+    align-items: center; justify-content: center; }
+  .rd-cd__paybadge svg { inline-size: 34px; block-size: 20px; display: block; }
+
+  @media (max-width: 420px) {
+    .rd-cd__tiers { padding-inline: 20px; }
+    .rd-cd__tier { padding: 8px 5px; }
+    .rd-cd__tier-q { font-size: 9px; letter-spacing: .06em; }
+    .rd-cd__tier-v { font-size: 13px; }
+  }
+
+  /* Tier crossing feedback. The card lifts 1px when active, so the pulse has
+     to carry that translate through every keyframe or it drops mid-animation. */
+  .rd-cd__tier { position: relative; }
+  .rd-cd__tier-bump {
+    position: absolute; inset-block-start: -7px; inset-inline-end: -5px;
+    min-inline-size: 22px; padding: 3px 6px; border-radius: 999px;
+    background: var(--rd-wine); color: #FFFFFF;
+    font-family: var(--rd-body); font-size: 10px; font-weight: 600; line-height: 1;
+    text-align: center; box-shadow: 0 1px 4px rgba(34,38,31,.28);
+    animation: rd-cd-bumpin 180ms ease-out both;
+  }
+  .rd-cd__tier--c .rd-cd__tier-bump { background: var(--rd-wine); }
+  .rd-cd__tier[data-rd-cd-bump] { animation: rd-cd-pulse 620ms ease; }
+  @keyframes rd-cd-pulse {
+    0%   { transform: translateY(-1px) scale(1); }
+    32%  { transform: translateY(-1px) scale(1.06); }
+    100% { transform: translateY(-1px) scale(1); }
+  }
+  @keyframes rd-cd-bumpin {
+    from { opacity: 0; transform: translateY(3px) scale(.86); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* You may also like */
+  .rd-cd__sugs { padding: 18px 28px 4px; border-block-start: 1px solid var(--rd-rule); }
+  .rd-cd__sugs[hidden] { display: none; }
+  .rd-cd__sugs-h { font-family: var(--rd-body); font-size: 10.5px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--rd-grey); margin: 0 0 12px; text-align: start; }
+  .rd-cd__suglist { list-style: none; margin: 0; padding: 0; display: flex;
+    flex-direction: column; gap: 10px; }
+  .rd-cd__sug-link { display: flex; align-items: center; gap: 12px;
+    text-decoration: none; color: inherit; }
+  .rd-cd__sug-media { inline-size: 48px; block-size: 48px; flex: 0 0 48px;
+    background: var(--rd-bone); border: 1px solid var(--rd-rule); border-radius: 4px;
+    overflow: hidden; display: flex; align-items: center; justify-content: center; }
+  .rd-cd__sug-media img { inline-size: 100%; block-size: 100%; object-fit: cover; display: block; }
+  .rd-cd__sug-meta { display: flex; flex-direction: column; gap: 3px; min-inline-size: 0;
+    text-align: start; }
+  .rd-cd__sug-name { font-family: var(--rd-display); font-size: 14px; line-height: 1.25;
+    color: var(--rd-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rd-cd__sug-price { font-family: var(--rd-body); font-size: 12px; color: var(--rd-grey); }
+  .rd-cd__sug-link:hover .rd-cd__sug-name { color: var(--rd-wine); }
+
+  /* The drawer's cart lines show quantity as text with a Remove link and have
+     no stepper, so there was no existing control to copy. These follow the
+     drawer's own visual language: 1px rules, wine accent, logical properties. */
+  .rd-cd__sug { display: flex; flex-direction: column; gap: 8px; }
+  /* Sizes and Add share one row, indented to line up under the product name.
+     Every control in here is built to the same 28px box so the row reads as one
+     unit rather than a tall button next to small chips. */
+  .rd-cd__sug-actions { display: flex; align-items: center; gap: 8px;
+    margin-inline-start: 60px; flex-wrap: wrap; }
+  .rd-cd__sug-sizes { display: flex; gap: 6px; }
+  .rd-cd__sug-size { font-family: var(--rd-body); font-size: 11px; line-height: 1;
+    block-size: 28px; padding-inline: 10px; border: 1px solid var(--rd-rule);
+    border-radius: 4px; background: transparent; color: var(--rd-grey); cursor: pointer;
+    transition: border-color 140ms ease, color 140ms ease; }
+  .rd-cd__sug-size:hover { border-color: var(--rd-wine); color: var(--rd-wine); }
+  .rd-cd__sug-size.is-on { border-color: var(--rd-ink); background: var(--rd-ink); color: #FFFFFF; }
+  .rd-cd__sug-size.is-out { opacity: .4; cursor: not-allowed; text-decoration: line-through; }
+  .rd-cd__sug-add { font-family: var(--rd-body); font-size: 10px; letter-spacing: .1em;
+    text-transform: uppercase; block-size: 28px; padding-inline: 12px; border-radius: 4px;
+    border: 1px solid var(--rd-wine); background: transparent; color: var(--rd-wine);
+    cursor: pointer; white-space: nowrap;
+    transition: background 140ms ease, color 140ms ease; }
+  .rd-cd__sug-add:hover { background: var(--rd-wine); color: #FFFFFF; }
+  .rd-cd__sug-add[disabled] { opacity: .45; cursor: default; }
+  .rd-cd__sug-qty { display: inline-flex; align-items: stretch; block-size: 28px;
+    border: 1px solid var(--rd-rule); border-radius: 4px; overflow: hidden; }
+  .rd-cd__qbtn { inline-size: 28px; border: 0; background: transparent;
+    color: var(--rd-ink); font-size: 14px; line-height: 1; cursor: pointer; padding: 0; }
+  .rd-cd__qbtn:hover { background: var(--rd-panel); color: var(--rd-wine); }
+  .rd-cd__qval { min-inline-size: 30px; display: inline-flex; align-items: center;
+    justify-content: center; font-family: var(--rd-body); font-size: 12px;
+    border-inline: 1px solid var(--rd-rule); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rd-cd__sug-size, .rd-cd__sug-add { transition: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rd-cd__ship-fill { transition: none; }
+    .rd-cd__tier { transition: none; }
+    /* The badge still appears -- it is the confirmation. Only motion is dropped. */
+    .rd-cd__tier[data-rd-cd-bump] { animation: none; }
+    .rd-cd__tier-bump { animation: none; }
+  }
+{% endstyle %}
+
+<script>
+(function () {
+  if (window.RDCart) return;
+  // A section-group section's ID is NOT its key in header-group.json: Shopify
+  // gives it the form sections--<group-id>__rd_cart_drawer, and that is what
+  // the Section Rendering API expects in ?sections=. section.id is exactly that.
+  var SECTION  = {{ section.id | json }};
+  var ROOT     = {{ routes.root_url | json }};
+  var CART_URL = {{ routes.cart_url | json }};
+  // .js on purpose. routes.cart_change_url is /cart/change -- the FORM
+  // endpoint, which answers a POST with a 302 to /cart. fetch follows that,
+  // lands on HTML with r.ok true, and r.json() then throws; change() catches
+  // it, warns, and re-renders from a cart that never changed. The visible
+  // result is a quantity control that looks alive and does nothing. The
+  // documented AJAX endpoint is /cart/change.js. Appending rather than
+  // hardcoding keeps the locale prefix, so /ar-ae carts still work.
+  var CHANGE_URL = {{ routes.cart_change_url | append: '.js' | json }};
+  var SUG_N      = {{ section.settings.suggestions_count | default: 3 | json }};
+  // Placeholder is substituted in JS; `t` runs here so the string itself stays
+  // translatable and never lands hardcoded in the script.
+  var SUG_FROM   = {{ 'raqi.rd.cart.sugs_from' | t: price: '__P__' | json }};
+  var BUMP_TEXT  = {{ 'raqi.rd.cart.tier_bump' | t | json }};
+  var SUG_ADD    = {{ 'raqi.rd.cart.sugs_add' | t | json }};
+  var SUG_SIZE   = {{ 'raqi.rd.cart.sugs_size' | t | json }};
+  var SUG_INC    = {{ 'raqi.rd.cart.qty_increase' | t | json }};
+  var SUG_DEC    = {{ 'raqi.rd.cart.qty_decrease' | t | json }};
+
+  // Cart mutations still in flight. A section re-render that lands while another
+  // change is still running must NOT paint: its HTML was generated before that
+  // change and would put an already-removed row back on screen. Only the last
+  // change to settle paints.
+  var inflight = 0;
+
+  var REDUCED = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+  function root() { return document.getElementById('rd-cart-drawer'); }
+
+  // Normalises the drawer to the shape the SERVER sends, so the "nothing
+  // changed, don't repaint" check in refresh() keeps working once JS has filled
+  // the suggestion list in. Two things diverge from the server's HTML after
+  // renderSuggestions() runs: the list gains cards, and the wrapper loses its
+  // `hidden` attribute. Blanking only the first still left every refresh
+  // repainting -- rebuilding every <img> and dropping focus -- which is the
+  // exact cost the check exists to avoid.
+  function sansSugs(node) {
+    var c = node.cloneNode(true);
+    var h = c.querySelector('[data-rd-cd-sugs]');
+    if (h) h.innerHTML = '';
+    // REMOVE hidden rather than restore it. innerHTML serialises attributes in
+    // insertion order, and `wrap.hidden = false` deletes the attribute, so
+    // putting it back lands it at the END of the list while the server still has
+    // it in its original position -- two identical drawers, two different
+    // strings, and the check fails on attribute order alone. Stripping it from
+    // both sides is order-independent.
+    var w = c.querySelector('[data-rd-cd-sugswrap]');
+    if (w) w.removeAttribute('hidden');
+    return c.innerHTML;
+  }
+
+  function open() {
+    var d = root(); if (!d) return;
+    // Re-roll only on a real closed -> open transition. add() calls open() to
+    // confirm the add BEFORE refresh(), so rolling unconditionally reshuffled
+    // the whole list the instant a customer pressed Add on a suggestion --
+    // the card they were interacting with was replaced by a different product
+    // and its stepper never appeared. Adding from inside an already-open drawer
+    // must leave the list exactly where it is.
+    var wasOpen = !d.hasAttribute('hidden');
+    if (!wasOpen) rollSuggestions();
+    renderSuggestions();
+    d.removeAttribute('hidden');
+    document.documentElement.classList.add('rd-cd-open');
+    var x = d.querySelector('.rd-cd__x'); if (x) x.focus();
+  }
+  function close() {
+    var d = root(); if (!d) return;
+    d.setAttribute('hidden', '');
+    document.documentElement.classList.remove('rd-cd-open');
+  }
+
+  function paintCount(scope) {
+    var src = scope.querySelector('[data-rd-cd-count]');
+    if (!src) return;
+    var n = src.textContent.trim();
+    document.querySelectorAll('[data-rd-bagcount]').forEach(function (el) { el.textContent = n; });
+  }
+
+  function setCount(n) {
+    if (typeof n !== 'number' || isNaN(n)) return;
+    document.querySelectorAll('[data-rd-bagcount]').forEach(function (el) { el.textContent = n; });
+  }
+
+  function bumpCount(delta) {
+    document.querySelectorAll('[data-rd-bagcount]').forEach(function (el) {
+      var n = parseInt(el.textContent, 10);
+      if (!isNaN(n)) el.textContent = Math.max(0, n + delta);
+    });
+  }
+
+  // Marks the panel as one step ahead of the server: the row is already gone,
+  // but the subtotal still shows the pre-removal figure until Liquid answers.
+  function setPending(on) {
+    var inner = document.querySelector('[data-rd-cd-inner]');
+    if (!inner) return;
+    if (on) inner.setAttribute('data-rd-cd-pending', '');
+    else inner.removeAttribute('data-rd-cd-pending');
+  }
+
+  // Take the row out of the layout NOW, before any network call. The server
+  // stays the source of truth — refresh() overwrites the whole panel a moment
+  // later — so a removal that fails simply comes back.
+  function collapse(li) {
+    if (!li) return;
+    if (REDUCED) { li.hidden = true; return; }
+    li.style.height = li.getBoundingClientRect().height + 'px';
+    li.getBoundingClientRect();            // flush, so the transition has a start value
+    li.setAttribute('data-rd-cd-removing', '');
+    li.style.height = '0px';
+  }
+
+  // Re-render through the Section Rendering API. Requested against the
+  // locale root rather than the current path: the drawer lives in
+  // header-group, which every page carries, and the root is the one URL that
+  // can never be a 404 or a non-theme route. A failed refresh must never block
+  // the drawer from opening, so this always resolves (see listener below).
+  // ---- tier feedback -------------------------------------------------
+  // The tier number is rendered by Liquid onto [data-rd-cd-tier], so the
+  // comparison is against the server's own arithmetic, never a JS recount.
+  var BUMP_MS = 1400;
+  function currentTier() {
+    var el = document.querySelector('[data-rd-cd-tier]');
+    if (!el) return 0;
+    return parseInt(el.getAttribute('data-rd-cd-tier'), 10) || 0;
+  }
+  function celebrateTier(prev) {
+    var now = currentTier();
+    if (!prev || now <= prev) return;
+    var card = document.querySelector('.rd-cd__tier.is-on');
+    if (!card) return;
+    var badge = document.createElement('span');
+    badge.className = 'rd-cd__tier-bump';
+    badge.setAttribute('aria-hidden', 'true');
+    badge.textContent = BUMP_TEXT;
+    card.appendChild(badge);
+    card.setAttribute('data-rd-cd-bump', '');
+    window.setTimeout(function () {
+      card.removeAttribute('data-rd-cd-bump');
+      if (badge.parentNode) badge.parentNode.removeChild(badge);
+    }, BUMP_MS);
+  }
+
+  // ---- random suggestions --------------------------------------------
+  // Sampled in JS so every open re-rolls. The pool itself is Liquid-rendered,
+  // so cart exclusions are always in step with the cart the server knows about.
+  // The rolled list is held in sugPicks and re-rolled only on open(), not on
+  // every refresh: a cart change must not reshuffle cards under the customer's
+  // finger mid-interaction. Which card shows a stepper is derived from the
+  // SERVER's cart on each render, never from JS bookkeeping, so removing a line
+  // from the list above cannot leave a stale stepper behind.
+  var sugPicks = null;
+  var sugChosen = {};
+
+  function readPool() {
+    var src = document.querySelector('[data-rd-cd-pool]');
+    if (!src) return { pool: [], cart: {} };
+    try {
+      var d = JSON.parse(src.textContent || '{}') || {};
+      return { pool: d.pool || [], cart: d.cart || {} };
+    } catch (e) { return { pool: [], cart: {} }; }
+  }
+
+  function rollSuggestions() {
+    var d = readPool();
+    var a = d.pool.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    sugPicks = a.slice(0, SUG_N);
+    sugChosen = {};
+    sugPicks.forEach(function (p) {
+      var first = null;
+      (p.v || []).forEach(function (v) { if (!first && v.a) first = v.id; });
+      sugChosen[p.h] = first || ((p.v || [])[0] || {}).id || null;
+    });
+  }
+
+  function cartEntryFor(p, cart) {
+    var id = sugChosen[p.h];
+    if (id && cart[id]) return cart[id];
+    // Chosen size is not in the cart, but another size of the same product may
+    // be; the stepper must follow the size actually on screen, so this only
+    // matches the selected variant.
+    return null;
+  }
+
+  function renderSuggestions() {
+    var wrap = document.querySelector('[data-rd-cd-sugswrap]');
+    var host = document.querySelector('[data-rd-cd-sugs]');
+    if (!wrap || !host) return;
+    var d = readPool();
+    if (sugPicks === null) rollSuggestions();
+    if (!sugPicks.length) { wrap.hidden = true; return; }
+    host.textContent = '';
+    sugPicks.forEach(function (p) {
+      // Built with createElement/textContent rather than innerHTML: titles are
+      // shop data, but this markup is assembled in the browser and must not be
+      // a place where markup in a product title could execute.
+      var li = document.createElement('li');
+      li.className = 'rd-cd__sug';
+
+      var top = document.createElement('a');
+      top.className = 'rd-cd__sug-link';
+      top.href = p.u;
+      var fig = document.createElement('span');
+      fig.className = 'rd-cd__sug-media';
+      if (p.i) {
+        var img = document.createElement('img');
+        img.src = p.i; img.alt = ''; img.loading = 'lazy';
+        img.width = 80; img.height = 80;
+        fig.appendChild(img);
+      }
+      var meta = document.createElement('span');
+      meta.className = 'rd-cd__sug-meta';
+      var nm = document.createElement('span');
+      nm.className = 'rd-cd__sug-name';
+      nm.textContent = p.t;
+      var pr = document.createElement('span');
+      pr.className = 'rd-cd__sug-price';
+      var chosen = null;
+      (p.v || []).forEach(function (v) { if (v.id === sugChosen[p.h]) chosen = v; });
+      pr.textContent = chosen ? chosen.p : (p.m ? SUG_FROM.replace('__P__', p.p) : p.p);
+      meta.appendChild(nm); meta.appendChild(pr);
+      top.appendChild(fig); top.appendChild(meta);
+      li.appendChild(top);
+
+      // Size chips mirror the product's real variants -- never a hardcoded
+      // 10ml/30ml pair, so a product with a third size shows all three.
+      // Sizes and the Add control share one row. Anything appended to `row`
+      // sits beside the chips rather than stacking under them.
+      var row = document.createElement('div');
+      row.className = 'rd-cd__sug-actions';
+      li.appendChild(row);
+
+      if ((p.v || []).length > 1) {
+        var sizes = document.createElement('div');
+        sizes.className = 'rd-cd__sug-sizes';
+        sizes.setAttribute('role', 'group');
+        sizes.setAttribute('aria-label', SUG_SIZE);
+        p.v.forEach(function (v) {
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'rd-cd__sug-size' + (v.id === sugChosen[p.h] ? ' is-on' : '');
+          btn.textContent = v.t;
+          btn.setAttribute('aria-pressed', v.id === sugChosen[p.h] ? 'true' : 'false');
+          if (!v.a) { btn.disabled = true; btn.classList.add('is-out'); }
+          btn.addEventListener('click', function () {
+            sugChosen[p.h] = v.id;
+            renderSuggestions();
+          });
+          sizes.appendChild(btn);
+        });
+        row.appendChild(sizes);
+      }
+
+      var entry = cartEntryFor(p, d.cart);
+      if (entry) {
+        var stp = document.createElement('div');
+        stp.className = 'rd-cd__sug-qty';
+        var dec = document.createElement('button');
+        dec.type = 'button'; dec.className = 'rd-cd__qbtn';
+        dec.textContent = '\u2212';
+        dec.setAttribute('aria-label', SUG_DEC);
+        var out = document.createElement('span');
+        out.className = 'rd-cd__qval'; out.textContent = String(entry.q);
+        out.setAttribute('aria-live', 'polite');
+        var inc = document.createElement('button');
+        inc.type = 'button'; inc.className = 'rd-cd__qbtn';
+        inc.textContent = '+';
+        inc.setAttribute('aria-label', SUG_INC);
+        // Re-read the cart from the DOM at CLICK time instead of closing over
+        // `entry`. refresh() legitimately skips the repaint when nothing
+        // changed or when another mutation is still in flight, and a skipped
+        // repaint leaves this closure holding the quantity from before the last
+        // press. Posting that stale number is a no-op the customer sees as a
+        // dead button -- the control appears to freeze on its first value.
+        // Reading live state makes every press relative to the real cart.
+        function step(delta) {
+          var now = cartEntryFor(p, readPool().cart);
+          if (!now) return;
+          var next = now.q + delta;
+          // Move the number immediately so the control answers the press even
+          // while the round trip is out. The server's own figure overwrites
+          // this on the re-render that follows.
+          out.textContent = String(next > 0 ? next : 0);
+          change(now.k, next);
+        }
+        dec.addEventListener('click', function () { step(-1); });
+        inc.addEventListener('click', function () { step(1); });
+        stp.appendChild(dec); stp.appendChild(out); stp.appendChild(inc);
+        row.appendChild(stp);
+      } else {
+        var addb = document.createElement('button');
+        addb.type = 'button';
+        addb.className = 'rd-cd__sug-add';
+        addb.textContent = SUG_ADD;
+        var vid = sugChosen[p.h];
+        if (!vid) addb.disabled = true;
+        addb.addEventListener('click', function () {
+          addb.disabled = true;
+          add(vid, 1);
+        });
+        row.appendChild(addb);
+      }
+
+      host.appendChild(li);
+    });
+    wrap.hidden = false;
+  }
+
+  function refresh() {
+    var url = ROOT + (ROOT.indexOf('?') === -1 ? '?' : '&') + 'sections=' + SECTION;
+    return fetch(url, { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+      .then(function (r) { if (!r.ok) throw new Error('sections ' + r.status); return r.json(); })
+      .then(function (j) {
+        var html = j && j[SECTION];
+        if (!html) return;
+        // Stale by the time it arrived — a newer change is still running and
+        // will paint its own, later, truth. Painting this would resurrect a row
+        // the customer has already removed.
+        if (inflight > 0) return;
+        var tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        var fresh = tmp.querySelector('[data-rd-cd-inner]');
+        var cur = document.querySelector('[data-rd-cd-inner]');
+        if (!fresh || !cur) return;
+        setPending(false);
+        var prevTier = currentTier();
+        // Replacing innerHTML destroys and rebuilds every <img> in the panel and
+        // drops focus to <body>. When nothing actually changed, don't.
+        // The suggestion list is filled in by JS after render, so `cur` always
+        // carries cards that `fresh` cannot. Compare with that one host blanked
+        // on both sides, or this equality check never matches again and every
+        // refresh repaints needlessly.
+        if (sansSugs(fresh) === sansSugs(cur)) return;
+        var hadFocus = cur.contains(document.activeElement);
+        cur.innerHTML = fresh.innerHTML;
+        paintCount(cur);
+        renderSuggestions();
+        celebrateTier(prevTier);
+        // The Remove button that had focus no longer exists; without this,
+        // focus falls to <body> and the next Tab restarts from the top of the
+        // page behind the open drawer.
+        if (hadFocus) { var x = cur.querySelector('.rd-cd__x'); if (x) x.focus(); }
+      })
+      .catch(function (e) {
+        setPending(false);
+        if (window.console) console.warn('[rd-cart-drawer] refresh failed:', e);
+      });
+  }
+
+  function add(id, qty, props) {
+    var item = { id: id, quantity: qty || 1 };
+    if (props) item.properties = props;
+    return fetch('/cart/add.js', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ items: [item] })
+    }).then(function (r) {
+      if (!r.ok) { return r.json().then(function (e) { throw new Error(e.description || e.message || 'add failed'); }); }
+      return r.json();
+    }).then(function () {
+      open();              // confirm first — the customer must see it
+      return refresh();    // then bring the contents up to date
+    });
+  }
+
+  // Remove / change quantity by line-item KEY, not by 1-based index. The
+  // index only means something if the drawer's list is current; before the
+  // section-ID fix above the list was always stale, so an index could have
+  // removed the wrong line. The key is stable and unambiguous.
+  function change(key, qty) {
+    inflight++;
+    return fetch(CHANGE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ id: key, quantity: qty })
+    }).then(function (r) {
+      if (!r.ok) { return r.json().catch(function () { return {}; }).then(function (e) { throw new Error(e.description || e.message || ('change ' + r.status)); }); }
+      return r.json();
+    }).then(function (cart) {
+      // item_count is an integer, so it can be trusted straight out of this
+      // response and corrects the optimistic guess a full round trip early.
+      // Money is not taken from here — the subtotal stays dimmed until Liquid
+      // has formatted it, because JS must never do the arithmetic.
+      if (cart) setCount(cart.item_count);
+    }).catch(function (e) {
+      if (window.console) console.warn('[rd-cart-drawer] change failed:', e);
+    }).then(function () {
+      inflight--;
+      return refresh();   // always re-render from the server's truth, success or not
+    });
+  }
+
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    if (!t || !t.closest) return;
+    if (t.closest('[data-rd-cd-close]')) { e.preventDefault(); close(); return; }
+    var rm = t.closest('[data-rd-cd-remove]');
+    if (rm) {
+      e.preventDefault();
+      if (rm.getAttribute('aria-busy') === 'true') return;   // ignore double taps
+      rm.setAttribute('aria-busy', 'true'); rm.disabled = true;
+      // 2026-09-05: act first, confirm after. Previously nothing on screen moved
+      // until BOTH /cart/change.js and the section re-render had come back —
+      // twice the latency of Add to Bag, which opens the drawer after one round
+      // trip and so confirms itself immediately. The removal is still verified:
+      // refresh() below replaces the panel with the server's own render, so a
+      // failed removal reappears rather than being silently lost.
+      var li = rm.closest('.rd-cd__item');
+      var q = li ? parseInt(li.getAttribute('data-rd-cd-qty'), 10) : NaN;
+      collapse(li);
+      if (!isNaN(q) && q > 0) bumpCount(-q);
+      setPending(true);
+      change(rm.getAttribute('data-rd-cd-remove'), 0);
+    }
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' || e.keyCode === 27) close();
+  });
+
+  // 2026-09-03: sections/raqi-product.liquid and sections/raqi-discovery-box.liquid
+  // announce a successful add with `cart:refresh` ({ detail: { open: true } }).
+  // Until now the only listener was Minimog's assets/cart.js, so Add to Bag
+  // opened the OLD <m-cart-drawer> while the header's Bag link opened this
+  // one — two different drawers on one site. This drawer now answers the same
+  // event, and the Minimog drawer is no longer rendered (layout/theme.liquid).
+  //
+  // 2026-09-03 (bug: builder added to cart but no drawer appeared): the first
+  // version of this listener opened the drawer only AFTER refresh() resolved,
+  // and refresh() had no catch — so any non-JSON or non-200 answer from the
+  // sections request rejected the chain and open() was never reached. The
+  // customer saw nothing. Order is now: open immediately, then refresh; and
+  // if the drawer markup is somehow not on the page, fall back to /cart so
+  // the add is never silent.
+  document.addEventListener('cart:refresh', function (e) {
+    var wantOpen = !!(e && e.detail && e.detail.open);
+    if (wantOpen) {
+      if (!root()) { window.location.href = CART_URL; return; }
+      open();
+    }
+    refresh();
+  });
+
+  window.RDCart = { open: open, close: close, add: add, change: change, refresh: refresh };
+})();
+</script>
+
+{% schema %}
+{
+  "name": "RD Cart drawer",
+  "tag": "section",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Your bag" },
+    { "type": "text", "id": "close_label", "label": "Close label", "default": "Close" },
+    { "type": "text", "id": "qty_label", "label": "Quantity word", "default": "Qty" },
+    { "type": "text", "id": "remove_label", "label": "Remove label", "default": "Remove" },
+    { "type": "text", "id": "subtotal_label", "label": "Subtotal label", "default": "Subtotal" },
+    { "type": "textarea", "id": "note", "label": "Note under subtotal", "default": "Shipping and taxes calculated at checkout. Free UAE delivery over Dhs. 750." },
+    { "type": "text", "id": "checkout_label", "label": "Checkout button", "default": "Checkout" },
+    { "type": "textarea", "id": "empty_text", "label": "Empty message", "default": "Nothing in your bag yet." },
+    { "type": "text", "id": "continue_label", "label": "Empty-state link", "default": "Browse fragrances" },
+    { "type": "header", "content": "You may also like" },
+    { "type": "checkbox", "id": "show_suggestions", "label": "Show suggestions", "default": true },
+    { "type": "range", "id": "suggestions_count", "label": "How many", "min": 2, "max": 4, "step": 1, "default": 3, "info": "Picked at random from the catalogue on every open. Products already in the cart, and the RAQI Discovery Box, are never suggested. Heading and price wording live in locales under raqi.rd.cart.*" },
+    { "type": "header", "content": "Tiered discount bar" },
+    { "type": "text", "id": "eligible_collection", "label": "Eligible collection handle", "default": "quantity-discount-eligible", "info": "Must match the collection the two automatic discounts (Buy 2 Save 5% / Buy 3 Save 10%) are scoped to. Items outside it are not counted, because checkout does not discount them. Card wording lives in locales under raqi.rd.cart.*" }
+  ],
+  "presets": [{ "name": "RD Cart drawer" }]
+}
+{% endschema %}
