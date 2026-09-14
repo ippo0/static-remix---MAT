@@ -79,10 +79,17 @@
   # products cannot leak in.
   #
   # NOTE ON THE 50 CAP: a for loop over collections['all'].products stops at 50
-  # and {% paginate %} is the only way past it -- but paginate reads ?page from
+  # and a paginate tag is the only way past it -- but paginate reads ?page from
   # the URL, and this drawer renders on EVERY page including paginated
   # collection pages, where it would silently serve page 2 of the pool. So the
   # loop is left uncapped-by-paginate on purpose. The catalogue is 49 products;
+  #
+  # NEVER put a Liquid tag delimiter inside these hash comments -- not even
+  # quoted, and not even as an example. The parser ends the enclosing liquid tag
+  # at the first closing delimiter it meets, wherever that character pair sits,
+  # comment or not. One of them inside a comment here closed this block 66 lines
+  # early on 2026-09-14 and dumped the remainder on screen as raw text in the
+  # open cart drawer. Name tags in prose -- "a paginate tag" -- never in braces.
   # past 50 the pool simply stops growing, which for a random sample degrades
   # gracefully rather than breaking. Revisit if the catalogue passes 50.
   assign sug_block = ','
