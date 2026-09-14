@@ -4575,6 +4575,6 @@
       "notes_close_label": "إغلاق",
       "error_message": "حدث خطأ ما. يرجى المحاولة مرة أخرى، أو التواصل معنا إذا استمرت المشكلة."
     },
-    "rd": { "nav": { "shop": "تسوق", "brands": "الماركات", "discovery_set": "بكس راقي", "our_story": "قصتنا" }, "utils": { "search": "بحث", "whatsapp": "واتساب", "elsewhere": "أماكن أخرى", "bag": "السلة" }, "filters": { "all": "الكل", "men": "رجالي", "women": "نسائي", "unisex": "للجنسين", "niche": "نيش" }, "hero": { "try_it": "جرّبه", "live_with_it": "عِشه", "decide": "قرّر" } }
+    "rd": { "nav": { "shop": "تسوق", "brands": "الماركات", "discovery_set": "بكس راقي", "our_story": "قصتنا" }, "utils": { "search": "بحث", "whatsapp": "واتساب", "elsewhere": "أماكن أخرى", "bag": "السلة" }, "filters": { "all": "الكل", "men": "رجالي", "women": "نسائي", "unisex": "للجنسين", "niche": "نيش" }, "hero": { "eyebrow": "راقي بكس", "heading": "اختر 3 عطور أصلية من اختيارك", "body": "تجربة عطور فاخرة بطريقتك أنت — 15 مل لكل عطر. عِش مع الثلاثة قبل ما تلتزم بزجاجة كاملة.", "cta_primary": "ابدأ اختيارك", "cta_secondary": "اعرف المزيد", "try_it": "جرّبه", "live_with_it": "عِشه", "decide": "قرّر" } }
   }
 }

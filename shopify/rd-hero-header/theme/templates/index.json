@@ -15,14 +15,14 @@
         "cta1": {
           "type": "cta",
           "settings": {
-            "label": "Build Your Set",
+            "label": "",
             "style": "primary"
           }
         },
         "cta2": {
           "type": "cta",
           "settings": {
-            "label": "Learn More",
+            "label": "",
             "style": "secondary"
           }
         }
@@ -34,14 +34,14 @@
       "custom_css": [],
       "settings": {
         "link": "/pages/discovery-box",
-        "eyebrow": "RAQI Discovery Set",
-        "heading": "No one should buy a signature in two minutes.",
-        "body": "Choose 1 Signature + 2 Discovery fragrances — 15ml each, 45ml total. Experience three original fragrances before committing to a full bottle.",
+        "eyebrow": "",
+        "heading": "",
+        "body": "",
         "step_line": "yes",
         "show_offer": true,
         "offer_price": "Dhs. 599",
-        "offer_breakdown": "Three fragrances · 45ml · Individually Dhs. 850",
-        "image": "shopify://shop_images/raqi_box_A_full_1200.jpg",
+        "offer_breakdown": "Three fragrances · 45ml",
+        "image": "shopify://shop_images/raqi_discovery_box_square_edge.jpg",
         "image_alt": "The RAQI Discovery Set box"
       }
     },
@@ -166,7 +166,8 @@
         "tier_line": "Buy 2, save 5% · Buy 3 or more, save 10%",
         "card_tier_label": "Buy 2, save 5%",
         "more_label": "View all",
-        "empty_text": "Nothing matches that combination yet."
+        "empty_text": "Nothing matches that combination yet.",
+        "truncated_text": "This view is paginated — the filters above apply to this page only."
       }
     },
     "rd_profiles": {
@@ -293,6 +294,7 @@
         "finder_label": "Fragrance finder",
         "q1": "Where will you wear it?",
         "q2": "Which profile draws you?",
+        "image": "shopify://shop_images/raqi_discovery_box_square_edge.jpg",
         "image_alt": "The RAQI Discovery Set box",
         "placeholder_text": "Discovery Set imagery pending from the manufacturer"
       }
@@ -415,7 +417,7 @@
         "p7": {
           "type": "product",
           "settings": {
-            "product": "kilian-angels-share"
+            "product": "amouage-reflection-woman"
           }
         },
         "p8": {

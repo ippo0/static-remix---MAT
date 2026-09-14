@@ -66,9 +66,36 @@
 <div class="rd-scope">
   <a class="rd-hero" href="{{ section.settings.link | default: '/pages/discovery-box' }}">
     <div class="rd-hero__copy">
-      <p class="rd-hero__eyebrow">{{ section.settings.eyebrow }}</p>
-      <h1 class="rd-hero__h1">{{ section.settings.heading }}</h1>
-      <p class="rd-hero__body">{{ section.settings.body }}</p>
+      {%- liquid
+        # 2026-09-14 -- locale keys for the hero copy, merchant-authorised. The
+        # setting still wins when it carries a value, exactly as
+        # sections/raqi-product.liquid does it, so the customizer keeps working
+        # as an override. When the setting is blank the raqi.rd.hero.* key is
+        # used, and THAT is what makes the copy translatable: these three
+        # strings are section settings, and section settings are not
+        # locale-aware -- writing Arabic into locales/ar.json does nothing for
+        # them unless they are routed through `| t` like this.
+        #
+        # templates/index.json ships these three settings blank on purpose. Type
+        # anything into the customizer fields and you pin that text for EVERY
+        # language, English and Arabic alike. To change hero copy, edit
+        # locales/en.default.json and locales/ar.json instead.
+        assign hero_eyebrow = section.settings.eyebrow
+        if hero_eyebrow == blank
+          assign hero_eyebrow = 'raqi.rd.hero.eyebrow' | t
+        endif
+        assign hero_heading = section.settings.heading
+        if hero_heading == blank
+          assign hero_heading = 'raqi.rd.hero.heading' | t
+        endif
+        assign hero_body = section.settings.body
+        if hero_body == blank
+          assign hero_body = 'raqi.rd.hero.body' | t
+        endif
+      -%}
+      <p class="rd-hero__eyebrow">{{ hero_eyebrow }}</p>
+      <h1 class="rd-hero__h1">{{ hero_heading }}</h1>
+      <p class="rd-hero__body">{{ hero_body }}</p>
 
       {%- if section.settings.show_offer -%}
         {%- liquid
@@ -102,11 +129,20 @@
           {%- if block.type == 'cta' -%}
             {%- liquid
               assign klass = 'rd-btn rd-btn--ghost'
+              assign cta_key = 'raqi.rd.hero.cta_secondary'
               if block.settings.style == 'primary'
                 assign klass = 'rd-btn rd-btn--primary'
+                assign cta_key = 'raqi.rd.hero.cta_primary'
+              endif
+              # Same override-then-key pattern as the copy above. The key is
+              # chosen by button style, not by block order, so reordering the
+              # blocks in the customizer cannot swap the two labels.
+              assign cta_label = block.settings.label
+              if cta_label == blank
+                assign cta_label = cta_key | t
               endif
             -%}
-            <span class="{{ klass }}" {{ block.shopify_attributes }}>{{ block.settings.label }}</span>
+            <span class="{{ klass }}" {{ block.shopify_attributes }}>{{ cta_label }}</span>
           {%- endif -%}
         {%- endfor -%}
       </div>
