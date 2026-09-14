@@ -721,6 +721,19 @@
         "try_it": "Try it",
         "live_with_it": "Live with it",
         "decide": "Decide"
+      },
+      "cart": {
+        "tiers_heading": "Buy more, save more",
+        "tier_1_qty": "1 item",
+        "tier_1_value": "Full price",
+        "tier_2_qty": "2 items",
+        "tier_2_value": "5% off",
+        "tier_3_qty": "3+ items",
+        "tier_3_value": "10% off",
+        "ship_remaining": "{{ amount }} to free shipping",
+        "ship_unlocked": "Free shipping unlocked",
+        "ship_progress_label": "Progress to free shipping",
+        "payments_label": "Secure payment"
       }
     }
   }
