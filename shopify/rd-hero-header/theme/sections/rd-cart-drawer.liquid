@@ -169,7 +169,7 @@
 
           {%- if section.settings.show_suggestions -%}
             {%- capture sug_json -%}
-              [
+              {"pool":[
               {%- assign sug_first = true -%}
               {%- for p in collections['all'].products -%}
                 {%- assign sug_needle = ',' | append: p.handle | append: ',' -%}
@@ -181,10 +181,22 @@
                   {%- else -%}
                     {%- assign sug_img = '' -%}
                   {%- endif -%}
-                  {"t":{{ p.title | json }},"u":{{ p.url | json }},"i":{{ sug_img | json }},"p":{{ p.price_min | money | json }},"m":{% if p.price_min < p.price_max %}true{% else %}false{% endif %}}
+                  {"h":{{ p.handle | json }},"t":{{ p.title | json }},"u":{{ p.url | json }},"i":{{ sug_img | json }},"p":{{ p.price_min | money | json }},"m":{% if p.price_min < p.price_max %}true{% else %}false{% endif %},"v":[
+                  {%- for v in p.variants -%}
+                    {%- unless forloop.first -%},{%- endunless -%}
+                    {"id":{{ v.id }},"t":{{ v.title | json }},"p":{{ v.price | money | json }},"a":{% if v.available %}true{% else %}false{% endif %}}
+                  {%- endfor -%}
+                  ]}
                 {%- endunless -%}
               {%- endfor -%}
-              ]
+              ],"cart":{
+              {%- assign sug_cfirst = true -%}
+              {%- for line in cart.items -%}
+                {%- unless sug_cfirst -%},{%- endunless -%}
+                {%- assign sug_cfirst = false -%}
+                "{{ line.variant.id }}":{"k":{{ line.key | json }},"q":{{ line.quantity }},"h":{{ line.product.handle | json }}}
+              {%- endfor -%}
+              }}
             {%- endcapture -%}
             <section class="rd-cd__sugs" aria-labelledby="rd-cd-sugs-h" hidden data-rd-cd-sugswrap>
               <h3 class="rd-cd__sugs-h" id="rd-cd-sugs-h">{{ 'raqi.rd.cart.sugs_heading' | t }}</h3>
@@ -388,6 +400,38 @@
   .rd-cd__sug-price { font-family: var(--rd-body); font-size: 12px; color: var(--rd-grey); }
   .rd-cd__sug-link:hover .rd-cd__sug-name { color: var(--rd-wine); }
 
+  /* The drawer's cart lines show quantity as text with a Remove link and have
+     no stepper, so there was no existing control to copy. These follow the
+     drawer's own visual language: 1px rules, wine accent, logical properties. */
+  .rd-cd__sug { display: flex; flex-direction: column; gap: 8px; }
+  .rd-cd__sug-sizes { display: flex; gap: 6px; margin-inline-start: 60px; }
+  .rd-cd__sug-size { font-family: var(--rd-body); font-size: 11px; line-height: 1;
+    padding: 6px 10px; border: 1px solid var(--rd-rule); border-radius: 4px;
+    background: transparent; color: var(--rd-grey); cursor: pointer;
+    transition: border-color 140ms ease, color 140ms ease; }
+  .rd-cd__sug-size:hover { border-color: var(--rd-wine); color: var(--rd-wine); }
+  .rd-cd__sug-size.is-on { border-color: var(--rd-ink); background: var(--rd-ink); color: #FFFFFF; }
+  .rd-cd__sug-size.is-out { opacity: .4; cursor: not-allowed; text-decoration: line-through; }
+  .rd-cd__sug-add { margin-inline-start: 60px; align-self: flex-start;
+    font-family: var(--rd-body); font-size: 11px; letter-spacing: .12em;
+    text-transform: uppercase; padding: 8px 16px; border: 1px solid var(--rd-wine);
+    background: transparent; color: var(--rd-wine); cursor: pointer;
+    transition: background 140ms ease, color 140ms ease; }
+  .rd-cd__sug-add:hover { background: var(--rd-wine); color: #FFFFFF; }
+  .rd-cd__sug-add[disabled] { opacity: .45; cursor: default; }
+  .rd-cd__sug-qty { margin-inline-start: 60px; align-self: flex-start;
+    display: inline-flex; align-items: stretch; border: 1px solid var(--rd-rule); }
+  .rd-cd__qbtn { inline-size: 30px; min-block-size: 30px; border: 0; background: transparent;
+    color: var(--rd-ink); font-size: 15px; line-height: 1; cursor: pointer; }
+  .rd-cd__qbtn:hover { background: var(--rd-panel); color: var(--rd-wine); }
+  .rd-cd__qval { min-inline-size: 34px; display: inline-flex; align-items: center;
+    justify-content: center; font-family: var(--rd-body); font-size: 12.5px;
+    border-inline: 1px solid var(--rd-rule); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rd-cd__sug-size, .rd-cd__sug-add { transition: none; }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .rd-cd__ship-fill { transition: none; }
     .rd-cd__tier { transition: none; }
@@ -412,6 +456,10 @@
   // translatable and never lands hardcoded in the script.
   var SUG_FROM   = {{ 'raqi.rd.cart.sugs_from' | t: price: '__P__' | json }};
   var BUMP_TEXT  = {{ 'raqi.rd.cart.tier_bump' | t | json }};
+  var SUG_ADD    = {{ 'raqi.rd.cart.sugs_add' | t | json }};
+  var SUG_SIZE   = {{ 'raqi.rd.cart.sugs_size' | t | json }};
+  var SUG_INC    = {{ 'raqi.rd.cart.qty_increase' | t | json }};
+  var SUG_DEC    = {{ 'raqi.rd.cart.qty_decrease' | t | json }};
 
   // Cart mutations still in flight. A section re-render that lands while another
   // change is still running must NOT paint: its HTML was generated before that
@@ -446,8 +494,16 @@
   }
 
   function open() {
-    renderSuggestions();
     var d = root(); if (!d) return;
+    // Re-roll only on a real closed -> open transition. add() calls open() to
+    // confirm the add BEFORE refresh(), so rolling unconditionally reshuffled
+    // the whole list the instant a customer pressed Add on a suggestion --
+    // the card they were interacting with was replaced by a different product
+    // and its stepper never appeared. Adding from inside an already-open drawer
+    // must leave the list exactly where it is.
+    var wasOpen = !d.hasAttribute('hidden');
+    if (!wasOpen) rollSuggestions();
+    renderSuggestions();
     d.removeAttribute('hidden');
     document.documentElement.classList.add('rd-cd-open');
     var x = d.querySelector('.rd-cd__x'); if (x) x.focus();
@@ -532,30 +588,66 @@
   // ---- random suggestions --------------------------------------------
   // Sampled in JS so every open re-rolls. The pool itself is Liquid-rendered,
   // so cart exclusions are always in step with the cart the server knows about.
-  function renderSuggestions() {
-    var wrap = document.querySelector('[data-rd-cd-sugswrap]');
-    var host = document.querySelector('[data-rd-cd-sugs]');
-    var src  = document.querySelector('[data-rd-cd-pool]');
-    if (!wrap || !host || !src) return;
-    var pool = [];
-    try { pool = JSON.parse(src.textContent || '[]') || []; } catch (e) { pool = []; }
-    if (!pool.length) { wrap.hidden = true; return; }
-    var a = pool.slice();
+  // The rolled list is held in sugPicks and re-rolled only on open(), not on
+  // every refresh: a cart change must not reshuffle cards under the customer's
+  // finger mid-interaction. Which card shows a stepper is derived from the
+  // SERVER's cart on each render, never from JS bookkeeping, so removing a line
+  // from the list above cannot leave a stale stepper behind.
+  var sugPicks = null;
+  var sugChosen = {};
+
+  function readPool() {
+    var src = document.querySelector('[data-rd-cd-pool]');
+    if (!src) return { pool: [], cart: {} };
+    try {
+      var d = JSON.parse(src.textContent || '{}') || {};
+      return { pool: d.pool || [], cart: d.cart || {} };
+    } catch (e) { return { pool: [], cart: {} }; }
+  }
+
+  function rollSuggestions() {
+    var d = readPool();
+    var a = d.pool.slice();
     for (var i = a.length - 1; i > 0; i--) {
       var j = Math.floor(Math.random() * (i + 1));
       var t = a[i]; a[i] = a[j]; a[j] = t;
     }
-    var pick = a.slice(0, SUG_N);
+    sugPicks = a.slice(0, SUG_N);
+    sugChosen = {};
+    sugPicks.forEach(function (p) {
+      var first = null;
+      (p.v || []).forEach(function (v) { if (!first && v.a) first = v.id; });
+      sugChosen[p.h] = first || ((p.v || [])[0] || {}).id || null;
+    });
+  }
+
+  function cartEntryFor(p, cart) {
+    var id = sugChosen[p.h];
+    if (id && cart[id]) return cart[id];
+    // Chosen size is not in the cart, but another size of the same product may
+    // be; the stepper must follow the size actually on screen, so this only
+    // matches the selected variant.
+    return null;
+  }
+
+  function renderSuggestions() {
+    var wrap = document.querySelector('[data-rd-cd-sugswrap]');
+    var host = document.querySelector('[data-rd-cd-sugs]');
+    if (!wrap || !host) return;
+    var d = readPool();
+    if (sugPicks === null) rollSuggestions();
+    if (!sugPicks.length) { wrap.hidden = true; return; }
     host.textContent = '';
-    pick.forEach(function (p) {
+    sugPicks.forEach(function (p) {
       // Built with createElement/textContent rather than innerHTML: titles are
       // shop data, but this markup is assembled in the browser and must not be
       // a place where markup in a product title could execute.
       var li = document.createElement('li');
       li.className = 'rd-cd__sug';
-      var a2 = document.createElement('a');
-      a2.className = 'rd-cd__sug-link';
-      a2.href = p.u;
+
+      var top = document.createElement('a');
+      top.className = 'rd-cd__sug-link';
+      top.href = p.u;
       var fig = document.createElement('span');
       fig.className = 'rd-cd__sug-media';
       if (p.i) {
@@ -571,10 +663,69 @@
       nm.textContent = p.t;
       var pr = document.createElement('span');
       pr.className = 'rd-cd__sug-price';
-      pr.textContent = p.m ? SUG_FROM.replace('__P__', p.p) : p.p;
+      var chosen = null;
+      (p.v || []).forEach(function (v) { if (v.id === sugChosen[p.h]) chosen = v; });
+      pr.textContent = chosen ? chosen.p : (p.m ? SUG_FROM.replace('__P__', p.p) : p.p);
       meta.appendChild(nm); meta.appendChild(pr);
-      a2.appendChild(fig); a2.appendChild(meta);
-      li.appendChild(a2);
+      top.appendChild(fig); top.appendChild(meta);
+      li.appendChild(top);
+
+      // Size chips mirror the product's real variants -- never a hardcoded
+      // 10ml/30ml pair, so a product with a third size shows all three.
+      if ((p.v || []).length > 1) {
+        var sizes = document.createElement('div');
+        sizes.className = 'rd-cd__sug-sizes';
+        sizes.setAttribute('role', 'group');
+        sizes.setAttribute('aria-label', SUG_SIZE);
+        p.v.forEach(function (v) {
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'rd-cd__sug-size' + (v.id === sugChosen[p.h] ? ' is-on' : '');
+          btn.textContent = v.t;
+          btn.setAttribute('aria-pressed', v.id === sugChosen[p.h] ? 'true' : 'false');
+          if (!v.a) { btn.disabled = true; btn.classList.add('is-out'); }
+          btn.addEventListener('click', function () {
+            sugChosen[p.h] = v.id;
+            renderSuggestions();
+          });
+          sizes.appendChild(btn);
+        });
+        li.appendChild(sizes);
+      }
+
+      var entry = cartEntryFor(p, d.cart);
+      if (entry) {
+        var stp = document.createElement('div');
+        stp.className = 'rd-cd__sug-qty';
+        var dec = document.createElement('button');
+        dec.type = 'button'; dec.className = 'rd-cd__qbtn';
+        dec.textContent = '\u2212';
+        dec.setAttribute('aria-label', SUG_DEC);
+        var out = document.createElement('span');
+        out.className = 'rd-cd__qval'; out.textContent = String(entry.q);
+        out.setAttribute('aria-live', 'polite');
+        var inc = document.createElement('button');
+        inc.type = 'button'; inc.className = 'rd-cd__qbtn';
+        inc.textContent = '+';
+        inc.setAttribute('aria-label', SUG_INC);
+        dec.addEventListener('click', function () { change(entry.k, entry.q - 1); });
+        inc.addEventListener('click', function () { change(entry.k, entry.q + 1); });
+        stp.appendChild(dec); stp.appendChild(out); stp.appendChild(inc);
+        li.appendChild(stp);
+      } else {
+        var addb = document.createElement('button');
+        addb.type = 'button';
+        addb.className = 'rd-cd__sug-add';
+        addb.textContent = SUG_ADD;
+        var vid = sugChosen[p.h];
+        if (!vid) addb.disabled = true;
+        addb.addEventListener('click', function () {
+          addb.disabled = true;
+          add(vid, 1);
+        });
+        li.appendChild(addb);
+      }
+
       host.appendChild(li);
     });
     wrap.hidden = false;

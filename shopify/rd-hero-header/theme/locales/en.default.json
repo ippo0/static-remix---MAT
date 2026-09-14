@@ -736,7 +736,11 @@
         "payments_label": "Secure payment",
         "sugs_heading": "You May Also Like",
         "sugs_from": "From {{ price }}",
-        "tier_bump": "+1"
+        "tier_bump": "+1",
+        "sugs_add": "Add",
+        "sugs_size": "Size",
+        "qty_increase": "Increase quantity",
+        "qty_decrease": "Decrease quantity"
       }
     }
   }
