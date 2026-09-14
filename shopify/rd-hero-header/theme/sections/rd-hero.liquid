@@ -37,15 +37,25 @@
   exactly — the empty space was entirely panel padding plus that 340px cap,
   never a gap between image and frame.
 
-  Changed in assets/raqi-redesign.css, not here: frame cap 340px -> 560px with
-  max-block-size 100% as an overflow guard; desktop panel padding 64px -> 40px;
-  and on <=900px the panel's fixed block-size: 340px -> auto with padding
-  32px -> 24px so the square drives the panel height instead of being letterboxed
-  inside it. Frame coverage now 57.1% desktop, 67.2% at 768px, 76-78% on phones.
-  The frame stays 1:1, matching the source exactly, so nothing is cropped.
+  Changed in assets/raqi-redesign.css, not here: on <=900px the panel's fixed
+  block-size: 340px -> auto with padding 32px -> 24px and the frame cap
+  240px -> 560px, so the square drives the panel height instead of being
+  letterboxed inside it; on desktop the panel padding went 64px -> 0 and the
+  frame cap was removed entirely (max-inline-size: none), so the photograph
+  spans the full width of its grid column. max-block-size: 100% is kept as an
+  overflow guard for the case where short copy lets the panel fall back to
+  .rd-hero's min-block-size. Frame coverage is now 74.7% on desktop, 67.2% at
+  768px and 76-78% on phones, up from 21.5% / 22.1% / 41-45%.
+
+  The frame stays 1:1, matching the 1200x1200 source exactly, so nothing is
+  cropped and nothing is letterboxed. The residual panel colour above and below
+  the image on desktop is inherent to fitting a square into a taller column, not
+  slack in the frame.
 
   The srcset/sizes below were widened in the same change because the frame now
-  renders up to 560 CSS px; the old 800w ceiling would have gone soft on retina.
+  renders up to 634 CSS px; the old 800w ceiling would have gone soft on retina.
+  1200w is the ceiling because that is the source's native width -- asking for
+  more would claim a width Shopify cannot actually serve.
 
   The rest of the section remains LOCKED.
 
@@ -109,9 +119,9 @@
     <div class="rd-hero__panel">
       <div class="rd-hero__frame">
         {%- if section.settings.image != blank -%}
-          <img src="{{ section.settings.image | image_url: width: 1120 }}"
-               srcset="{{ section.settings.image | image_url: width: 400 }} 400w, {{ section.settings.image | image_url: width: 560 }} 560w, {{ section.settings.image | image_url: width: 800 }} 800w, {{ section.settings.image | image_url: width: 1120 }} 1120w"
-               sizes="(max-width: 900px) min(100vw - 48px, 560px), min(50vw - 80px, 560px)"
+          <img src="{{ section.settings.image | image_url: width: 1200 }}"
+               srcset="{{ section.settings.image | image_url: width: 400 }} 400w, {{ section.settings.image | image_url: width: 640 }} 640w, {{ section.settings.image | image_url: width: 900 }} 900w, {{ section.settings.image | image_url: width: 1200 }} 1200w"
+               sizes="(max-width: 900px) min(100vw - 48px, 560px), min(50vw, 634px)"
                alt="{{ section.settings.image_alt | escape }}"
                width="{{ section.settings.image.width }}" height="{{ section.settings.image.height }}"
                loading="eager" fetchpriority="high">
