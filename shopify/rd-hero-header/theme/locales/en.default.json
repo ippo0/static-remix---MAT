@@ -733,7 +733,10 @@
         "ship_remaining": "{{ amount }} to free shipping",
         "ship_unlocked": "Free shipping unlocked",
         "ship_progress_label": "Progress to free shipping",
-        "payments_label": "Secure payment"
+        "payments_label": "Secure payment",
+        "sugs_heading": "You May Also Like",
+        "sugs_from": "From {{ price }}",
+        "tier_bump": "+1"
       }
     }
   }
