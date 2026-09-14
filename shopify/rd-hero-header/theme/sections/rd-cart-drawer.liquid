@@ -404,28 +404,33 @@
      no stepper, so there was no existing control to copy. These follow the
      drawer's own visual language: 1px rules, wine accent, logical properties. */
   .rd-cd__sug { display: flex; flex-direction: column; gap: 8px; }
-  .rd-cd__sug-sizes { display: flex; gap: 6px; margin-inline-start: 60px; }
+  /* Sizes and Add share one row, indented to line up under the product name.
+     Every control in here is built to the same 28px box so the row reads as one
+     unit rather than a tall button next to small chips. */
+  .rd-cd__sug-actions { display: flex; align-items: center; gap: 8px;
+    margin-inline-start: 60px; flex-wrap: wrap; }
+  .rd-cd__sug-sizes { display: flex; gap: 6px; }
   .rd-cd__sug-size { font-family: var(--rd-body); font-size: 11px; line-height: 1;
-    padding: 6px 10px; border: 1px solid var(--rd-rule); border-radius: 4px;
-    background: transparent; color: var(--rd-grey); cursor: pointer;
+    block-size: 28px; padding-inline: 10px; border: 1px solid var(--rd-rule);
+    border-radius: 4px; background: transparent; color: var(--rd-grey); cursor: pointer;
     transition: border-color 140ms ease, color 140ms ease; }
   .rd-cd__sug-size:hover { border-color: var(--rd-wine); color: var(--rd-wine); }
   .rd-cd__sug-size.is-on { border-color: var(--rd-ink); background: var(--rd-ink); color: #FFFFFF; }
   .rd-cd__sug-size.is-out { opacity: .4; cursor: not-allowed; text-decoration: line-through; }
-  .rd-cd__sug-add { margin-inline-start: 60px; align-self: flex-start;
-    font-family: var(--rd-body); font-size: 11px; letter-spacing: .12em;
-    text-transform: uppercase; padding: 8px 16px; border: 1px solid var(--rd-wine);
-    background: transparent; color: var(--rd-wine); cursor: pointer;
+  .rd-cd__sug-add { font-family: var(--rd-body); font-size: 10px; letter-spacing: .1em;
+    text-transform: uppercase; block-size: 28px; padding-inline: 12px; border-radius: 4px;
+    border: 1px solid var(--rd-wine); background: transparent; color: var(--rd-wine);
+    cursor: pointer; white-space: nowrap;
     transition: background 140ms ease, color 140ms ease; }
   .rd-cd__sug-add:hover { background: var(--rd-wine); color: #FFFFFF; }
   .rd-cd__sug-add[disabled] { opacity: .45; cursor: default; }
-  .rd-cd__sug-qty { margin-inline-start: 60px; align-self: flex-start;
-    display: inline-flex; align-items: stretch; border: 1px solid var(--rd-rule); }
-  .rd-cd__qbtn { inline-size: 30px; min-block-size: 30px; border: 0; background: transparent;
-    color: var(--rd-ink); font-size: 15px; line-height: 1; cursor: pointer; }
+  .rd-cd__sug-qty { display: inline-flex; align-items: stretch; block-size: 28px;
+    border: 1px solid var(--rd-rule); border-radius: 4px; overflow: hidden; }
+  .rd-cd__qbtn { inline-size: 28px; border: 0; background: transparent;
+    color: var(--rd-ink); font-size: 14px; line-height: 1; cursor: pointer; padding: 0; }
   .rd-cd__qbtn:hover { background: var(--rd-panel); color: var(--rd-wine); }
-  .rd-cd__qval { min-inline-size: 34px; display: inline-flex; align-items: center;
-    justify-content: center; font-family: var(--rd-body); font-size: 12.5px;
+  .rd-cd__qval { min-inline-size: 30px; display: inline-flex; align-items: center;
+    justify-content: center; font-family: var(--rd-body); font-size: 12px;
     border-inline: 1px solid var(--rd-rule); }
 
   @media (prefers-reduced-motion: reduce) {
@@ -450,7 +455,14 @@
   var SECTION  = {{ section.id | json }};
   var ROOT     = {{ routes.root_url | json }};
   var CART_URL = {{ routes.cart_url | json }};
-  var CHANGE_URL = {{ routes.cart_change_url | json }};
+  // .js on purpose. routes.cart_change_url is /cart/change -- the FORM
+  // endpoint, which answers a POST with a 302 to /cart. fetch follows that,
+  // lands on HTML with r.ok true, and r.json() then throws; change() catches
+  // it, warns, and re-renders from a cart that never changed. The visible
+  // result is a quantity control that looks alive and does nothing. The
+  // documented AJAX endpoint is /cart/change.js. Appending rather than
+  // hardcoding keeps the locale prefix, so /ar-ae carts still work.
+  var CHANGE_URL = {{ routes.cart_change_url | append: '.js' | json }};
   var SUG_N      = {{ section.settings.suggestions_count | default: 3 | json }};
   // Placeholder is substituted in JS; `t` runs here so the string itself stays
   // translatable and never lands hardcoded in the script.
@@ -672,6 +684,12 @@
 
       // Size chips mirror the product's real variants -- never a hardcoded
       // 10ml/30ml pair, so a product with a third size shows all three.
+      // Sizes and the Add control share one row. Anything appended to `row`
+      // sits beside the chips rather than stacking under them.
+      var row = document.createElement('div');
+      row.className = 'rd-cd__sug-actions';
+      li.appendChild(row);
+
       if ((p.v || []).length > 1) {
         var sizes = document.createElement('div');
         sizes.className = 'rd-cd__sug-sizes';
@@ -690,7 +708,7 @@
           });
           sizes.appendChild(btn);
         });
-        li.appendChild(sizes);
+        row.appendChild(sizes);
       }
 
       var entry = cartEntryFor(p, d.cart);
@@ -708,10 +726,27 @@
         inc.type = 'button'; inc.className = 'rd-cd__qbtn';
         inc.textContent = '+';
         inc.setAttribute('aria-label', SUG_INC);
-        dec.addEventListener('click', function () { change(entry.k, entry.q - 1); });
-        inc.addEventListener('click', function () { change(entry.k, entry.q + 1); });
+        // Re-read the cart from the DOM at CLICK time instead of closing over
+        // `entry`. refresh() legitimately skips the repaint when nothing
+        // changed or when another mutation is still in flight, and a skipped
+        // repaint leaves this closure holding the quantity from before the last
+        // press. Posting that stale number is a no-op the customer sees as a
+        // dead button -- the control appears to freeze on its first value.
+        // Reading live state makes every press relative to the real cart.
+        function step(delta) {
+          var now = cartEntryFor(p, readPool().cart);
+          if (!now) return;
+          var next = now.q + delta;
+          // Move the number immediately so the control answers the press even
+          // while the round trip is out. The server's own figure overwrites
+          // this on the re-render that follows.
+          out.textContent = String(next > 0 ? next : 0);
+          change(now.k, next);
+        }
+        dec.addEventListener('click', function () { step(-1); });
+        inc.addEventListener('click', function () { step(1); });
         stp.appendChild(dec); stp.appendChild(out); stp.appendChild(inc);
-        li.appendChild(stp);
+        row.appendChild(stp);
       } else {
         var addb = document.createElement('button');
         addb.type = 'button';
@@ -723,7 +758,7 @@
           addb.disabled = true;
           add(vid, 1);
         });
-        li.appendChild(addb);
+        row.appendChild(addb);
       }
 
       host.appendChild(li);
