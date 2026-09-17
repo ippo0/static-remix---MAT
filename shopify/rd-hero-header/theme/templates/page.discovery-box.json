@@ -1,0 +1,11 @@
+{
+  "sections": {
+    "main": {
+      "type": "raqi-discovery-box",
+      "settings": {
+        "excluded_handles": "maison-crivelli-oud-maracuja, maison-crivelli-hibiscus-mahajad, louis-vuitton-imagination, maison-francis-kurkdjian-baccarat-rouge-540, tom-ford-fabulous, tom-ford-oud-voyager, tom-ford-rose-prick, tom-ford-vanille-fatale"
+      }
+    }
+  },
+  "order": ["main"]
+}
