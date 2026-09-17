@@ -152,6 +152,7 @@
       <p class="raqi-micro-label raqi-micro-label--accent">{{ 'raqi.discovery_box.eyebrow' | t }}</p>
       <h1 class="raqi-db__heading">{{ 'raqi.discovery_box.heading' | t }}</h1>
       <p class="raqi-db__subhead">{{ 'raqi.discovery_box.subhead' | t }}</p>
+      <p class="raqi-db__offer">{{ 'raqi.discovery_box.offer_banner' | t }}</p>
     </div>
 
     {%- comment -%}
@@ -336,6 +337,12 @@
   .raqi-db__intro{ text-align:center;max-width:560px;margin:0 auto 40px; }
   .raqi-db__heading{ font-family:var(--raqi-font-display);font-weight:400;font-size:40px;color:var(--raqi-ink);margin:16px 0 16px; }
   .raqi-db__subhead{ font-size:14px;line-height:1.8;color:var(--raqi-text-muted);margin:0; }
+  .raqi-db__offer{ display:inline-block;margin-block-start:18px;padding:10px 22px;background:var(--raqi-accent);color:var(--raqi-bg-page);font-family:var(--raqi-font-body);font-weight:600;font-size:16px;line-height:1.6;max-inline-size:100%; }
+  /* Noto Kufi Arabic is loaded at 300/400/500 only (snippets/custom-code-head.liquid),
+     so asking for 600 here would hand Arabic a synthesised bold. Drop to its real
+     heaviest face -- same idiom as .raqi-hero__heading in assets/raqi-theme.css. */
+  html[lang='ar'] .raqi-db__offer,
+  html[dir='rtl'] .raqi-db__offer{ font-weight:500; }
 
   .raqi-db__progress{ max-width:520px;margin:0 auto 8px; }
   .raqi-db__step-label{ text-align:center;font:500 11px/1 var(--raqi-font-body);letter-spacing:.2em;text-transform:uppercase;color:var(--raqi-accent);margin:0 0 14px; }
@@ -439,6 +446,7 @@
   }
   @media (max-width:560px){
     .raqi-db__grid{ grid-template-columns:repeat(2,1fr); }
+    .raqi-db__offer{ font-size:14px;padding:9px 16px; }
     .raqi-db__heading{ font-size:30px; }
   }
 </style>
