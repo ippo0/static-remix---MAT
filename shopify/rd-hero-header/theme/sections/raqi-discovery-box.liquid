@@ -314,6 +314,7 @@
       </div>
       <div class="raqi-db__actions">
         <button type="button" class="raqi-btn raqi-btn-secondary" id="RaqiDbBack2">{{ 'raqi.discovery_box.back_label' | t }}</button>
+        <button type="button" class="raqi-btn raqi-btn-secondary" id="RaqiDbAddMore">{{ 'raqi.discovery_box.add_more_label' | t }}</button>
         <button type="button" class="raqi-btn raqi-btn-accent" id="RaqiDbAddToCart">{{ 'raqi.discovery_box.add_to_cart_label' | t }}</button>
       </div>
       <div class="raqi-db__message" id="RaqiDbMessage" role="alert" aria-live="assertive"></div>
@@ -412,6 +413,7 @@
   .raqi-db__empty[hidden]{ display:none; }
 
   .raqi-db__actions{ display:flex;justify-content:center;gap:14px; }
+  .raqi-db__actions{ flex-wrap:wrap; }
 
   .raqi-db__review-list{ max-width:520px;margin:0 auto 20px;display:flex;flex-direction:column;gap:14px; }
   .raqi-db__review-item{ display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--raqi-rule);padding-bottom:14px; }
@@ -428,6 +430,7 @@
   .raqi-db__message{ max-width:520px;margin:14px auto 0;text-align:center;font-size:13px; }
   .raqi-db__message:empty{ display:none; }
   .raqi-db__message--error{ color:#b3261e; }
+  .raqi-db__message--ok{ color:var(--raqi-accent);font-weight:500; }
 
   .raqi-db__notes-modal[hidden]{ display:none; }
   .raqi-db__notes-modal{ position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center; }
@@ -476,11 +479,13 @@
     var next1 = document.getElementById('RaqiDbNext1');
     var back2 = document.getElementById('RaqiDbBack2');
     var addBtn = document.getElementById('RaqiDbAddToCart');
+    var addMoreBtn = document.getElementById('RaqiDbAddMore');
     var pickHint = document.getElementById('RaqiDbPickHint');
     var pickHintTemplate = {{ 'raqi.discovery_box.step_2_hint' | t | json }};
     var reviewList = document.getElementById('RaqiDbReviewList');
     var msgEl = document.getElementById('RaqiDbMessage');
     var errorMessage = {{ 'raqi.discovery_box.error_message' | t | json }};
+    var addedMessage = {{ 'raqi.discovery_box.added_message' | t | json }};
 
     var notesModal = document.getElementById('RaqiDbNotesModal');
     var notesVendorEl = document.getElementById('RaqiDbNotesModalVendor');
@@ -691,43 +696,82 @@
       });
     }
 
+    function showMessage(text, kind){
+      msgEl.textContent = text;
+      msgEl.classList.toggle('raqi-db__message--error', kind === 'error');
+      msgEl.classList.toggle('raqi-db__message--ok', kind === 'ok');
+    }
+
+    // ONE add path, two buttons. Both post the identical payload and share the
+    // identical failure handling; only the success step differs, which is why
+    // it arrives as a callback instead of the body being copied per button.
+    // btn is whichever button was pressed, so the busy state lands on the one
+    // the customer actually touched.
+    function addBoxToCart(btn, onAdded){
+      var boxVariantId = root.getAttribute('data-box-variant-id');
+      if (state.picks.length !== MAX_PICKS || !boxVariantId) {
+        showMessage(errorMessage, 'error');
+        return;
+      }
+      // Still exactly three line-item properties, renamed off the retired
+      // tier vocabulary.
+      var properties = {};
+      for (var i = 0; i < MAX_PICKS; i++) {
+        properties['Fragrance ' + (i + 1)] = state.picks[i].vendor + ' ' + displayName(state.picks[i]);
+      }
+
+      btn.setAttribute('aria-busy', 'true');
+      showMessage('', null);
+      fetch('/cart/add.js', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ items: [{ id: boxVariantId, quantity: 1, properties: properties }] })
+      })
+        .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(d){ return { ok: r.ok, data: d }; }); })
+        .then(function(result){
+          if (result.ok) { onAdded(); }
+          else { showMessage(errorMessage, 'error'); }
+        })
+        .catch(function(){
+          showMessage(errorMessage, 'error');
+        })
+        .finally(function(){ btn.removeAttribute('aria-busy'); });
+    }
+
+    // Clears the picks and the cards' selected face, then drops the customer
+    // back on step 1. maxStepReached goes back to 1 so the review dot is
+    // disabled again -- leaving it enabled would let them jump to a review of
+    // a box with zero fragrances in it.
+    function startNextBox(){
+      state.picks = [];
+      var chosen = grid ? grid.querySelectorAll('.is-selected') : [];
+      for (var i = 0; i < chosen.length; i++) { chosen[i].classList.remove('is-selected'); }
+      maxStepReached = 1;
+      syncUi();
+      goToStep(1);
+      showMessage(addedMessage, 'ok');
+    }
+
     if (addBtn) {
       addBtn.addEventListener('click', function(){
-        var boxVariantId = root.getAttribute('data-box-variant-id');
-        if (state.picks.length !== MAX_PICKS || !boxVariantId) {
-          msgEl.textContent = errorMessage;
-          msgEl.classList.add('raqi-db__message--error');
-          return;
-        }
-        // Still exactly three line-item properties, renamed off the retired
-        // tier vocabulary.
-        var properties = {};
-        for (var i = 0; i < MAX_PICKS; i++) {
-          properties['Fragrance ' + (i + 1)] = state.picks[i].vendor + ' ' + displayName(state.picks[i]);
-        }
+        addBoxToCart(addBtn, function(){
+          try { document.dispatchEvent(new CustomEvent('cart:refresh', { detail: { open: true } })); }
+          catch (e) { window.location.href = '/cart'; }
+        });
+      });
+    }
 
-        addBtn.setAttribute('aria-busy', 'true');
-        msgEl.textContent = '';
-        fetch('/cart/add.js', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-          body: JSON.stringify({ items: [{ id: boxVariantId, quantity: 1, properties: properties }] })
-        })
-          .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(d){ return { ok: r.ok, data: d }; }); })
-          .then(function(result){
-            if (result.ok) {
-              try { document.dispatchEvent(new CustomEvent('cart:refresh', { detail: { open: true } })); }
-              catch (e) { window.location.href = '/cart'; }
-            } else {
-              msgEl.textContent = errorMessage;
-              msgEl.classList.add('raqi-db__message--error');
-            }
-          })
-          .catch(function(){
-            msgEl.textContent = errorMessage;
-            msgEl.classList.add('raqi-db__message--error');
-          })
-          .finally(function(){ addBtn.removeAttribute('aria-busy'); });
+    if (addMoreBtn) {
+      addMoreBtn.addEventListener('click', function(){
+        addBoxToCart(addMoreBtn, function(){
+          // open:false on purpose -- the drawer refreshes its lines and bag
+          // count without sliding over the builder the customer is about to
+          // use for the next box. sections/rd-cart-drawer.liquid reads this
+          // flag and only opens when it is true.
+          try { document.dispatchEvent(new CustomEvent('cart:refresh', { detail: { open: false } })); }
+          catch (e) { /* the add already succeeded; the count catches up later */ }
+          startNextBox();
+        });
       });
     }
 

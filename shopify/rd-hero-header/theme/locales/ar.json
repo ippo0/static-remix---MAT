@@ -4571,6 +4571,8 @@
       "continue_label": "متابعة",
       "back_label": "رجوع",
       "add_to_cart_label": "أضف الصندوق إلى السلة",
+      "add_more_label": "أضف بكس آخر",
+      "added_message": "تمت إضافة البكس — كوّن بكسك التالي",
       "change_label": "تغيير",
       "notes_trigger_label": "المكونات",
       "notes_close_label": "إغلاق",

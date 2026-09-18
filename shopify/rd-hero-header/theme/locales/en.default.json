@@ -688,6 +688,8 @@
       "continue_label": "Continue",
       "back_label": "Back",
       "add_to_cart_label": "Add Box to Cart",
+      "add_more_label": "Add More Boxes",
+      "added_message": "Box added — build your next one",
       "change_label": "Change",
       "notes_trigger_label": "Notes",
       "notes_close_label": "Close",
