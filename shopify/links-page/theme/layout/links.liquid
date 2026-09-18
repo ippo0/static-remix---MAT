@@ -1,0 +1,56 @@
+{%- comment -%}
+  Bare layout for the RAQI links page (raqi.ae/pages/links), which is reached
+  from the QR code printed on Discovery Box packaging via raqi.ae/box.
+
+  Deliberately renders none of the store chrome: no header-group, no
+  footer-group, no announcement bar, no navigation, no cart icon, no cart
+  drawer, no breadcrumb and no page title. It also skips main.css,
+  raqi-theme.css, vendor.js and theme-global.js -- the page body is entirely
+  self-contained (scoped CSS, inline SVG, no JS), so none of them are needed,
+  and leaving them out keeps the page fast for a phone opening it straight
+  from a camera scan.
+
+  {{ content_for_header }} is required by Shopify and is kept -- it carries
+  Shopify's own scripts and any installed app pixels.
+
+  Used ONLY by templates/page.links.liquid. layout/theme.liquid is untouched
+  and every other template still renders through it.
+{%- endcomment -%}
+{%- liquid
+  assign rtl = false
+  if request.locale.iso_code == 'ar'
+    assign rtl = true
+  endif
+-%}
+<!doctype html>
+<html lang="{{ request.locale.iso_code }}" dir="{% if rtl %}rtl{% else %}ltr{% endif %}">
+  <head>
+    <meta charset="utf-8">
+    {%- comment -%}
+      Unlike theme.liquid this viewport does not set maximum-scale/user-scalable,
+      so pinch-zoom stays available on a page people may squint at.
+    {%- endcomment -%}
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="canonical" href="{{ canonical_url }}">
+    {%- if settings.favicon != blank -%}
+      <link rel="shortcut icon" type="image/png" href="{{ settings.favicon | image_url: width: 32, height: 32 }}">
+    {%- endif -%}
+    <title>{{ page_title }}</title>
+    {%- if page.seo.description != blank -%}
+      <meta name="description" content="{{ page.seo.description | escape }}">
+    {%- endif -%}
+    <style>
+      html{-webkit-text-size-adjust:100%}
+      body{margin:0;display:flex;min-height:100vh;min-height:100svh;
+        background:#F3F4EE;color:#22261F;overflow-x:hidden}
+      /* margin:auto centres the shell vertically and, unlike
+         align-items:center, never clips the top when the content is taller
+         than the viewport. */
+      .rl-shell{margin:auto;width:100%}
+    </style>
+    {{ content_for_header }}
+  </head>
+  <body>
+    <div class="rl-shell">{{ content_for_layout }}</div>
+  </body>
+</html>

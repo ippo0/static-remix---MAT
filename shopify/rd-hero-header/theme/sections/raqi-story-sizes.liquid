@@ -1,0 +1,139 @@
+{% comment %}
+  Raqi — "Our Story" + "10 ml or 30 ml?" combined section.
+  2026-08-09c CORRECTION: reverted 20ml matching/labels back to 30ml per
+  explicit user correction — the 30ml→20ml business change is undone.
+  2026-08-02 fix: added a LIVE 30ml price (same reference-product pattern
+  already used for 10ml) so the two size cards show a real, symmetric
+  price comparison instead of only the 10ml card having a number.
+  2026-08-02 fix 2: visual hierarchy — sprays (usage) is now the prominent
+  accent-colored figure, price is a small plain secondary line. Section
+  should read as "same fragrance, different amount", not a price table.
+  2026-08-02c fix: same locale bug as the product page — Shopify Translate &
+  Adapt translates the variant option/title values on the Arabic storefront
+  (10ml -> "10مل", 30ml -> "30 مل"), so the old `where: 'title', '10ml'` /
+  `where: 'title', '30ml'` exact-match filters silently matched nothing on
+  ar, and only 10ml had a blank-fallback — so the 30ml price disappeared on
+  the Arabic homepage. Fixed by matching on `contains '10'` / `contains
+  '30'` instead (the digit itself stays a plain Latin numeral in both
+  locales), with matching fallbacks for both sizes.
+{% endcomment %}
+{% liquid
+  assign ref_product = section.settings.reference_product
+  assign ref_variant_10ml = null
+  assign ref_variant_30ml = null
+  if ref_product != blank
+    for variant in ref_product.variants
+      if variant.title contains '10' and ref_variant_10ml == blank
+        assign ref_variant_10ml = variant
+      endif
+      if variant.title contains '30' and ref_variant_30ml == blank
+        assign ref_variant_30ml = variant
+      endif
+    endfor
+    if ref_variant_10ml == blank
+      assign ref_variant_10ml = ref_product.selected_or_first_available_variant
+    endif
+  endif
+%}
+<section class="raqi-story-sizes">
+  <div class="raqi-story-sizes__grid">
+    <div class="raqi-story-sizes__story">
+      <p class="raqi-micro-label raqi-micro-label--on-dark">{{ section.settings.story_eyebrow }}</p>
+      <h2 class="raqi-story__heading">{{ section.settings.story_heading_line_1 }}<br>{{ section.settings.story_heading_line_2 }}</h2>
+      <p class="raqi-story__body">{{ section.settings.story_body_1 }}</p>
+      <p class="raqi-story__body">{{ section.settings.story_body_2 }}</p>
+      <div class="raqi-story__tags">
+        <span>{{ section.settings.story_tag_1 }}</span>
+        <span>{{ section.settings.story_tag_2 }}</span>
+        <span>{{ section.settings.story_tag_3 }}</span>
+      </div>
+    </div>
+    <div class="raqi-story-sizes__sizes">
+      <h2 class="raqi-sizes__heading">{{ section.settings.sizes_heading }}</h2>
+      <p class="raqi-sizes__subhead">{{ section.settings.sizes_subhead }}</p>
+      <div class="raqi-sizes__grid">
+        <div class="raqi-size-card raqi-oval-sm raqi-size-card--ten">
+          <div class="raqi-size-card__bottle">
+            <div class="raqi-size-card__bottle-cap"></div>
+            <div class="raqi-size-card__bottle-body"></div>
+          </div>
+          <p class="raqi-size-card__label">{{ section.settings.ten_label }}</p>
+          <p class="raqi-size-card__sprays">{{ section.settings.ten_sprays }}</p>
+          {% if ref_variant_10ml %}
+            <p class="raqi-size-card__price">{{ ref_variant_10ml.price | money }}</p>
+          {% endif %}
+          <p class="raqi-size-card__body">{{ section.settings.ten_body }}</p>
+        </div>
+        <div class="raqi-size-card raqi-oval-sm raqi-size-card--thirty raqi-size-card--featured">
+          <div class="raqi-size-card__bottle">
+            <div class="raqi-size-card__bottle-cap"></div>
+            <div class="raqi-size-card__bottle-body"></div>
+          </div>
+          <p class="raqi-size-card__label">{{ section.settings.thirty_label }}</p>
+          <p class="raqi-size-card__sprays">{{ section.settings.thirty_sprays }}</p>
+          {% if ref_variant_30ml %}
+            <p class="raqi-size-card__price">{{ ref_variant_30ml.price | money }}</p>
+          {% endif %}
+          <p class="raqi-size-card__body">{{ section.settings.thirty_body }}</p>
+        </div>
+      </div>
+      {% if ref_variant_10ml and ref_variant_30ml %}
+        {% liquid
+          assign per_ml_10 = ref_variant_10ml.price | divided_by: 10.0
+          assign per_ml_30 = ref_variant_30ml.price | divided_by: 30.0
+        %}
+        <p class="raqi-sizes__per-ml-note">
+          {{ ref_product.title }} — {{ section.settings.ten_label }}: {{ ref_variant_10ml.price | money }} ({{ per_ml_10 | money }}/ml) &middot; {{ section.settings.thirty_label }}: {{ ref_variant_30ml.price | money }} ({{ per_ml_30 | money }}/ml)
+        </p>
+      {% endif %}
+      <div class="raqi-sizes__tags">
+        <span>{{ section.settings.sizes_tag_1 }}</span>
+        <span>{{ section.settings.sizes_tag_2 }}</span>
+        <span>{{ section.settings.sizes_tag_3 }}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .raqi-size-card__price{ font-family:var(--raqi-font-body);font-weight:400;font-size:13px;color:var(--raqi-text-muted);margin:0 0 10px; }
+  .raqi-sizes__per-ml-note{ font-size:11.5px;color:var(--raqi-text-muted);text-align:center;margin:20px 0 0; }
+
+  /* 2026-08-30: the Our Story half (.raqi-story-sizes__story) and the footer
+     are both --raqi-ink (#22261F), so the section met the footer with no
+     visible edge. This hairline in the design system's rule colour separates
+     them without altering either background. Scoped here rather than added to
+     assets/raqi-theme.css so that shared stylesheet stays byte-identical to
+     the Redesign source. */
+  .raqi-story-sizes{ border-bottom:1px solid var(--raqi-rule); }
+</style>
+
+{% schema %}
+{
+  "name": "Raqi: Story+Sizes",
+  "settings": [
+    { "type": "header", "content": "Our Story (left, dark)" },
+    { "type": "text", "id": "story_eyebrow", "label": "Eyebrow", "default": "Our Story" },
+    { "type": "text", "id": "story_heading_line_1", "label": "Heading line 1", "default": "We started RAQI because" },
+    { "type": "text", "id": "story_heading_line_2", "label": "Heading line 2", "default": "we couldn't afford to guess." },
+    { "type": "textarea", "id": "story_body_1", "label": "Body paragraph 1", "default": "A bottle of Amouage or Roja costs more than a month of groceries, and two minutes with a paper strip under mall lighting tells you nothing about how it will smell on you at four in the afternoon. We got tired of expensive mistakes sitting unworn on a shelf — so we started buying the bottles ourselves, pouring them into 10ml and 30ml glass, and sharing them at a price a curious person can actually justify." },
+    { "type": "textarea", "id": "story_body_2", "label": "Body paragraph 2", "default": "Every fragrance we sell is 100% authentic, bought from authorised agents here in the UAE — never a copy, never an \"inspired by\". If you ever want to see the bottle yours was poured from, just ask; we'll send you a photo of it the same day." },
+    { "type": "text", "id": "story_tag_1", "label": "Tag 1", "default": "Authorised agents" },
+    { "type": "text", "id": "story_tag_2", "label": "Tag 2", "default": "Guaranteed original" },
+    { "type": "text", "id": "story_tag_3", "label": "Tag 3", "default": "Filled in the UAE" },
+    { "type": "header", "content": "10ml / 30ml explainer (right, light)" },
+    { "type": "text", "id": "sizes_heading", "label": "Heading", "default": "10 ml or 30 ml?" },
+    { "type": "textarea", "id": "sizes_subhead", "label": "Subhead", "default": "The same fragrance, the same batch — only the amount of liquid changes." },
+    { "type": "product", "id": "reference_product", "label": "Reference product (10ml + 30ml live prices)" },
+    { "type": "text", "id": "ten_label", "label": "10ml label", "default": "10 ml" },
+    { "type": "text", "id": "ten_sprays", "label": "10ml sprays", "default": "≈ 80 sprays" },
+    { "type": "textarea", "id": "ten_body", "label": "10ml body", "default": "About six weeks of daily wear, and small enough for a jacket pocket. The right way to get to know something new." },
+    { "type": "text", "id": "thirty_label", "label": "30ml label", "default": "30 ml" },
+    { "type": "text", "id": "thirty_sprays", "label": "30ml sprays", "default": "≈ 360 sprays" },
+    { "type": "textarea", "id": "thirty_body", "label": "30ml body", "default": "Four to six months of wear and the lowest price per millilitre we offer. For the one you already know is yours." },
+    { "type": "text", "id": "sizes_tag_1", "label": "Tag 1", "default": "Same juice" },
+    { "type": "text", "id": "sizes_tag_2", "label": "Tag 2", "default": "Same batch" },
+    { "type": "text", "id": "sizes_tag_3", "label": "Tag 3", "default": "Sealed glass atomiser" }
+  ]
+}
+{% endschema %}

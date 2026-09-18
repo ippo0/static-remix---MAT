@@ -1,0 +1,88 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "raqi-product",
+      "settings": {
+        "breadcrumb_root": "All perfumes",
+        "photo_placeholder": "Product photo",
+        "authentic_decant_label": "Authentic decant",
+        "select_size_label": "Select size",
+        "ten_ml_sprays": "≈ 170 sprays",
+        "thirty_ml_sprays": "≈ 360+ sprays",
+        "ten_ml_caption": "Try it",
+        "thirty_ml_caption": "Live with it",
+        "fragrance_notes_label": "Fragrance Notes",
+        "note_top_label": "Top",
+        "note_heart_label": "Heart",
+        "note_base_label": "Base",
+        "add_to_cart_label": "Add to Cart",
+        "photo_proof_text": "Want proof? Ask and we'll send a photo of the bottle yours was poured from, plus the batch date.",
+        "trust_1": "100% original",
+        "trust_2": "Filled to order",
+        "trust_3": "Ships next day (UAE)",
+        "shipping_returns_label": "Shipping & Returns",
+        "ship_uae_label": "Across the UAE —",
+        "ship_uae_body": "next-day delivery, free over Dhs. 999.",
+        "ship_gcc_label": "",
+        "ship_gcc_body": "",
+        "returns_label": "Returns —",
+        "returns_body": "A customer can request a refund only if they receive a product in a damaged or defective condition. If the reason is genuine, a refund will be issued within 7 days of purchase.",
+        "ship_footnote_pre": "Questions?",
+        "ship_footnote_whatsapp": "Contact us",
+        "ship_footnote_or": "or read the full",
+        "ship_footnote_policy": "Shipping Policy",
+        "product_info_label": "Product Information"
+      }
+    },
+    "related": {
+      "type": "raqi-related",
+      "settings": {
+        "heading": "You may also like",
+        "view_all_label": "View all perfumes"
+      }
+    },
+    "rd_faq": {
+      "type": "rd-faq",
+      "blocks": {
+        "q1": { "type": "qa", "settings": { "question": "What exactly is a decant?", "answer": "Fragrance transferred by hand from a sealed, authenticated full bottle into a smaller glass atomiser. Same fragrance, same batch, a size you can finish." } },
+        "q2": { "type": "qa", "settings": { "question": "Is the fragrance authentic?", "answer": "Yes. Every bottle is bought through authorised UAE agents and its batch code is recorded before we pour. The code is printed on your label so you can verify it yourself." } },
+        "q3": { "type": "qa", "settings": { "question": "Where do you source your fragrances?", "answer": "Authorised agents and distributors in the UAE. We never buy unsealed stock and we never buy from unverified resellers." } },
+        "q4": { "type": "qa", "settings": { "question": "Why buy a decant instead of a full bottle?", "answer": "A full bottle costs AED 1,000–1,500. A decant lets you wear the fragrance for weeks first. If it is yours, buy the bottle. If it is not, you have spent a fraction of that finding out." } },
+        "q5": { "type": "qa", "settings": { "question": "Why 10ml and 30ml?", "answer": "10ml is about 170 sprays, enough to know. 30ml is about 360+ sprays, enough to wear a fragrance through a season before committing. We do not sell 3ml or 5ml sizes." } },
+        "q6": { "type": "qa", "settings": { "question": "How is the fragrance transferred?", "answer": "By hand, in a controlled space, using sterilised equipment and pharmaceutical-grade glass atomisers. Nothing is diluted, heated, or mixed. Each order is poured and sealed the same day it ships." } },
+        "q7": { "type": "qa", "settings": { "question": "Can I see a photo of the source bottle or batch date?", "answer": "Yes. Ask us before or after you order and we will send a photo of the bottle your decant was filled from, including its batch code and date." } },
+        "q8": { "type": "qa", "settings": { "question": "What is the Discovery Set?", "answer": "Three fragrances you choose yourself, poured at 15ml each into the RAQI box. It is built by you, not a fixed sampler. Arriving soon." } },
+        "q9": { "type": "qa", "settings": { "question": "How is the Discovery Set different from a normal decant?", "answer": "A decant is one fragrance at 10ml or 30ml. The Discovery Set is three fragrances at 15ml each in a presentation box, made for deciding between houses rather than living with one." } }
+      },
+      "block_order": [
+        "q1",
+        "q2",
+        "q3",
+        "q4",
+        "q5",
+        "q6",
+        "q7",
+        "q8",
+        "q9"
+      ],
+      "settings": {
+        "heading": "Questions, answered",
+        "show_faq_schema": false
+      }
+    }
+  },
+  "order": [
+    "main",
+    "related",
+    "rd_faq"
+  ]
+}
