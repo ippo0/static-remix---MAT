@@ -161,6 +161,21 @@
                   {%- else -%}
                     <span class="rd-cd__price">{{ line.final_line_price | money }}</span>
                   {%- endif -%}
+                  {%- comment -%}
+                    The same control the suggestion cards carry, on the same
+                    CSS and the same change() path. It is written in Liquid
+                    here because these lines are server-rendered, whereas the
+                    suggestion cards are built in JS -- that split is the whole
+                    reason the two drifted apart. The key, not an index,
+                    identifies the line, so a bundle's line-item properties
+                    ride along untouched and a quantity of 2 means two
+                    identical boxes rather than an edited one.
+                  {%- endcomment -%}
+                  <span class="rd-cd__qty">
+                    <button class="rd-cd__qbtn" type="button" data-rd-cd-step="{{ line.key }}" data-rd-cd-delta="-1" aria-label="{{ 'raqi.rd.cart.qty_decrease' | t }}">&minus;</button>
+                    <span class="rd-cd__qval" data-rd-cd-qval aria-live="polite">{{ line.quantity }}</span>
+                    <button class="rd-cd__qbtn" type="button" data-rd-cd-step="{{ line.key }}" data-rd-cd-delta="1" aria-label="{{ 'raqi.rd.cart.qty_increase' | t }}">+</button>
+                  </span>
                   <button class="rd-cd__rm" type="button" data-rd-cd-remove="{{ line.key }}" aria-label="{{ section.settings.remove_label }} {{ line.product.title | escape }}">{{ section.settings.remove_label }}</button>
                 </span>
               </li>
@@ -424,8 +439,11 @@
     transition: background 140ms ease, color 140ms ease; }
   .rd-cd__sug-add:hover { background: var(--rd-wine); color: #FFFFFF; }
   .rd-cd__sug-add[disabled] { opacity: .45; cursor: default; }
-  .rd-cd__sug-qty { display: inline-flex; align-items: stretch; block-size: 28px;
+  .rd-cd__sug-qty, .rd-cd__qty { display: inline-flex; align-items: stretch; block-size: 28px;
     border: 1px solid var(--rd-rule); border-radius: 4px; overflow: hidden; }
+  /* .rd-cd__meta is a flex column, so the control needs to opt out of the
+     default stretch the way .rd-cd__rm already does. */
+  .rd-cd__qty { align-self: flex-start; margin-block-start: 8px; }
   .rd-cd__qbtn { inline-size: 28px; border: 0; background: transparent;
     color: var(--rd-ink); font-size: 14px; line-height: 1; cursor: pointer; padding: 0; }
   .rd-cd__qbtn:hover { background: var(--rd-panel); color: var(--rd-wine); }
@@ -856,6 +874,34 @@
     var t = e.target;
     if (!t || !t.closest) return;
     if (t.closest('[data-rd-cd-close]')) { e.preventDefault(); close(); return; }
+    // Quantity stepper on a main cart line. Shares change() -- and therefore
+    // the .js endpoint, the optimistic bag count, setPending and the tier
+    // celebration that refresh() fires -- with Remove and with the suggestion
+    // cards. Reaching 0 removes the line, which is what the suggestion stepper
+    // already does, so minus at 1 behaves the same in both places.
+    var st = t.closest('[data-rd-cd-step]');
+    if (st) {
+      e.preventDefault();
+      if (st.getAttribute('aria-busy') === 'true') return;
+      var sli = st.closest('.rd-cd__item');
+      var have = sli ? parseInt(sli.getAttribute('data-rd-cd-qty'), 10) : NaN;
+      if (isNaN(have)) return;
+      var delta = parseInt(st.getAttribute('data-rd-cd-delta'), 10) || 0;
+      var want = have + delta;
+      if (want < 0) return;
+      // Move the number and the line's own quantity attribute NOW. The next
+      // press reads that attribute back, so a fast double tap counts 1->2->3
+      // instead of posting 2 twice; refresh() overwrites both with the
+      // server's figure a moment later either way.
+      sli.setAttribute('data-rd-cd-qty', String(want));
+      var qv = sli.querySelector('[data-rd-cd-qval]');
+      if (qv) qv.textContent = String(want);
+      if (want === 0) collapse(sli);
+      bumpCount(delta);
+      setPending(true);
+      change(st.getAttribute('data-rd-cd-step'), want);
+      return;
+    }
     var rm = t.closest('[data-rd-cd-remove]');
     if (rm) {
       e.preventDefault();
